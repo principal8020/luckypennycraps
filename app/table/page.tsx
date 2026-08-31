@@ -4,7 +4,11 @@ import { useState } from "react";
 
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 const pointNumbers = [4, 5, 6, 8, 9, 10];
-const chipValues = [5, 10, 25, 100, 500];
+const chipValues = [1, 5, 10, 25, 100, 500];
+
+type PlaceBets = {
+  [key: number]: number;
+};
 
 export default function TablePage() {
   const [dieOne, setDieOne] = useState(1);
@@ -16,9 +20,19 @@ export default function TablePage() {
 
   const [bankroll, setBankroll] = useState(5000);
   const [selectedChip, setSelectedChip] = useState(25);
+  const [removeMode, setRemoveMode] = useState(false);
 
   const [passLineBet, setPassLineBet] = useState(0);
   const [oddsBet, setOddsBet] = useState(0);
+
+  const [placeBets, setPlaceBets] = useState<PlaceBets>({
+    4: 0,
+    5: 0,
+    6: 0,
+    8: 0,
+    9: 0,
+    10: 0,
+  });
 
   function getOddsMultiplier(currentPoint: number) {
     if (currentPoint === 4 || currentPoint === 10) return 3;
@@ -28,7 +42,6 @@ export default function TablePage() {
 
   function getMaxOdds() {
     if (point === null) return 0;
-
     return passLineBet * getOddsMultiplier(point);
   }
 
@@ -78,6 +91,62 @@ export default function TablePage() {
     setMessage(`Added $${selectedChip} in odds behind the Pass Line.`);
   }
 
+  function placeNumberBet(number: number) {
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll for that chip.");
+      return;
+    }
+
+    const newTotal = placeBets[number] + selectedChip;
+
+    setPlaceBets((currentBets) => ({
+      ...currentBets,
+      [number]: newTotal,
+    }));
+
+    setBankroll((currentBankroll) => currentBankroll - selectedChip);
+
+    if ((number === 6 || number === 8) && newTotal % 6 !== 0) {
+      setMessage(
+        `Place ${number} is currently $${newTotal}. Add chips until the total is a multiple of $6.`
+      );
+    } else if (
+      (number === 4 || number === 5 || number === 9 || number === 10) &&
+      newTotal % 5 !== 0
+    ) {
+      setMessage(
+        `Place ${number} is currently $${newTotal}. Add chips until the total is a multiple of $5.`
+      );
+    } else {
+      setMessage(`Place ${number} is now $${newTotal}.`);
+    }
+  }
+
+  function removeNumberBet(number: number) {
+    const currentBet = placeBets[number];
+
+    if (currentBet === 0) {
+      setMessage(`There is no Place ${number} bet to remove.`);
+      return;
+    }
+
+    if (selectedChip > currentBet) {
+      setMessage(
+        `You only have $${currentBet} on Place ${number}. Select a smaller chip.`
+      );
+      return;
+    }
+
+    setPlaceBets((currentBets) => ({
+      ...currentBets,
+      [number]: currentBets[number] - selectedChip,
+    }));
+
+    setBankroll((currentBankroll) => currentBankroll + selectedChip);
+
+    setMessage(`Removed $${selectedChip} from Place ${number}.`);
+  }
+
   function calculateOddsProfit(currentPoint: number, bet: number) {
     if (currentPoint === 4 || currentPoint === 10) {
       return bet * 2;
@@ -90,6 +159,18 @@ export default function TablePage() {
     return bet * 1.2;
   }
 
+  function calculatePlaceProfit(number: number, bet: number) {
+    if (number === 4 || number === 10) {
+      return (bet / 5) * 9;
+    }
+
+    if (number === 5 || number === 9) {
+      return (bet / 5) * 7;
+    }
+
+    return (bet / 6) * 7;
+  }
+
   function winPassLine(label: string, madePoint?: number) {
     let amountReturned = 0;
 
@@ -99,7 +180,6 @@ export default function TablePage() {
 
     if (oddsBet > 0 && madePoint !== undefined) {
       const oddsProfit = calculateOddsProfit(madePoint, oddsBet);
-
       amountReturned += oddsBet + oddsProfit;
     }
 
@@ -128,7 +208,6 @@ export default function TablePage() {
   function losePassLine(label: string) {
     if (passLineBet > 0 || oddsBet > 0) {
       const totalLost = passLineBet + oddsBet;
-
       setMessage(`${label} Total lost: $${totalLost}.`);
     } else {
       setMessage(label);
@@ -138,7 +217,56 @@ export default function TablePage() {
     setOddsBet(0);
   }
 
+  function resolvePlaceBet(total: number) {
+    const activeBet = placeBets[total];
+
+    if (!activeBet || activeBet === 0) {
+      return null;
+    }
+
+    const profit = calculatePlaceProfit(total, activeBet);
+
+    setBankroll((currentBankroll) => currentBankroll + profit);
+
+    return `Place ${total} wins $${profit}. Bet stays up.`;
+  }
+
+  function clearAllPlaceBets() {
+    const totalPlaceLoss = Object.values(placeBets).reduce(
+      (sum, bet) => sum + bet,
+      0
+    );
+
+    setPlaceBets({
+      4: 0,
+      5: 0,
+      6: 0,
+      8: 0,
+      9: 0,
+      10: 0,
+    });
+
+    return totalPlaceLoss;
+  }
+
   function rollDice() {
+    const invalidPlaceBet = pointNumbers.find((number) => {
+      const bet = placeBets[number];
+
+      if (bet === 0) return false;
+
+      if (number === 6 || number === 8) {
+        return bet % 6 !== 0;
+      }
+
+      return bet % 5 !== 0;
+    });
+
+    if (invalidPlaceBet !== undefined) {
+      setMessage(`Fix your Place ${invalidPlaceBet} bet before rolling.`);
+      return;
+    }
+
     const first = Math.floor(Math.random() * 6) + 1;
     const second = Math.floor(Math.random() * 6) + 1;
     const total = first + second;
@@ -160,14 +288,68 @@ export default function TablePage() {
       return;
     }
 
+    if (total === 7) {
+      const placeLoss = clearAllPlaceBets();
+      const passLoss = passLineBet + oddsBet;
+
+      setPassLineBet(0);
+      setOddsBet(0);
+      setPoint(null);
+
+      const totalLost = passLoss + placeLoss;
+
+      setMessage(
+        totalLost > 0
+          ? `7 — Seven out! Total lost: $${totalLost}.`
+          : "7 — Seven out!"
+      );
+
+      return;
+    }
+
+    const placeMessage = resolvePlaceBet(total);
+
     if (total === point) {
       const madePoint = point;
 
-      winPassLine(`${total} — Point made!`, madePoint);
+      let amountReturned = 0;
+
+      if (passLineBet > 0) {
+        amountReturned += passLineBet * 2;
+      }
+
+      if (oddsBet > 0) {
+        const oddsProfit = calculateOddsProfit(madePoint, oddsBet);
+        amountReturned += oddsBet + oddsProfit;
+      }
+
+      if (amountReturned > 0) {
+        setBankroll((currentBankroll) => currentBankroll + amountReturned);
+      }
+
+      const passProfit = passLineBet;
+      const oddsProfit =
+        oddsBet > 0 ? calculateOddsProfit(madePoint, oddsBet) : 0;
+
+      setPassLineBet(0);
+      setOddsBet(0);
       setPoint(null);
-    } else if (total === 7) {
-      losePassLine("7 — Seven out!");
-      setPoint(null);
+
+      const passMessage =
+        passLineBet > 0
+          ? `${total} — Point made! Pass Line wins $${passProfit}` +
+            (oddsBet > 0 ? ` and Odds win $${oddsProfit}.` : ".")
+          : `${total} — Point made!`;
+
+      setMessage(
+        placeMessage ? `${passMessage} ${placeMessage}` : passMessage
+      );
+
+      return;
+    }
+
+    if (placeMessage) {
+      setMessage(placeMessage);
     } else {
       setMessage(`${total} — No decision.`);
     }
@@ -176,7 +358,6 @@ export default function TablePage() {
   return (
     <main className="min-h-screen bg-emerald-950 p-6 text-white">
       <div className="mx-auto max-w-7xl">
-
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">🎲 Lucky Penny Craps</h1>
@@ -201,11 +382,13 @@ export default function TablePage() {
         </div>
 
         <div className="rounded-3xl border-4 border-amber-700 bg-emerald-800 p-6 shadow-2xl">
-
           <div className="grid grid-cols-6 gap-2">
             {pointNumbers.map((number) => (
               <button
                 key={number}
+                onClick={() =>
+                  removeMode ? removeNumberBet(number) : placeNumberBet(number)
+                }
                 className={`rounded-lg border-2 p-6 text-3xl font-bold ${
                   point === number
                     ? "border-amber-300 bg-amber-500 text-black"
@@ -213,9 +396,14 @@ export default function TablePage() {
                 }`}
               >
                 {number}
-                <span className="mt-1 block text-xs font-normal">
-                  PLACE
-                </span>
+
+                <span className="mt-1 block text-xs font-normal">PLACE</span>
+
+                {placeBets[number] > 0 && (
+                  <span className="mt-2 block rounded-full bg-white px-2 py-1 text-sm text-black">
+                    ${placeBets[number]}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -261,9 +449,7 @@ export default function TablePage() {
                 </span>
               )}
 
-              <span className="ml-4 text-sm">
-                Max ${getMaxOdds()}
-              </span>
+              <span className="ml-4 text-sm">Max ${getMaxOdds()}</span>
             </button>
           )}
         </div>
@@ -292,15 +478,36 @@ export default function TablePage() {
           Selected chip: ${selectedChip}
         </p>
 
-        <div className="mt-8 text-center">
+        <div className="mt-4 flex justify-center gap-3">
+          <button
+            onClick={() => setRemoveMode(false)}
+            className={`rounded-lg px-6 py-2 font-bold ${
+              !removeMode
+                ? "bg-amber-500 text-black"
+                : "border border-white/50 text-white"
+            }`}
+          >
+            ADD BET
+          </button>
 
+          <button
+            onClick={() => setRemoveMode(true)}
+            className={`rounded-lg px-6 py-2 font-bold ${
+              removeMode
+                ? "bg-red-600 text-white"
+                : "border border-white/50 text-white"
+            }`}
+          >
+            REMOVE BET
+          </button>
+        </div>
+
+        <div className="mt-8 text-center">
           <div className="mb-2 text-7xl">
             {diceFaces[dieOne - 1]} {diceFaces[dieTwo - 1]}
           </div>
 
-          <p className="text-2xl font-bold">
-            You rolled {rollTotal}
-          </p>
+          <p className="text-2xl font-bold">You rolled {rollTotal}</p>
 
           <p className="mb-4 mt-2 min-h-7 text-lg text-amber-300">
             {message}
@@ -316,7 +523,6 @@ export default function TablePage() {
           <p className="mt-3 text-sm text-emerald-200">
             Select a chip, place your bets, then roll.
           </p>
-
         </div>
       </div>
     </main>
