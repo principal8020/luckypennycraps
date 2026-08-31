@@ -48,6 +48,56 @@ function casinoPayout(amount: number) {
   return Math.floor(amount);
 }
 
+function getChipStyle(value: number) {
+  if (value === 1) {
+    return "bg-white text-black border-slate-400";
+  }
+
+  if (value === 5) {
+    return "bg-red-600 text-white border-white";
+  }
+
+  if (value === 10) {
+    return "bg-blue-600 text-white border-white";
+  }
+
+  if (value === 25) {
+    return "bg-green-700 text-white border-white";
+  }
+
+  if (value === 100) {
+    return "bg-zinc-950 text-white border-white";
+  }
+
+  return "bg-purple-700 text-white border-white";
+}
+
+function CasinoChip({
+  value,
+  selected = false,
+}: {
+  value: number;
+  selected?: boolean;
+}) {
+  return (
+    <div
+      className={`relative flex h-16 w-16 items-center justify-center rounded-full border-[5px] border-dashed font-black shadow-xl transition ${
+        getChipStyle(value)
+      } ${
+        selected
+          ? "scale-110 ring-4 ring-yellow-300 ring-offset-2 ring-offset-emerald-950"
+          : ""
+      }`}
+    >
+      <div className="absolute inset-[7px] rounded-full border-2 border-current opacity-40" />
+
+      <span className="relative z-10">
+        ${value}
+      </span>
+    </div>
+  );
+}
+
 function BetChip({
   amount,
   dark = false,
@@ -59,14 +109,50 @@ function BetChip({
 
   return (
     <span
-      className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-full border-4 border-dashed px-2 text-xs font-black shadow-lg ${
+      className={`relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border-[4px] border-dashed px-2 text-xs font-black shadow-xl ${
         dark
-          ? "border-red-200 bg-red-800 text-white"
-          : "border-white bg-amber-100 text-black"
+          ? "border-white bg-red-700 text-white"
+          : "border-white bg-zinc-950 text-white"
       }`}
     >
-      ${money(amount)}
+      <span className="absolute inset-[5px] rounded-full border border-white/40" />
+
+      <span className="relative z-10">
+        ${money(amount)}
+      </span>
     </span>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  positive = false,
+  negative = false,
+}: {
+  label: string;
+  value: string;
+  positive?: boolean;
+  negative?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-[9px] font-black uppercase tracking-wider text-emerald-400">
+        {label}
+      </p>
+
+      <p
+        className={`text-lg font-black ${
+          positive
+            ? "text-emerald-300"
+            : negative
+              ? "text-red-300"
+              : ""
+        }`}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -77,6 +163,7 @@ export default function TablePage() {
 
   const [rollHistory, setRollHistory] =
     useState<RollHistoryItem[]>([]);
+
   const [rollCount, setRollCount] = useState(0);
 
   const [point, setPoint] =
@@ -154,11 +241,8 @@ export default function TablePage() {
   const [anyCrapsBet, setAnyCrapsBet] =
     useState(0);
 
-  const [yoBet, setYoBet] =
-    useState(0);
-
-  const [hornBet, setHornBet] =
-    useState(0);
+  const [yoBet, setYoBet] = useState(0);
+  const [hornBet, setHornBet] = useState(0);
 
   /*
     REMOVE HELPERS
@@ -298,35 +382,22 @@ export default function TablePage() {
       hardwayNumbers.includes(total)
     ) {
       const die = total / 2;
-
       return [die, die];
     }
 
     const combinations: number[][] = [];
 
-    for (
-      let first = 1;
-      first <= 6;
-      first++
-    ) {
-      for (
-        let second = 1;
-        second <= 6;
-        second++
-      ) {
+    for (let first = 1; first <= 6; first++) {
+      for (let second = 1; second <= 6; second++) {
         if (first + second === total) {
-          combinations.push([
-            first,
-            second,
-          ]);
+          combinations.push([first, second]);
         }
       }
     }
 
     return combinations[
       Math.floor(
-        Math.random() *
-          combinations.length
+        Math.random() * combinations.length
       )
     ];
   }
@@ -338,17 +409,11 @@ export default function TablePage() {
   function getPassOddsMultiplier(
     number: number
   ) {
-    if (
-      number === 4 ||
-      number === 10
-    ) {
+    if (number === 4 || number === 10) {
       return 3;
     }
 
-    if (
-      number === 5 ||
-      number === 9
-    ) {
+    if (number === 5 || number === 9) {
       return 4;
     }
 
@@ -359,46 +424,26 @@ export default function TablePage() {
     number: number,
     bet: number
   ) {
-    if (
-      number === 4 ||
-      number === 10
-    ) {
-      return casinoPayout(
-        bet * 2
-      );
+    if (number === 4 || number === 10) {
+      return casinoPayout(bet * 2);
     }
 
-    if (
-      number === 5 ||
-      number === 9
-    ) {
-      return casinoPayout(
-        bet * 1.5
-      );
+    if (number === 5 || number === 9) {
+      return casinoPayout(bet * 1.5);
     }
 
-    return casinoPayout(
-      bet * 1.2
-    );
+    return casinoPayout(bet * 1.2);
   }
 
   function calculateLayOddsProfit(
     number: number,
     bet: number
   ) {
-    if (
-      number === 4 ||
-      number === 10
-    ) {
-      return casinoPayout(
-        bet / 2
-      );
+    if (number === 4 || number === 10) {
+      return casinoPayout(bet / 2);
     }
 
-    if (
-      number === 5 ||
-      number === 9
-    ) {
+    if (number === 5 || number === 9) {
       return casinoPayout(
         (bet * 2) / 3
       );
@@ -529,12 +574,6 @@ export default function TablePage() {
           current + amount
       );
 
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Pass odds.`
-      );
-
       return;
     }
 
@@ -570,13 +609,6 @@ export default function TablePage() {
     setBankroll(
       (current) =>
         current - selectedChip
-    );
-
-    setMessage(
-      `Pass odds are now $${money(
-        passOddsBet +
-          selectedChip
-      )}.`
     );
   }
 
@@ -623,12 +655,6 @@ export default function TablePage() {
           current + amount
       );
 
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Don't Pass.`
-      );
-
       return;
     }
 
@@ -661,10 +687,6 @@ export default function TablePage() {
     setBankroll(
       (current) =>
         current - selectedChip
-    );
-
-    setMessage(
-      `Added $${selectedChip} to Don't Pass.`
     );
   }
 
@@ -707,12 +729,6 @@ export default function TablePage() {
       setBankroll(
         (current) =>
           current + amount
-      );
-
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Don't Pass lay odds.`
       );
 
       return;
@@ -791,12 +807,6 @@ export default function TablePage() {
           current + amount
       );
 
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Place ${number}.`
-      );
-
       return;
     }
 
@@ -821,12 +831,6 @@ export default function TablePage() {
     setBankroll(
       (current) =>
         current - selectedChip
-    );
-
-    setMessage(
-      `Place ${number} is now $${money(
-        total
-      )}.`
     );
   }
 
@@ -883,9 +887,7 @@ export default function TablePage() {
 
   function clearPlaceBets() {
     const lost =
-      Object.values(
-        placeBets
-      ).reduce(
+      Object.values(placeBets).reduce(
         (sum, value) =>
           sum + value,
         0
@@ -929,12 +931,6 @@ export default function TablePage() {
       setBankroll(
         (current) =>
           current + amount
-      );
-
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Field.`
       );
 
       return;
@@ -1052,12 +1048,6 @@ export default function TablePage() {
           current + amount
       );
 
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Come.`
-      );
-
       return;
     }
 
@@ -1115,12 +1105,6 @@ export default function TablePage() {
       setBankroll(
         (current) =>
           current + amount
-      );
-
-      setMessage(
-        `Removed $${money(
-          amount
-        )} from Don't Come.`
       );
 
       return;
@@ -1411,9 +1395,7 @@ export default function TablePage() {
 
     if (total === 7) {
       const lost =
-        Object.values(
-          next
-        ).reduce(
+        Object.values(next).reduce(
           (sum, value) =>
             sum + value,
           0
@@ -2082,10 +2064,6 @@ export default function TablePage() {
       );
     }
 
-    /*
-      COME OUT
-    */
-
     if (point === null) {
       if (placeBetsWorking) {
         if (total === 7) {
@@ -2270,10 +2248,6 @@ export default function TablePage() {
       }
     }
 
-    /*
-      SEVEN OUT
-    */
-
     if (total === 7) {
       messages.unshift(
         "7 — Seven out!"
@@ -2361,10 +2335,6 @@ export default function TablePage() {
       return;
     }
 
-    /*
-      PLACE HIT
-    */
-
     const placeMessage =
       resolvePlaceBet(total);
 
@@ -2373,10 +2343,6 @@ export default function TablePage() {
         placeMessage
       );
     }
-
-    /*
-      POINT MADE
-    */
 
     if (total === point) {
       messages.unshift(
@@ -2474,12 +2440,12 @@ export default function TablePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#061a14] px-3 py-4 text-white sm:px-5">
+    <main className="min-h-screen bg-[#041710] px-3 py-4 text-white sm:px-5">
       <div className="mx-auto max-w-[1500px]">
 
         {/* HEADER */}
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-800 bg-black/20 px-5 py-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-800 bg-black/30 px-5 py-4 shadow-xl">
           <div>
             <h1 className="text-2xl font-black sm:text-3xl">
               🎲 Lucky Penny Craps
@@ -2524,149 +2490,157 @@ export default function TablePage() {
           </div>
         </div>
 
-        {/* TABLE */}
+        {/* CASINO TABLE */}
 
-        <div className="overflow-hidden rounded-[34px] border-[7px] border-amber-800 bg-[#087642] shadow-2xl">
-          <div className="border-4 border-amber-950/30 p-3 sm:p-5">
+        <div className="overflow-hidden rounded-[38px] border-[8px] border-[#7a3f09] bg-[#047a43] shadow-2xl">
+          <div className="border-[4px] border-[#3f2208] p-3 sm:p-5">
 
-            {/* NUMBERS */}
+            {/* NUMBER AREA */}
 
-            <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
-              {pointNumbers.map(
-                (number) => (
-                  <div
-                    key={number}
-                    className={`relative min-h-32 rounded-xl border-2 p-3 text-center ${
-                      point === number
-                        ? "border-yellow-300 bg-emerald-600"
-                        : "border-white/70 bg-emerald-700/50"
-                    }`}
-                  >
-                    {point ===
-                      number && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full border-4 border-black bg-white px-3 py-1 text-xs font-black text-black shadow-xl">
-                        ON
-                      </div>
-                    )}
+            <div className="relative">
 
-                    <button
-                      onClick={(
-                        event
-                      ) =>
-                        handleNumberBet(
-                          event,
-                          number
-                        )
-                      }
-                      className="w-full"
+              {point === null && (
+                <div className="absolute -top-2 left-2 z-20 flex h-16 w-16 items-center justify-center rounded-full border-[5px] border-zinc-900 bg-white text-sm font-black text-black shadow-2xl">
+                  OFF
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+                {pointNumbers.map(
+                  (number) => (
+                    <div
+                      key={number}
+                      className={`relative min-h-36 rounded-lg border-2 px-2 py-3 text-center ${
+                        point ===
+                        number
+                          ? "border-yellow-200 bg-[#108653]"
+                          : "border-white/70 bg-[#087848]"
+                      }`}
                     >
-                      <span className="block text-4xl font-black">
-                        {number}
-                      </span>
+                      {point ===
+                        number && (
+                        <div className="absolute -top-5 left-1/2 z-20 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full border-[5px] border-white bg-zinc-950 text-sm font-black text-white shadow-2xl">
+                          ON
+                        </div>
+                      )}
 
-                      <span className="block text-[10px] font-black tracking-widest text-emerald-100">
-                        PLACE
-                      </span>
-
-                      <div className="mt-2 flex justify-center">
-                        <BetChip
-                          amount={
-                            placeBets[
-                              number
-                            ]
+                      <button
+                        onClick={(
+                          event
+                        ) =>
+                          handleNumberBet(
+                            event,
+                            number
+                          )
+                        }
+                        className="h-full w-full"
+                      >
+                        <span className="block text-5xl font-black">
+                          {
+                            number
                           }
-                        />
-                      </div>
-                    </button>
+                        </span>
 
-                    {comeBets[
-                      number
-                    ] > 0 && (
-                      <div className="mt-2 border-t border-white/30 pt-2 text-xs">
-                        <div className="font-bold">
+                        <span className="block text-[10px] font-black tracking-[0.2em]">
+                          PLACE
+                        </span>
+
+                        <div className="mt-3 flex justify-center">
+                          <BetChip
+                            amount={
+                              placeBets[
+                                number
+                              ]
+                            }
+                          />
+                        </div>
+                      </button>
+
+                      {comeBets[
+                        number
+                      ] > 0 && (
+                        <div className="absolute bottom-1 left-1 text-[9px] font-black">
                           COME $
                           {money(
                             comeBets[
                               number
                             ]
                           )}
+
+                          <button
+                            onClick={(
+                              event
+                            ) =>
+                              handleComeOdds(
+                                event,
+                                number
+                              )
+                            }
+                            className="ml-1 rounded bg-blue-950 px-1 py-0.5"
+                          >
+                            O $
+                            {money(
+                              comeOdds[
+                                number
+                              ]
+                            )}
+                          </button>
                         </div>
+                      )}
 
-                        <button
-                          onClick={(
-                            event
-                          ) =>
-                            handleComeOdds(
-                              event,
-                              number
-                            )
-                          }
-                          className="mt-1 rounded bg-blue-900 px-2 py-1 text-[10px] font-black"
-                        >
-                          ODDS $
-                          {money(
-                            comeOdds[
-                              number
-                            ]
-                          )}
-                        </button>
-                      </div>
-                    )}
-
-                    {dontComeBets[
-                      number
-                    ] > 0 && (
-                      <div className="mt-2 border-t border-white/30 pt-2 text-xs">
-                        <div className="font-bold text-red-100">
+                      {dontComeBets[
+                        number
+                      ] > 0 && (
+                        <div className="absolute bottom-1 right-1 text-[9px] font-black text-red-100">
                           DC $
                           {money(
                             dontComeBets[
                               number
                             ]
                           )}
-                        </div>
 
-                        <button
-                          onClick={(
-                            event
-                          ) =>
-                            handleDontComeOdds(
-                              event,
-                              number
-                            )
-                          }
-                          className="mt-1 rounded bg-red-950 px-2 py-1 text-[10px] font-black"
-                        >
-                          LAY $
-                          {money(
-                            dontComeOdds[
-                              number
-                            ]
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )
-              )}
+                          <button
+                            onClick={(
+                              event
+                            ) =>
+                              handleDontComeOdds(
+                                event,
+                                number
+                              )
+                            }
+                            className="ml-1 rounded bg-red-950 px-1 py-0.5"
+                          >
+                            L $
+                            {money(
+                              dontComeOdds[
+                                number
+                              ]
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
             </div>
 
-            {/* MAIN LOWER TABLE */}
+            {/* TABLE BODY */}
 
-            <div className="mt-3 grid gap-3 xl:grid-cols-[2fr_1fr]">
+            <div className="mt-3 grid gap-3 xl:grid-cols-[2.2fr_1fr]">
 
-              {/* LEFT */}
+              {/* PLAYER SIDE */}
 
               <div>
                 <button
                   onClick={
                     handleComeBet
                   }
-                  className="relative min-h-24 w-full rounded-xl border-2 border-white/80 bg-emerald-700/30 text-4xl font-black tracking-widest hover:bg-emerald-600"
+                  className="relative min-h-24 w-full border-2 border-white/80 bg-[#087a49] text-4xl font-black tracking-[0.16em] transition hover:bg-[#0b8d54]"
                 >
                   COME
 
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2">
                     <BetChip
                       amount={
                         activeComeBet
@@ -2679,18 +2653,18 @@ export default function TablePage() {
                   onClick={
                     handleFieldBet
                   }
-                  className="relative mt-3 w-full rounded-xl border-2 border-white/80 bg-emerald-700/30 px-3 py-5 font-black hover:bg-emerald-600"
+                  className="relative mt-2 w-full border-2 border-white/80 bg-[#087a49] py-5 font-black hover:bg-[#0b8d54]"
                 >
                   <span className="text-3xl">
                     FIELD
                   </span>
 
-                  <span className="ml-5 text-base tracking-widest text-emerald-100">
+                  <span className="ml-5 text-sm tracking-[0.2em]">
                     2 • 3 • 4 • 9 •
                     10 • 11 • 12
                   </span>
 
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2">
                     <BetChip
                       amount={
                         fieldBet
@@ -2703,12 +2677,12 @@ export default function TablePage() {
                   onClick={
                     handleDontComeBet
                   }
-                  className="relative mt-3 w-full rounded-xl border-2 border-white/70 bg-emerald-950/20 py-4 text-xl font-black tracking-wider"
+                  className="relative mt-2 w-full border-2 border-white/70 bg-[#08673f] py-4 text-xl font-black tracking-wider"
                 >
                   DON&apos;T COME —
                   BAR 12
 
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2">
                     <BetChip
                       amount={
                         activeDontComeBet
@@ -2722,12 +2696,12 @@ export default function TablePage() {
                   onClick={
                     handleDontPassBet
                   }
-                  className="relative mt-3 w-full rounded-xl border-2 border-white/70 bg-emerald-950/20 py-4 text-xl font-black tracking-wider"
+                  className="relative mt-2 w-full border-2 border-white/70 bg-[#08673f] py-4 text-xl font-black tracking-wider"
                 >
                   DON&apos;T PASS —
                   BAR 12
 
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2">
                     <BetChip
                       amount={
                         dontPassBet
@@ -2744,10 +2718,10 @@ export default function TablePage() {
                       onClick={
                         handleDontPassOdds
                       }
-                      className="mt-2 w-full rounded-lg border border-red-300 bg-red-950/60 p-3 text-sm font-black"
+                      className="mt-1 w-full border border-red-300 bg-red-950/70 py-2 text-xs font-black"
                     >
                       DON&apos;T PASS
-                      LAY ODDS — $
+                      LAY ODDS $
                       {money(
                         dontPassOddsBet
                       )}
@@ -2758,11 +2732,11 @@ export default function TablePage() {
                   onClick={
                     handlePassLineBet
                   }
-                  className="relative mt-3 w-full rounded-xl border-4 border-white bg-emerald-600 py-5 text-3xl font-black tracking-widest"
+                  className="relative mt-2 w-full border-[4px] border-white bg-[#079a5b] py-5 text-3xl font-black tracking-[0.15em]"
                 >
                   PASS LINE
 
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2">
                     <BetChip
                       amount={
                         passLineBet
@@ -2778,9 +2752,9 @@ export default function TablePage() {
                       onClick={
                         handlePassOdds
                       }
-                      className="mt-2 w-full rounded-lg border border-yellow-300 bg-yellow-400 p-3 text-sm font-black text-black"
+                      className="mt-1 w-full border border-yellow-300 bg-yellow-400 py-2 text-xs font-black text-black"
                     >
-                      PASS ODDS — $
+                      PASS ODDS $
                       {money(
                         passOddsBet
                       )}
@@ -2790,12 +2764,13 @@ export default function TablePage() {
 
               {/* CENTER ACTION */}
 
-              <div className="rounded-xl border-2 border-white/40 bg-[#075f38] p-3">
-                <p className="mb-3 text-center text-xs font-black uppercase tracking-[0.3em] text-emerald-100">
+              <div className="border-2 border-white/50 bg-[#056239] p-3">
+                <p className="mb-3 text-center text-[10px] font-black uppercase tracking-[0.35em] text-emerald-100">
                   Center Action
                 </p>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1.5">
+
                   {hardwayNumbers.map(
                     (number) => (
                       <button
@@ -2810,20 +2785,20 @@ export default function TablePage() {
                             number
                           )
                         }
-                        className="rounded-lg border border-white/60 bg-emerald-950/40 p-3 font-black"
+                        className="relative min-h-20 border border-white/70 bg-[#075432] p-2 font-black"
                       >
                         HARD {number}
 
-                        <span className="mt-1 block text-[9px] text-emerald-200">
+                        <span className="block text-[9px] text-emerald-200">
                           {number ===
                             4 ||
                           number ===
                             10
-                            ? "7:1"
-                            : "9:1"}
+                            ? "7 TO 1"
+                            : "9 TO 1"}
                         </span>
 
-                        <div className="mt-1 flex justify-center">
+                        <div className="absolute bottom-1 right-1">
                           <BetChip
                             amount={
                               hardways[
@@ -2847,14 +2822,15 @@ export default function TablePage() {
                         "Any 7"
                       )
                     }
-                    className="rounded-lg border border-white/60 p-3 font-black"
+                    className="relative min-h-20 border border-white/70 bg-[#075432] p-2 font-black"
                   >
                     ANY 7
+
                     <span className="block text-[9px]">
-                      4:1
+                      4 TO 1
                     </span>
 
-                    <div className="mt-1 flex justify-center">
+                    <div className="absolute bottom-1 right-1">
                       <BetChip
                         amount={
                           anySevenBet
@@ -2874,14 +2850,15 @@ export default function TablePage() {
                         "Any Craps"
                       )
                     }
-                    className="rounded-lg border border-white/60 p-3 font-black"
+                    className="relative min-h-20 border border-white/70 bg-[#075432] p-2 font-black"
                   >
                     ANY CRAPS
+
                     <span className="block text-[9px]">
                       2 • 3 • 12
                     </span>
 
-                    <div className="mt-1 flex justify-center">
+                    <div className="absolute bottom-1 right-1">
                       <BetChip
                         amount={
                           anyCrapsBet
@@ -2901,14 +2878,15 @@ export default function TablePage() {
                         "Yo 11"
                       )
                     }
-                    className="rounded-lg border border-white/60 p-3 font-black"
+                    className="relative min-h-20 border border-white/70 bg-[#075432] p-2 font-black"
                   >
                     YO 11
+
                     <span className="block text-[9px]">
-                      15:1
+                      15 TO 1
                     </span>
 
-                    <div className="mt-1 flex justify-center">
+                    <div className="absolute bottom-1 right-1">
                       <BetChip
                         amount={
                           yoBet
@@ -2928,15 +2906,16 @@ export default function TablePage() {
                         "Horn"
                       )
                     }
-                    className="rounded-lg border border-white/60 p-3 font-black"
+                    className="relative min-h-20 border border-white/70 bg-[#075432] p-2 font-black"
                   >
                     HORN
+
                     <span className="block text-[9px]">
                       2 • 3 • 11 •
                       12
                     </span>
 
-                    <div className="mt-1 flex justify-center">
+                    <div className="absolute bottom-1 right-1">
                       <BetChip
                         amount={
                           hornBet
@@ -2950,10 +2929,11 @@ export default function TablePage() {
           </div>
         </div>
 
-        {/* DICE + HISTORY */}
+        {/* DEALER / HISTORY */}
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_330px]">
-          <div className="rounded-2xl border border-emerald-700 bg-black/20 p-4">
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
+
+          <div className="rounded-2xl border border-emerald-700 bg-black/30 p-4">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">
               Dealer
             </p>
@@ -2987,15 +2967,17 @@ export default function TablePage() {
               </div>
 
               <button
-                onClick={rollDice}
-                className="rounded-xl bg-amber-400 px-10 py-4 text-xl font-black text-black shadow-lg transition hover:scale-105 hover:bg-amber-300"
+                onClick={
+                  rollDice
+                }
+                className="rounded-xl bg-amber-400 px-10 py-4 text-xl font-black text-black shadow-xl transition hover:scale-105 hover:bg-amber-300"
               >
                 ROLL DICE
               </button>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-emerald-700 bg-black/20 p-4">
+          <div className="rounded-2xl border border-emerald-700 bg-black/30 p-4">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">
               Recent Rolls
             </p>
@@ -3049,11 +3031,11 @@ export default function TablePage() {
           </div>
         </div>
 
-        {/* CONTROL RAIL */}
+        {/* PLAYER RAIL */}
 
-        <div className="mt-4 rounded-2xl border border-emerald-800 bg-black/20 p-4">
+        <div className="mt-4 rounded-2xl border border-emerald-800 bg-black/30 p-4">
+
           <div className="flex flex-wrap items-center justify-center gap-3">
-
             <button
               onClick={() =>
                 setRemoveMode(
@@ -3113,20 +3095,18 @@ export default function TablePage() {
             </button>
           </div>
 
-          <p className="mt-3 text-center text-xs font-bold text-emerald-300">
-            Tip: Hold{" "}
-            <span className="rounded border border-white/30 bg-black/30 px-2 py-1 text-white">
+          <p className="mt-3 text-center text-xs font-semibold text-emerald-300">
+            Hold{" "}
+            <span className="rounded border border-white/30 bg-black/50 px-2 py-1 font-black text-white">
               SHIFT
             </span>{" "}
-            and click any removable bet
-            to take chips down.
+            and click a wager to remove
+            the selected chip amount.
           </p>
 
-          {/* CHIPS */}
-
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-            <span className="mr-2 text-xs font-black uppercase tracking-widest text-emerald-300">
-              Chip
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
+            <span className="mr-2 text-xs font-black uppercase tracking-[0.2em] text-emerald-300">
+              Chip Rack
             </span>
 
             {chipValues.map(
@@ -3138,14 +3118,17 @@ export default function TablePage() {
                       chip
                     )
                   }
-                  className={`flex h-14 w-14 items-center justify-center rounded-full border-4 font-black shadow-lg transition hover:scale-110 ${
-                    selectedChip ===
-                    chip
-                      ? "border-yellow-300 bg-amber-100 text-black ring-4 ring-yellow-300/30"
-                      : "border-dashed border-white bg-white text-black"
-                  }`}
+                  className="transition hover:scale-110"
                 >
-                  ${chip}
+                  <CasinoChip
+                    value={
+                      chip
+                    }
+                    selected={
+                      selectedChip ===
+                      chip
+                    }
+                  />
                 </button>
               )
             )}
@@ -3154,7 +3137,7 @@ export default function TablePage() {
 
         {/* TEST MODE */}
 
-        <div className="mx-auto mt-4 max-w-2xl rounded-2xl border border-purple-500/40 bg-purple-950/20 p-4 text-center">
+        <div className="mx-auto mt-4 max-w-xl rounded-2xl border border-purple-500/40 bg-purple-950/20 p-3 text-center">
           <button
             onClick={() =>
               setTestingMode(
@@ -3162,7 +3145,7 @@ export default function TablePage() {
                   !current
               )
             }
-            className={`rounded-lg px-5 py-2 text-sm font-black ${
+            className={`rounded-lg px-5 py-2 text-xs font-black ${
               testingMode
                 ? "bg-purple-500"
                 : "border border-purple-400"
@@ -3175,7 +3158,7 @@ export default function TablePage() {
           </button>
 
           {testingMode && (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
               <label className="font-bold">
                 Force Roll
               </label>
@@ -3249,47 +3232,11 @@ export default function TablePage() {
           )}
         </div>
 
-        <p className="mt-5 text-center text-xs text-emerald-500">
-          Practice credits have no
-          cash value.
+        <p className="mt-5 text-center text-xs text-emerald-600">
+          Practice credits have no cash
+          value.
         </p>
       </div>
     </main>
-  );
-}
-
-/*
-  SMALL DISPLAY COMPONENT
-*/
-
-function Stat({
-  label,
-  value,
-  positive = false,
-  negative = false,
-}: {
-  label: string;
-  value: string;
-  positive?: boolean;
-  negative?: boolean;
-}) {
-  return (
-    <div>
-      <p className="text-[9px] font-black uppercase tracking-wider text-emerald-400">
-        {label}
-      </p>
-
-      <p
-        className={`text-lg font-black ${
-          positive
-            ? "text-emerald-300"
-            : negative
-              ? "text-red-300"
-              : ""
-        }`}
-      >
-        {value}
-      </p>
-    </div>
   );
 }
