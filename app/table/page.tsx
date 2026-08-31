@@ -22,8 +22,11 @@ export default function TablePage() {
   const [selectedChip, setSelectedChip] = useState(25);
   const [removeMode, setRemoveMode] = useState(false);
 
+  const [placeBetsWorking, setPlaceBetsWorking] = useState(false);
+
   const [passLineBet, setPassLineBet] = useState(0);
   const [oddsBet, setOddsBet] = useState(0);
+  const [fieldBet, setFieldBet] = useState(0);
 
   const [placeBets, setPlaceBets] = useState<PlaceBets>({
     4: 0,
@@ -111,7 +114,10 @@ export default function TablePage() {
         `Place ${number} is currently $${newTotal}. Add chips until the total is a multiple of $6.`
       );
     } else if (
-      (number === 4 || number === 5 || number === 9 || number === 10) &&
+      (number === 4 ||
+        number === 5 ||
+        number === 9 ||
+        number === 10) &&
       newTotal % 5 !== 0
     ) {
       setMessage(
@@ -147,6 +153,36 @@ export default function TablePage() {
     setMessage(`Removed $${selectedChip} from Place ${number}.`);
   }
 
+  function handleFieldBet() {
+    if (removeMode) {
+      if (fieldBet === 0) {
+        setMessage("There is no Field bet to remove.");
+        return;
+      }
+
+      if (selectedChip > fieldBet) {
+        setMessage(
+          `You only have $${fieldBet} on the Field. Select a smaller chip.`
+        );
+        return;
+      }
+
+      setFieldBet((currentBet) => currentBet - selectedChip);
+      setBankroll((currentBankroll) => currentBankroll + selectedChip);
+      setMessage(`Removed $${selectedChip} from the Field.`);
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll for that chip.");
+      return;
+    }
+
+    setFieldBet((currentBet) => currentBet + selectedChip);
+    setBankroll((currentBankroll) => currentBankroll - selectedChip);
+    setMessage(`Added $${selectedChip} to the Field.`);
+  }
+
   function calculateOddsProfit(currentPoint: number, bet: number) {
     if (currentPoint === 4 || currentPoint === 10) {
       return bet * 2;
@@ -169,52 +205,6 @@ export default function TablePage() {
     }
 
     return (bet / 6) * 7;
-  }
-
-  function winPassLine(label: string, madePoint?: number) {
-    let amountReturned = 0;
-
-    if (passLineBet > 0) {
-      amountReturned += passLineBet * 2;
-    }
-
-    if (oddsBet > 0 && madePoint !== undefined) {
-      const oddsProfit = calculateOddsProfit(madePoint, oddsBet);
-      amountReturned += oddsBet + oddsProfit;
-    }
-
-    if (amountReturned > 0) {
-      setBankroll((currentBankroll) => currentBankroll + amountReturned);
-
-      const passProfit = passLineBet;
-
-      const oddsProfit =
-        oddsBet > 0 && madePoint !== undefined
-          ? calculateOddsProfit(madePoint, oddsBet)
-          : 0;
-
-      setMessage(
-        `${label} Pass Line wins $${passProfit}` +
-          (oddsBet > 0 ? ` and Odds win $${oddsProfit}.` : ".")
-      );
-    } else {
-      setMessage(label);
-    }
-
-    setPassLineBet(0);
-    setOddsBet(0);
-  }
-
-  function losePassLine(label: string) {
-    if (passLineBet > 0 || oddsBet > 0) {
-      const totalLost = passLineBet + oddsBet;
-      setMessage(`${label} Total lost: $${totalLost}.`);
-    } else {
-      setMessage(label);
-    }
-
-    setPassLineBet(0);
-    setOddsBet(0);
   }
 
   function resolvePlaceBet(total: number) {
@@ -249,6 +239,57 @@ export default function TablePage() {
     return totalPlaceLoss;
   }
 
+  function resolveFieldBet(total: number) {
+    if (fieldBet === 0) {
+      return null;
+    }
+
+    if (total === 2) {
+      const profit = fieldBet * 2;
+      const amountReturned = fieldBet + profit;
+
+      setBankroll(
+        (currentBankroll) => currentBankroll + amountReturned
+      );
+
+      setFieldBet(0);
+
+      return `Field wins on 2! Profit: $${profit}.`;
+    }
+
+    if (total === 12) {
+      const profit = fieldBet * 3;
+      const amountReturned = fieldBet + profit;
+
+      setBankroll(
+        (currentBankroll) => currentBankroll + amountReturned
+      );
+
+      setFieldBet(0);
+
+      return `Field wins on 12! Profit: $${profit}.`;
+    }
+
+    if ([3, 4, 9, 10, 11].includes(total)) {
+      const profit = fieldBet;
+      const amountReturned = fieldBet + profit;
+
+      setBankroll(
+        (currentBankroll) => currentBankroll + amountReturned
+      );
+
+      setFieldBet(0);
+
+      return `Field wins $${profit}.`;
+    }
+
+    const lost = fieldBet;
+
+    setFieldBet(0);
+
+    return `Field loses $${lost}.`;
+  }
+
   function rollDice() {
     const invalidPlaceBet = pointNumbers.find((number) => {
       const bet = placeBets[number];
@@ -263,7 +304,9 @@ export default function TablePage() {
     });
 
     if (invalidPlaceBet !== undefined) {
-      setMessage(`Fix your Place ${invalidPlaceBet} bet before rolling.`);
+      setMessage(
+        `Fix your Place ${invalidPlaceBet} bet before rolling.`
+      );
       return;
     }
 
@@ -275,17 +318,84 @@ export default function TablePage() {
     setDieTwo(second);
     setRollTotal(total);
 
+    const fieldMessage = resolveFieldBet(total);
+
     if (point === null) {
-      if (total === 7 || total === 11) {
-        winPassLine(`${total} — Natural!`);
-      } else if (total === 2 || total === 3 || total === 12) {
-        losePassLine(`${total} — Craps.`);
-      } else if (pointNumbers.includes(total)) {
-        setPoint(total);
-        setMessage(`Point established: ${total}`);
+      let placeMessage: string | null = null;
+
+      if (placeBetsWorking) {
+        if (total === 7) {
+          const placeLoss = clearAllPlaceBets();
+
+          if (placeLoss > 0) {
+            placeMessage = `Working Place bets lose $${placeLoss}.`;
+          }
+        } else if (pointNumbers.includes(total)) {
+          placeMessage = resolvePlaceBet(total);
+        }
       }
 
-      return;
+      if (total === 7 || total === 11) {
+        let passMessage = `${total} — Natural!`;
+
+        if (passLineBet > 0) {
+          const amountReturned = passLineBet * 2;
+
+          setBankroll(
+            (currentBankroll) =>
+              currentBankroll + amountReturned
+          );
+
+          passMessage += ` Pass Line wins $${passLineBet}.`;
+
+          setPassLineBet(0);
+          setOddsBet(0);
+        }
+
+        const messages = [
+          passMessage,
+          placeMessage,
+          fieldMessage,
+        ].filter(Boolean);
+
+        setMessage(messages.join(" "));
+        return;
+      }
+
+      if (total === 2 || total === 3 || total === 12) {
+        let passMessage = `${total} — Craps.`;
+
+        if (passLineBet > 0) {
+          passMessage += ` Pass Line loses $${passLineBet}.`;
+
+          setPassLineBet(0);
+          setOddsBet(0);
+        }
+
+        const messages = [
+          passMessage,
+          placeMessage,
+          fieldMessage,
+        ].filter(Boolean);
+
+        setMessage(messages.join(" "));
+        return;
+      }
+
+      if (pointNumbers.includes(total)) {
+        setPoint(total);
+
+        const pointMessage = `Point established: ${total}.`;
+
+        const messages = [
+          pointMessage,
+          placeMessage,
+          fieldMessage,
+        ].filter(Boolean);
+
+        setMessage(messages.join(" "));
+        return;
+      }
     }
 
     if (total === 7) {
@@ -298,12 +408,14 @@ export default function TablePage() {
 
       const totalLost = passLoss + placeLoss;
 
-      setMessage(
+      const sevenMessage =
         totalLost > 0
           ? `7 — Seven out! Total lost: $${totalLost}.`
-          : "7 — Seven out!"
-      );
+          : "7 — Seven out!";
 
+      const messages = [sevenMessage, fieldMessage].filter(Boolean);
+
+      setMessage(messages.join(" "));
       return;
     }
 
@@ -319,17 +431,27 @@ export default function TablePage() {
       }
 
       if (oddsBet > 0) {
-        const oddsProfit = calculateOddsProfit(madePoint, oddsBet);
+        const oddsProfit = calculateOddsProfit(
+          madePoint,
+          oddsBet
+        );
+
         amountReturned += oddsBet + oddsProfit;
       }
 
       if (amountReturned > 0) {
-        setBankroll((currentBankroll) => currentBankroll + amountReturned);
+        setBankroll(
+          (currentBankroll) =>
+            currentBankroll + amountReturned
+        );
       }
 
       const passProfit = passLineBet;
+
       const oddsProfit =
-        oddsBet > 0 ? calculateOddsProfit(madePoint, oddsBet) : 0;
+        oddsBet > 0
+          ? calculateOddsProfit(madePoint, oddsBet)
+          : 0;
 
       setPassLineBet(0);
       setOddsBet(0);
@@ -338,21 +460,27 @@ export default function TablePage() {
       const passMessage =
         passLineBet > 0
           ? `${total} — Point made! Pass Line wins $${passProfit}` +
-            (oddsBet > 0 ? ` and Odds win $${oddsProfit}.` : ".")
+            (oddsBet > 0
+              ? ` and Odds win $${oddsProfit}.`
+              : ".")
           : `${total} — Point made!`;
 
-      setMessage(
-        placeMessage ? `${passMessage} ${placeMessage}` : passMessage
-      );
+      const messages = [
+        passMessage,
+        placeMessage,
+        fieldMessage,
+      ].filter(Boolean);
 
+      setMessage(messages.join(" "));
       return;
     }
 
-    if (placeMessage) {
-      setMessage(placeMessage);
-    } else {
-      setMessage(`${total} — No decision.`);
-    }
+    const messages = [
+      placeMessage || `${total} — No decision.`,
+      fieldMessage,
+    ].filter(Boolean);
+
+    setMessage(messages.join(" "));
   }
 
   return (
@@ -360,20 +488,31 @@ export default function TablePage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">🎲 Lucky Penny Craps</h1>
-            <p className="text-sm text-emerald-200">Practice Table</p>
+            <h1 className="text-3xl font-bold">
+              🎲 Lucky Penny Craps
+            </h1>
+
+            <p className="text-sm text-emerald-200">
+              Practice Table
+            </p>
           </div>
 
           <div className="flex gap-8 text-right">
             <div>
-              <p className="text-xs uppercase text-emerald-300">Bankroll</p>
+              <p className="text-xs uppercase text-emerald-300">
+                Bankroll
+              </p>
+
               <p className="text-2xl font-bold">
                 ${bankroll.toLocaleString()}
               </p>
             </div>
 
             <div>
-              <p className="text-xs uppercase text-emerald-300">Point</p>
+              <p className="text-xs uppercase text-emerald-300">
+                Point
+              </p>
+
               <p className="text-2xl font-bold">
                 {point === null ? "OFF" : point}
               </p>
@@ -387,7 +526,9 @@ export default function TablePage() {
               <button
                 key={number}
                 onClick={() =>
-                  removeMode ? removeNumberBet(number) : placeNumberBet(number)
+                  removeMode
+                    ? removeNumberBet(number)
+                    : placeNumberBet(number)
                 }
                 className={`rounded-lg border-2 p-6 text-3xl font-bold ${
                   point === number
@@ -397,7 +538,9 @@ export default function TablePage() {
               >
                 {number}
 
-                <span className="mt-1 block text-xs font-normal">PLACE</span>
+                <span className="mt-1 block text-xs font-normal">
+                  PLACE
+                </span>
 
                 {placeBets[number] > 0 && (
                   <span className="mt-2 block rounded-full bg-white px-2 py-1 text-sm text-black">
@@ -412,11 +555,21 @@ export default function TablePage() {
             COME
           </button>
 
-          <button className="mt-3 w-full rounded-lg border-2 border-white/70 p-5 text-2xl font-bold hover:bg-emerald-700">
+          <button
+            onClick={handleFieldBet}
+            className="mt-3 w-full rounded-lg border-2 border-white/70 p-5 text-2xl font-bold hover:bg-emerald-700"
+          >
             FIELD
+
             <span className="ml-5 text-lg">
               2 • 3 • 4 • 9 • 10 • 11 • 12
             </span>
+
+            {fieldBet > 0 && (
+              <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
+                ${fieldBet}
+              </span>
+            )}
           </button>
 
           <button className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold hover:bg-emerald-700">
@@ -449,9 +602,29 @@ export default function TablePage() {
                 </span>
               )}
 
-              <span className="ml-4 text-sm">Max ${getMaxOdds()}</span>
+              <span className="ml-4 text-sm">
+                Max ${getMaxOdds()}
+              </span>
             </button>
           )}
+        </div>
+
+        <div className="mt-5 flex justify-center">
+          <button
+            onClick={() =>
+              setPlaceBetsWorking(
+                (currentValue) => !currentValue
+              )
+            }
+            className={`rounded-lg px-6 py-3 font-bold ${
+              placeBetsWorking
+                ? "bg-amber-500 text-black"
+                : "border border-emerald-400 bg-emerald-900 text-white"
+            }`}
+          >
+            PLACE BETS:{" "}
+            {placeBetsWorking ? "WORKING" : "OFF ON COME-OUT"}
+          </button>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
@@ -504,10 +677,13 @@ export default function TablePage() {
 
         <div className="mt-8 text-center">
           <div className="mb-2 text-7xl">
-            {diceFaces[dieOne - 1]} {diceFaces[dieTwo - 1]}
+            {diceFaces[dieOne - 1]}{" "}
+            {diceFaces[dieTwo - 1]}
           </div>
 
-          <p className="text-2xl font-bold">You rolled {rollTotal}</p>
+          <p className="text-2xl font-bold">
+            You rolled {rollTotal}
+          </p>
 
           <p className="mb-4 mt-2 min-h-7 text-lg text-amber-300">
             {message}

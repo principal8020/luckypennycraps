@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-emerald-950 text-white">
@@ -19,9 +21,12 @@ export default function Home() {
 
           <p className="mt-2 text-5xl font-bold">$5,000</p>
 
-          <button className="mt-8 rounded-xl bg-white px-8 py-4 text-lg font-bold text-emerald-950 transition hover:scale-105">
+          <Link
+            href="/table"
+            className="mt-8 inline-block rounded-xl bg-white px-8 py-4 text-lg font-bold text-emerald-950 transition hover:scale-105"
+          >
             Enter Table
-          </button>
+          </Link>
         </div>
 
         <p className="mt-10 max-w-xl text-sm text-emerald-200">
