@@ -5,6 +5,7 @@ import { useState } from "react";
 
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 const pointNumbers = [4, 5, 6, 8, 9, 10];
+const hardwayNumbers = [4, 6, 8, 10];
 const chipValues = [1, 5, 10, 25, 100, 500];
 
 type NumberBets = {
@@ -22,13 +23,21 @@ function emptyNumberBets(): NumberBets {
   };
 }
 
+function emptyHardways(): NumberBets {
+  return {
+    4: 0,
+    6: 0,
+    8: 0,
+    10: 0,
+  };
+}
+
 function money(amount: number) {
-  return Number.isInteger(amount)
-    ? amount.toLocaleString()
-    : amount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
+  return Math.floor(amount).toLocaleString();
+}
+
+function casinoPayout(amount: number) {
+  return Math.floor(amount);
 }
 
 export default function TablePage() {
@@ -47,6 +56,7 @@ export default function TablePage() {
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
+  const [forceHardway, setForceHardway] = useState(false);
 
   const [passLineBet, setPassLineBet] = useState(0);
   const [passOddsBet, setPassOddsBet] = useState(0);
@@ -59,17 +69,25 @@ export default function TablePage() {
   const [activeComeBet, setActiveComeBet] = useState(0);
   const [comeBets, setComeBets] =
     useState<NumberBets>(emptyNumberBets());
+  const [comeOdds, setComeOdds] =
+    useState<NumberBets>(emptyNumberBets());
 
   const [activeDontComeBet, setActiveDontComeBet] = useState(0);
   const [dontComeBets, setDontComeBets] =
+    useState<NumberBets>(emptyNumberBets());
+  const [dontComeOdds, setDontComeOdds] =
     useState<NumberBets>(emptyNumberBets());
 
   const [placeBets, setPlaceBets] =
     useState<NumberBets>(emptyNumberBets());
 
-  /*
-    GENERAL HELPERS
-  */
+  const [hardways, setHardways] =
+    useState<NumberBets>(emptyHardways());
+
+  const [anySevenBet, setAnySevenBet] = useState(0);
+  const [anyCrapsBet, setAnyCrapsBet] = useState(0);
+  const [yoBet, setYoBet] = useState(0);
+  const [hornBet, setHornBet] = useState(0);
 
   function resetTable() {
     setDieOne(1);
@@ -95,117 +113,115 @@ export default function TablePage() {
 
     setActiveComeBet(0);
     setComeBets(emptyNumberBets());
+    setComeOdds(emptyNumberBets());
 
     setActiveDontComeBet(0);
     setDontComeBets(emptyNumberBets());
+    setDontComeOdds(emptyNumberBets());
 
     setPlaceBets(emptyNumberBets());
+    setHardways(emptyHardways());
+
+    setAnySevenBet(0);
+    setAnyCrapsBet(0);
+    setYoBet(0);
+    setHornBet(0);
   }
 
   function makeDiceForTotal(total: number) {
-    const minimumFirst = Math.max(1, total - 6);
-    const maximumFirst = Math.min(6, total - 1);
-
-    const possibleFirstDice = [];
-
-    for (
-      let value = minimumFirst;
-      value <= maximumFirst;
-      value++
+    if (
+      forceHardway &&
+      hardwayNumbers.includes(total)
     ) {
-      possibleFirstDice.push(value);
+      const die = total / 2;
+      return [die, die];
     }
 
-    const first =
-      possibleFirstDice[
-        Math.floor(Math.random() * possibleFirstDice.length)
-      ];
+    const combinations: number[][] = [];
 
-    const second = total - first;
+    for (let first = 1; first <= 6; first++) {
+      for (let second = 1; second <= 6; second++) {
+        if (first + second === total) {
+          combinations.push([first, second]);
+        }
+      }
+    }
 
-    return [first, second];
+    return combinations[
+      Math.floor(Math.random() * combinations.length)
+    ];
   }
 
-  /*
-    PASS LINE
-  */
-
-  function getPassOddsMultiplier(currentPoint: number) {
-    if (currentPoint === 4 || currentPoint === 10) return 3;
-    if (currentPoint === 5 || currentPoint === 9) return 4;
+  function getPassOddsMultiplier(number: number) {
+    if (number === 4 || number === 10) return 3;
+    if (number === 5 || number === 9) return 4;
     return 5;
   }
 
-  function getMaxPassOdds() {
-    if (point === null) return 0;
-
-    return passLineBet * getPassOddsMultiplier(point);
-  }
-
   function calculatePassOddsProfit(
-    currentPoint: number,
+    number: number,
     bet: number
   ) {
-    if (currentPoint === 4 || currentPoint === 10) {
-      return bet * 2;
+    if (number === 4 || number === 10) {
+      return casinoPayout(bet * 2);
     }
 
-    if (currentPoint === 5 || currentPoint === 9) {
-      return bet * 1.5;
+    if (number === 5 || number === 9) {
+      return casinoPayout(bet * 1.5);
     }
 
-    return bet * 1.2;
+    return casinoPayout(bet * 1.2);
+  }
+
+  function calculateLayOddsProfit(
+    number: number,
+    bet: number
+  ) {
+    if (number === 4 || number === 10) {
+      return casinoPayout(bet / 2);
+    }
+
+    if (number === 5 || number === 9) {
+      return casinoPayout((bet * 2) / 3);
+    }
+
+    return casinoPayout((bet * 5) / 6);
   }
 
   function handlePassLineBet() {
     if (removeMode) {
       if (passLineBet === 0) {
-        setMessage("There is no Pass Line bet to remove.");
+        setMessage("There is no Pass Line bet.");
         return;
       }
 
       if (point !== null) {
         setMessage(
-          "Pass Line is a contract bet and cannot be removed after the point is established."
+          "Pass Line cannot be removed after the point is established."
         );
         return;
       }
 
       if (selectedChip > passLineBet) {
-        setMessage(
-          `You only have $${money(
-            passLineBet
-          )} on the Pass Line.`
-        );
+        setMessage("Selected chip is larger than the bet.");
         return;
       }
 
-      setPassLineBet(
-        (currentBet) => currentBet - selectedChip
-      );
-
-      setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
-      );
-
-      setMessage(
-        `Removed $${selectedChip} from the Pass Line.`
-      );
-
+      setPassLineBet((current) => current - selectedChip);
+      setBankroll((current) => current + selectedChip);
       return;
     }
 
     if (point !== null) {
       setMessage(
-        "Pass Line bets can only be added while the point is OFF."
+        "Pass Line can only be added while the point is OFF."
       );
       return;
     }
 
     if (dontPassBet > 0) {
       setMessage(
-        "Remove your Don't Pass bet before betting Pass Line."
+        "Remove Don't Pass before betting Pass Line."
       );
       return;
     }
@@ -215,56 +231,37 @@ export default function TablePage() {
       return;
     }
 
-    setPassLineBet(
-      (currentBet) => currentBet + selectedChip
-    );
-
-    setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    setMessage(
-      `Added $${selectedChip} to the Pass Line.`
-    );
+    setPassLineBet((current) => current + selectedChip);
+    setBankroll((current) => current - selectedChip);
   }
 
   function handlePassOdds() {
     if (point === null || passLineBet === 0) {
       setMessage(
-        "Pass Line odds require a Pass Line bet and an established point."
+        "Pass odds require a Pass Line bet and a point."
       );
       return;
     }
 
     if (removeMode) {
-      if (passOddsBet === 0) {
-        setMessage("There are no Pass Line odds to remove.");
-        return;
-      }
-
       if (selectedChip > passOddsBet) {
-        setMessage(
-          `You only have $${money(
-            passOddsBet
-          )} in Pass Line odds.`
-        );
+        setMessage("Not enough Pass Line odds to remove.");
         return;
       }
 
-      setPassOddsBet(
-        (currentBet) => currentBet - selectedChip
-      );
+      setPassOddsBet((current) => current - selectedChip);
+      setBankroll((current) => current + selectedChip);
+      return;
+    }
 
-      setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
-      );
+    const max =
+      passLineBet *
+      getPassOddsMultiplier(point);
 
+    if (passOddsBet + selectedChip > max) {
       setMessage(
-        `Removed $${selectedChip} from Pass Line odds.`
+        `Maximum Pass Line odds is $${money(max)}.`
       );
-
       return;
     }
 
@@ -273,115 +270,41 @@ export default function TablePage() {
       return;
     }
 
-    const maxOdds = getMaxPassOdds();
-    const newTotal = passOddsBet + selectedChip;
-
-    if (newTotal > maxOdds) {
-      setMessage(
-        `Maximum Pass Line odds for point ${point} is $${money(
-          maxOdds
-        )}.`
-      );
-      return;
-    }
-
-    setPassOddsBet(newTotal);
-
-    setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    setMessage(
-      `Pass Line odds are now $${money(newTotal)}.`
-    );
-  }
-
-  /*
-    DON'T PASS
-  */
-
-  function getMaxDontPassLayOdds() {
-    if (point === null) return 0;
-
-    // On a 3x-4x-5x table, the dark side commonly
-    // allows laying 6x the flat bet.
-    return dontPassBet * 6;
-  }
-
-  function calculateDontPassOddsProfit(
-    currentPoint: number,
-    bet: number
-  ) {
-    if (currentPoint === 4 || currentPoint === 10) {
-      return bet / 2;
-    }
-
-    if (currentPoint === 5 || currentPoint === 9) {
-      return (bet * 2) / 3;
-    }
-
-    return (bet * 5) / 6;
-  }
-
-  function getDontPassLayIncrement(currentPoint: number) {
-    if (currentPoint === 4 || currentPoint === 10) return 2;
-    if (currentPoint === 5 || currentPoint === 9) return 3;
-    return 6;
+    setPassOddsBet((current) => current + selectedChip);
+    setBankroll((current) => current - selectedChip);
   }
 
   function handleDontPassBet() {
     if (removeMode) {
-      if (dontPassBet === 0) {
-        setMessage("There is no Don't Pass bet to remove.");
-        return;
-      }
-
       if (selectedChip > dontPassBet) {
+        setMessage("Not enough Don't Pass bet to remove.");
+        return;
+      }
+
+      const newBet = dontPassBet - selectedChip;
+
+      if (dontPassOddsBet > newBet * 6) {
         setMessage(
-          `You only have $${money(
-            dontPassBet
-          )} on Don't Pass.`
+          "Reduce lay odds before reducing Don't Pass."
         );
         return;
       }
 
-      const newFlatBet = dontPassBet - selectedChip;
-
-      if (
-        dontPassOddsBet > 0 &&
-        dontPassOddsBet > newFlatBet * 6
-      ) {
-        setMessage(
-          "Reduce your Don't Pass lay odds before reducing the flat bet."
-        );
-        return;
-      }
-
-      setDontPassBet(newFlatBet);
-
-      setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
-      );
-
-      setMessage(
-        `Removed $${selectedChip} from Don't Pass.`
-      );
-
+      setDontPassBet(newBet);
+      setBankroll((current) => current + selectedChip);
       return;
     }
 
     if (point !== null) {
       setMessage(
-        "New Don't Pass bets can only be added while the point is OFF."
+        "New Don't Pass bets can only be made with point OFF."
       );
       return;
     }
 
     if (passLineBet > 0) {
       setMessage(
-        "Remove your Pass Line bet before betting Don't Pass."
+        "Remove Pass Line before betting Don't Pass."
       );
       return;
     }
@@ -391,56 +314,41 @@ export default function TablePage() {
       return;
     }
 
-    setDontPassBet(
-      (currentBet) => currentBet + selectedChip
-    );
-
-    setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    setMessage(
-      `Added $${selectedChip} to Don't Pass.`
-    );
+    setDontPassBet((current) => current + selectedChip);
+    setBankroll((current) => current - selectedChip);
   }
 
   function handleDontPassOdds() {
     if (point === null || dontPassBet === 0) {
       setMessage(
-        "Don't Pass lay odds require a Don't Pass bet and an established point."
+        "Don't Pass lay odds require a point."
       );
       return;
     }
 
     if (removeMode) {
-      if (dontPassOddsBet === 0) {
-        setMessage("There are no Don't Pass lay odds to remove.");
-        return;
-      }
-
       if (selectedChip > dontPassOddsBet) {
-        setMessage(
-          `You only have $${money(
-            dontPassOddsBet
-          )} in lay odds.`
-        );
+        setMessage("Not enough lay odds to remove.");
         return;
       }
 
       setDontPassOddsBet(
-        (currentBet) => currentBet - selectedChip
+        (current) => current - selectedChip
       );
 
       setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
+        (current) => current + selectedChip
       );
 
+      return;
+    }
+
+    const max = dontPassBet * 6;
+
+    if (dontPassOddsBet + selectedChip > max) {
       setMessage(
-        `Removed $${selectedChip} from Don't Pass lay odds.`
+        `Maximum Don't Pass lay is $${money(max)}.`
       );
-
       return;
     }
 
@@ -449,44 +357,14 @@ export default function TablePage() {
       return;
     }
 
-    const maxLay = getMaxDontPassLayOdds();
-    const newTotal = dontPassOddsBet + selectedChip;
-
-    if (newTotal > maxLay) {
-      setMessage(
-        `Maximum lay odds is $${money(maxLay)}.`
-      );
-      return;
-    }
-
-    const increment =
-      getDontPassLayIncrement(point);
-
-    setDontPassOddsBet(newTotal);
-
-    setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
+    setDontPassOddsBet(
+      (current) => current + selectedChip
     );
 
-    if (newTotal % increment !== 0) {
-      setMessage(
-        `Lay odds are $${money(
-          newTotal
-        )}. For point ${point}, build the wager to a multiple of $${increment}.`
-      );
-    } else {
-      setMessage(
-        `Don't Pass lay odds are now $${money(
-          newTotal
-        )}.`
-      );
-    }
+    setBankroll(
+      (current) => current - selectedChip
+    );
   }
-
-  /*
-    PLACE BETS
-  */
 
   function placeNumberBet(number: number) {
     if (selectedChip > bankroll) {
@@ -494,71 +372,37 @@ export default function TablePage() {
       return;
     }
 
-    const newTotal =
+    const total =
       placeBets[number] + selectedChip;
 
-    setPlaceBets((currentBets) => ({
-      ...currentBets,
-      [number]: newTotal,
+    setPlaceBets((current) => ({
+      ...current,
+      [number]: total,
     }));
 
     setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    if (
-      (number === 6 || number === 8) &&
-      newTotal % 6 !== 0
-    ) {
-      setMessage(
-        `Place ${number} is $${newTotal}. Add chips until it is a multiple of $6.`
-      );
-    } else if (
-      number !== 6 &&
-      number !== 8 &&
-      newTotal % 5 !== 0
-    ) {
-      setMessage(
-        `Place ${number} is $${newTotal}. Add chips until it is a multiple of $5.`
-      );
-    } else {
-      setMessage(
-        `Place ${number} is now $${newTotal}.`
-      );
-    }
-  }
-
-  function removeNumberBet(number: number) {
-    const currentBet = placeBets[number];
-
-    if (currentBet === 0) {
-      setMessage(
-        `There is no Place ${number} bet to remove.`
-      );
-      return;
-    }
-
-    if (selectedChip > currentBet) {
-      setMessage(
-        `You only have $${currentBet} on Place ${number}.`
-      );
-      return;
-    }
-
-    setPlaceBets((currentBets) => ({
-      ...currentBets,
-      [number]:
-        currentBets[number] - selectedChip,
-    }));
-
-    setBankroll(
-      (currentBankroll) =>
-        currentBankroll + selectedChip
+      (current) => current - selectedChip
     );
 
     setMessage(
-      `Removed $${selectedChip} from Place ${number}.`
+      `Place ${number} is now $${money(total)}.`
+    );
+  }
+
+  function removeNumberBet(number: number) {
+    if (selectedChip > placeBets[number]) {
+      setMessage("Selected chip is larger than the bet.");
+      return;
+    }
+
+    setPlaceBets((current) => ({
+      ...current,
+      [number]:
+        current[number] - selectedChip,
+    }));
+
+    setBankroll(
+      (current) => current + selectedChip
     );
   }
 
@@ -567,27 +411,26 @@ export default function TablePage() {
     bet: number
   ) {
     if (number === 4 || number === 10) {
-      return (bet / 5) * 9;
+      return casinoPayout((bet * 9) / 5);
     }
 
     if (number === 5 || number === 9) {
-      return (bet / 5) * 7;
+      return casinoPayout((bet * 7) / 5);
     }
 
-    return (bet / 6) * 7;
+    return casinoPayout((bet * 7) / 6);
   }
 
   function resolvePlaceBet(total: number) {
-    const activeBet = placeBets[total];
+    const bet = placeBets[total];
 
-    if (!activeBet) return null;
+    if (!bet) return null;
 
     const profit =
-      calculatePlaceProfit(total, activeBet);
+      calculatePlaceProfit(total, bet);
 
     setBankroll(
-      (currentBankroll) =>
-        currentBankroll + profit
+      (current) => current + profit
     );
 
     return `Place ${total} wins $${money(
@@ -595,46 +438,31 @@ export default function TablePage() {
     )}. Bet stays up.`;
   }
 
-  function clearAllPlaceBets() {
-    const lost = Object.values(placeBets).reduce(
-      (sum, bet) => sum + bet,
-      0
-    );
+  function clearPlaceBets() {
+    const lost =
+      Object.values(placeBets).reduce(
+        (sum, value) => sum + value,
+        0
+      );
 
     setPlaceBets(emptyNumberBets());
 
     return lost;
   }
 
-  /*
-    FIELD
-  */
-
   function handleFieldBet() {
     if (removeMode) {
-      if (fieldBet === 0) {
-        setMessage("There is no Field bet to remove.");
-        return;
-      }
-
       if (selectedChip > fieldBet) {
-        setMessage(
-          `You only have $${fieldBet} on the Field.`
-        );
+        setMessage("Not enough Field bet to remove.");
         return;
       }
 
       setFieldBet(
-        (currentBet) => currentBet - selectedChip
+        (current) => current - selectedChip
       );
 
       setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
-      );
-
-      setMessage(
-        `Removed $${selectedChip} from the Field.`
+        (current) => current + selectedChip
       );
 
       return;
@@ -646,63 +474,41 @@ export default function TablePage() {
     }
 
     setFieldBet(
-      (currentBet) => currentBet + selectedChip
+      (current) => current + selectedChip
     );
 
     setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    setMessage(
-      `Added $${selectedChip} to the Field.`
+      (current) => current - selectedChip
     );
   }
 
-  function resolveFieldBet(total: number) {
-    if (fieldBet === 0) return null;
+  function resolveField(total: number) {
+    if (!fieldBet) return null;
+
+    let profit = 0;
 
     if (total === 2) {
-      const profit = fieldBet * 2;
-
-      setBankroll(
-        (currentBankroll) =>
-          currentBankroll + fieldBet + profit
-      );
-
-      setFieldBet(0);
-
-      return `Field wins on 2. Profit $${money(
-        profit
-      )}.`;
+      profit = fieldBet * 2;
+    } else if (total === 12) {
+      profit = fieldBet * 3;
+    } else if (
+      [3, 4, 9, 10, 11].includes(total)
+    ) {
+      profit = fieldBet;
     }
 
-    if (total === 12) {
-      const profit = fieldBet * 3;
-
+    if (profit > 0) {
       setBankroll(
-        (currentBankroll) =>
-          currentBankroll + fieldBet + profit
+        (current) =>
+          current + fieldBet + profit
       );
+
+      const result =
+        `Field wins $${money(profit)}.`;
 
       setFieldBet(0);
 
-      return `Field wins on 12. Profit $${money(
-        profit
-      )}.`;
-    }
-
-    if ([3, 4, 9, 10, 11].includes(total)) {
-      const profit = fieldBet;
-
-      setBankroll(
-        (currentBankroll) =>
-          currentBankroll + fieldBet + profit
-      );
-
-      setFieldBet(0);
-
-      return `Field wins $${money(profit)}.`;
+      return result;
     }
 
     const lost = fieldBet;
@@ -712,46 +518,26 @@ export default function TablePage() {
     return `Field loses $${money(lost)}.`;
   }
 
-  /*
-    COME
-  */
-
   function handleComeBet() {
     if (point === null) {
       setMessage(
-        "Come bets are available after the table point is established."
+        "Come bets require the table point to be ON."
       );
       return;
     }
 
     if (removeMode) {
-      if (activeComeBet === 0) {
-        setMessage(
-          "There is no active Come bet to remove."
-        );
-        return;
-      }
-
       if (selectedChip > activeComeBet) {
-        setMessage(
-          `You only have $${money(
-            activeComeBet
-          )} in the Come box.`
-        );
+        setMessage("Not enough active Come bet.");
         return;
       }
 
       setActiveComeBet(
-        (currentBet) => currentBet - selectedChip
+        (current) => current - selectedChip
       );
 
       setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
-      );
-
-      setMessage(
-        `Removed $${selectedChip} from the Come box.`
+        (current) => current + selectedChip
       );
 
       return;
@@ -763,147 +549,34 @@ export default function TablePage() {
     }
 
     setActiveComeBet(
-      (currentBet) => currentBet + selectedChip
+      (current) => current + selectedChip
     );
 
     setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    setMessage(
-      `Added $${selectedChip} to COME.`
+      (current) => current - selectedChip
     );
   }
-
-  function resolveComeBets(total: number) {
-    const messages: string[] = [];
-    const nextComeBets = { ...comeBets };
-
-    /*
-      EXISTING COME POINTS
-    */
-
-    if (total === 7) {
-      const lost = Object.values(nextComeBets).reduce(
-        (sum, bet) => sum + bet,
-        0
-      );
-
-      if (lost > 0) {
-        messages.push(
-          `Come point bets lose $${money(lost)}.`
-        );
-      }
-
-      for (const number of pointNumbers) {
-        nextComeBets[number] = 0;
-      }
-    } else if (
-      pointNumbers.includes(total) &&
-      nextComeBets[total] > 0
-    ) {
-      const winningBet = nextComeBets[total];
-
-      setBankroll(
-        (currentBankroll) =>
-          currentBankroll + winningBet * 2
-      );
-
-      messages.push(
-        `Come ${total} wins $${money(
-          winningBet
-        )}.`
-      );
-
-      nextComeBets[total] = 0;
-    }
-
-    /*
-      ACTIVE COME BET
-    */
-
-    if (activeComeBet > 0) {
-      const bet = activeComeBet;
-
-      if (total === 7 || total === 11) {
-        setBankroll(
-          (currentBankroll) =>
-            currentBankroll + bet * 2
-        );
-
-        messages.push(
-          `Come wins $${money(bet)}.`
-        );
-
-        setActiveComeBet(0);
-      } else if (
-        total === 2 ||
-        total === 3 ||
-        total === 12
-      ) {
-        messages.push(
-          `Come loses $${money(bet)}.`
-        );
-
-        setActiveComeBet(0);
-      } else if (pointNumbers.includes(total)) {
-        nextComeBets[total] += bet;
-
-        messages.push(
-          `$${money(bet)} Come bet moves to ${total}.`
-        );
-
-        setActiveComeBet(0);
-      }
-    }
-
-    setComeBets(nextComeBets);
-
-    return messages;
-  }
-
-  /*
-    DON'T COME
-  */
 
   function handleDontComeBet() {
     if (point === null) {
       setMessage(
-        "Don't Come bets are available after the table point is established."
+        "Don't Come requires the table point to be ON."
       );
       return;
     }
 
     if (removeMode) {
-      if (activeDontComeBet === 0) {
-        setMessage(
-          "There is no active Don't Come bet to remove."
-        );
-        return;
-      }
-
       if (selectedChip > activeDontComeBet) {
-        setMessage(
-          `You only have $${money(
-            activeDontComeBet
-          )} in Don't Come.`
-        );
+        setMessage("Not enough active Don't Come bet.");
         return;
       }
 
       setActiveDontComeBet(
-        (currentBet) =>
-          currentBet - selectedChip
+        (current) => current - selectedChip
       );
 
       setBankroll(
-        (currentBankroll) =>
-          currentBankroll + selectedChip
-      );
-
-      setMessage(
-        `Removed $${selectedChip} from Don't Come.`
+        (current) => current + selectedChip
       );
 
       return;
@@ -915,60 +588,610 @@ export default function TablePage() {
     }
 
     setActiveDontComeBet(
-      (currentBet) => currentBet + selectedChip
+      (current) => current + selectedChip
     );
 
     setBankroll(
-      (currentBankroll) =>
-        currentBankroll - selectedChip
-    );
-
-    setMessage(
-      `Added $${selectedChip} to DON'T COME.`
+      (current) => current - selectedChip
     );
   }
 
-  function resolveDontComeBets(total: number) {
-    const messages: string[] = [];
-    const nextDontComeBets = {
-      ...dontComeBets,
-    };
+  function handleComeOdds(number: number) {
+    const flatBet = comeBets[number];
 
-    /*
-      EXISTING DON'T COME POINTS
-    */
+    if (!flatBet) {
+      setMessage(`No Come bet on ${number}.`);
+      return;
+    }
 
-    if (total === 7) {
-      let totalReturned = 0;
-      let totalProfit = 0;
-
-      for (const number of pointNumbers) {
-        const bet = nextDontComeBets[number];
-
-        if (bet > 0) {
-          totalReturned += bet * 2;
-          totalProfit += bet;
-          nextDontComeBets[number] = 0;
-        }
+    if (removeMode) {
+      if (selectedChip > comeOdds[number]) {
+        setMessage("Not enough Come odds to remove.");
+        return;
       }
 
-      if (totalReturned > 0) {
+      setComeOdds((current) => ({
+        ...current,
+        [number]:
+          current[number] - selectedChip,
+      }));
+
+      setBankroll(
+        (current) => current + selectedChip
+      );
+
+      return;
+    }
+
+    const max =
+      flatBet *
+      getPassOddsMultiplier(number);
+
+    if (
+      comeOdds[number] + selectedChip >
+      max
+    ) {
+      setMessage(
+        `Maximum Come odds on ${number} is $${money(
+          max
+        )}.`
+      );
+
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll.");
+      return;
+    }
+
+    setComeOdds((current) => ({
+      ...current,
+      [number]:
+        current[number] + selectedChip,
+    }));
+
+    setBankroll(
+      (current) => current - selectedChip
+    );
+  }
+
+  function handleDontComeOdds(number: number) {
+    const flatBet =
+      dontComeBets[number];
+
+    if (!flatBet) {
+      setMessage(
+        `No Don't Come bet behind ${number}.`
+      );
+      return;
+    }
+
+    if (removeMode) {
+      if (
+        selectedChip >
+        dontComeOdds[number]
+      ) {
+        setMessage(
+          "Not enough Don't Come lay odds to remove."
+        );
+
+        return;
+      }
+
+      setDontComeOdds((current) => ({
+        ...current,
+        [number]:
+          current[number] - selectedChip,
+      }));
+
+      setBankroll(
+        (current) => current + selectedChip
+      );
+
+      return;
+    }
+
+    const max = flatBet * 6;
+
+    if (
+      dontComeOdds[number] +
+        selectedChip >
+      max
+    ) {
+      setMessage(
+        `Maximum Don't Come lay on ${number} is $${money(
+          max
+        )}.`
+      );
+
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll.");
+      return;
+    }
+
+    setDontComeOdds((current) => ({
+      ...current,
+      [number]:
+        current[number] + selectedChip,
+    }));
+
+    setBankroll(
+      (current) => current - selectedChip
+    );
+  }
+
+  function handleHardway(number: number) {
+    if (removeMode) {
+      if (
+        selectedChip > hardways[number]
+      ) {
+        setMessage("Not enough Hardway bet to remove.");
+        return;
+      }
+
+      setHardways((current) => ({
+        ...current,
+        [number]:
+          current[number] - selectedChip,
+      }));
+
+      setBankroll(
+        (current) => current + selectedChip
+      );
+
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll.");
+      return;
+    }
+
+    setHardways((current) => ({
+      ...current,
+      [number]:
+        current[number] + selectedChip,
+    }));
+
+    setBankroll(
+      (current) => current - selectedChip
+    );
+  }
+
+  function resolveHardways(
+    first: number,
+    second: number,
+    total: number
+  ) {
+    const messages: string[] = [];
+    const next = { ...hardways };
+
+    if (total === 7) {
+      const lost =
+        Object.values(next).reduce(
+          (sum, value) => sum + value,
+          0
+        );
+
+      if (lost > 0) {
+        messages.push(
+          `Hardways lose $${money(lost)}.`
+        );
+      }
+
+      setHardways(emptyHardways());
+
+      return messages;
+    }
+
+    if (!hardwayNumbers.includes(total)) {
+      return messages;
+    }
+
+    const bet = next[total];
+
+    if (!bet) return messages;
+
+    if (first === second) {
+      const multiplier =
+        total === 4 || total === 10
+          ? 7
+          : 9;
+
+      const profit =
+        casinoPayout(
+          bet * multiplier
+        );
+
+      setBankroll(
+        (current) => current + profit
+      );
+
+      messages.push(
+        `Hard ${total} wins $${money(
+          profit
+        )}. Bet stays up.`
+      );
+    } else {
+      messages.push(
+        `Easy ${total}. Hard ${total} loses $${money(
+          bet
+        )}.`
+      );
+
+      next[total] = 0;
+
+      setHardways(next);
+    }
+
+    return messages;
+  }
+
+  function handlePropBet(
+    currentBet: number,
+    setter: React.Dispatch<
+      React.SetStateAction<number>
+    >,
+    name: string
+  ) {
+    if (removeMode) {
+      if (selectedChip > currentBet) {
+        setMessage(
+          `Not enough ${name} bet to remove.`
+        );
+
+        return;
+      }
+
+      setter(
+        (current) =>
+          current - selectedChip
+      );
+
+      setBankroll(
+        (current) => current + selectedChip
+      );
+
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll.");
+      return;
+    }
+
+    setter(
+      (current) =>
+        current + selectedChip
+    );
+
+    setBankroll(
+      (current) => current - selectedChip
+    );
+  }
+
+  function resolvePropBets(total: number) {
+    const messages: string[] = [];
+
+    if (anySevenBet > 0) {
+      if (total === 7) {
+        const profit =
+          anySevenBet * 4;
+
         setBankroll(
-          (currentBankroll) =>
-            currentBankroll + totalReturned
+          (current) =>
+            current +
+            anySevenBet +
+            profit
         );
 
         messages.push(
-          `Don't Come point bets win $${money(
-            totalProfit
+          `Any 7 wins $${money(
+            profit
+          )}.`
+        );
+      } else {
+        messages.push(
+          `Any 7 loses $${money(
+            anySevenBet
+          )}.`
+        );
+      }
+
+      setAnySevenBet(0);
+    }
+
+    if (anyCrapsBet > 0) {
+      if ([2, 3, 12].includes(total)) {
+        const profit =
+          anyCrapsBet * 7;
+
+        setBankroll(
+          (current) =>
+            current +
+            anyCrapsBet +
+            profit
+        );
+
+        messages.push(
+          `Any Craps wins $${money(
+            profit
+          )}.`
+        );
+      } else {
+        messages.push(
+          `Any Craps loses $${money(
+            anyCrapsBet
+          )}.`
+        );
+      }
+
+      setAnyCrapsBet(0);
+    }
+
+    if (yoBet > 0) {
+      if (total === 11) {
+        const profit =
+          yoBet * 15;
+
+        setBankroll(
+          (current) =>
+            current +
+            yoBet +
+            profit
+        );
+
+        messages.push(
+          `Yo 11 wins $${money(
+            profit
+          )}.`
+        );
+      } else {
+        messages.push(
+          `Yo 11 loses $${money(
+            yoBet
+          )}.`
+        );
+      }
+
+      setYoBet(0);
+    }
+
+    if (hornBet > 0) {
+      if ([2, 3, 11, 12].includes(total)) {
+        const unit =
+          hornBet / 4;
+
+        const multiplier =
+          total === 2 || total === 12
+            ? 30
+            : 15;
+
+        const winningReturn =
+          unit +
+          unit * multiplier;
+
+        const losingPortion =
+          unit * 3;
+
+        const netProfit =
+          casinoPayout(
+            winningReturn -
+            losingPortion
+          );
+
+        setBankroll(
+          (current) =>
+            current +
+            hornBet +
+            netProfit
+        );
+
+        messages.push(
+          `Horn hits ${total}. Net profit $${money(
+            netProfit
+          )}.`
+        );
+      } else {
+        messages.push(
+          `Horn loses $${money(
+            hornBet
+          )}.`
+        );
+      }
+
+      setHornBet(0);
+    }
+
+    return messages;
+  }
+
+  function resolveComeBets(total: number) {
+    const messages: string[] = [];
+
+    const nextCome = {
+      ...comeBets,
+    };
+
+    const nextOdds = {
+      ...comeOdds,
+    };
+
+    if (total === 7) {
+      let lost = 0;
+
+      for (const number of pointNumbers) {
+        lost +=
+          nextCome[number] +
+          nextOdds[number];
+
+        nextCome[number] = 0;
+        nextOdds[number] = 0;
+      }
+
+      if (lost > 0) {
+        messages.push(
+          `Come bets and odds lose $${money(
+            lost
           )}.`
         );
       }
     } else if (
       pointNumbers.includes(total) &&
-      nextDontComeBets[total] > 0
+      nextCome[total] > 0
     ) {
-      const lost = nextDontComeBets[total];
+      const flat =
+        nextCome[total];
+
+      const odds =
+        nextOdds[total];
+
+      let returned =
+        flat * 2;
+
+      let oddsProfit = 0;
+
+      if (odds > 0) {
+        oddsProfit =
+          calculatePassOddsProfit(
+            total,
+            odds
+          );
+
+        returned +=
+          odds + oddsProfit;
+      }
+
+      setBankroll(
+        (current) => current + returned
+      );
+
+      messages.push(
+        `Come ${total} wins $${money(
+          flat
+        )}` +
+          (odds
+            ? ` + $${money(
+                oddsProfit
+              )} odds.`
+            : ".")
+      );
+
+      nextCome[total] = 0;
+      nextOdds[total] = 0;
+    }
+
+    if (activeComeBet > 0) {
+      const bet =
+        activeComeBet;
+
+      if (total === 7 || total === 11) {
+        setBankroll(
+          (current) =>
+            current + bet * 2
+        );
+
+        messages.push(
+          `Come wins $${money(bet)}.`
+        );
+
+        setActiveComeBet(0);
+      } else if (
+        [2, 3, 12].includes(total)
+      ) {
+        messages.push(
+          `Come loses $${money(bet)}.`
+        );
+
+        setActiveComeBet(0);
+      } else if (
+        pointNumbers.includes(total)
+      ) {
+        nextCome[total] += bet;
+
+        messages.push(
+          `$${money(
+            bet
+          )} Come moves to ${total}.`
+        );
+
+        setActiveComeBet(0);
+      }
+    }
+
+    setComeBets(nextCome);
+    setComeOdds(nextOdds);
+
+    return messages;
+  }
+
+  function resolveDontComeBets(total: number) {
+    const messages: string[] = [];
+
+    const nextDC = {
+      ...dontComeBets,
+    };
+
+    const nextOdds = {
+      ...dontComeOdds,
+    };
+
+    if (total === 7) {
+      for (const number of pointNumbers) {
+        const flat =
+          nextDC[number];
+
+        const lay =
+          nextOdds[number];
+
+        if (flat > 0) {
+          let returned =
+            flat * 2;
+
+          let layProfit = 0;
+
+          if (lay > 0) {
+            layProfit =
+              calculateLayOddsProfit(
+                number,
+                lay
+              );
+
+            returned +=
+              lay + layProfit;
+          }
+
+          setBankroll(
+            (current) =>
+              current + returned
+          );
+
+          messages.push(
+            `Don't Come ${number} wins $${money(
+              flat
+            )}` +
+              (lay
+                ? ` + $${money(
+                    layProfit
+                  )} lay odds.`
+                : ".")
+          );
+
+          nextDC[number] = 0;
+          nextOdds[number] = 0;
+        }
+      }
+    } else if (
+      pointNumbers.includes(total) &&
+      nextDC[total] > 0
+    ) {
+      const lost =
+        nextDC[total] +
+        nextOdds[total];
 
       messages.push(
         `Don't Come ${total} loses $${money(
@@ -976,37 +1199,42 @@ export default function TablePage() {
         )}.`
       );
 
-      nextDontComeBets[total] = 0;
+      nextDC[total] = 0;
+      nextOdds[total] = 0;
     }
 
-    /*
-      ACTIVE DON'T COME BET
-    */
-
     if (activeDontComeBet > 0) {
-      const bet = activeDontComeBet;
+      const bet =
+        activeDontComeBet;
 
       if (total === 2 || total === 3) {
         setBankroll(
-          (currentBankroll) =>
-            currentBankroll + bet * 2
+          (current) =>
+            current + bet * 2
         );
 
         messages.push(
-          `Don't Come wins $${money(bet)}.`
+          `Don't Come wins $${money(
+            bet
+          )}.`
         );
 
         setActiveDontComeBet(0);
-      } else if (total === 7 || total === 11) {
+      } else if (
+        total === 7 ||
+        total === 11
+      ) {
         messages.push(
-          `Don't Come loses $${money(bet)}.`
+          `Don't Come loses $${money(
+            bet
+          )}.`
         );
 
         setActiveDontComeBet(0);
       } else if (total === 12) {
         setBankroll(
-          (currentBankroll) =>
-            currentBankroll + bet
+          (current) =>
+            current + bet
         );
 
         messages.push(
@@ -1016,67 +1244,28 @@ export default function TablePage() {
         );
 
         setActiveDontComeBet(0);
-      } else if (pointNumbers.includes(total)) {
-        nextDontComeBets[total] += bet;
+      } else if (
+        pointNumbers.includes(total)
+      ) {
+        nextDC[total] += bet;
 
         messages.push(
           `$${money(
             bet
-          )} Don't Come bet moves behind ${total}.`
+          )} Don't Come moves behind ${total}.`
         );
 
         setActiveDontComeBet(0);
       }
     }
 
-    setDontComeBets(nextDontComeBets);
+    setDontComeBets(nextDC);
+    setDontComeOdds(nextOdds);
 
     return messages;
   }
 
-  /*
-    ROLL
-  */
-
   function rollDice() {
-    const invalidPlaceBet =
-      pointNumbers.find((number) => {
-        const bet = placeBets[number];
-
-        if (bet === 0) return false;
-
-        if (number === 6 || number === 8) {
-          return bet % 6 !== 0;
-        }
-
-        return bet % 5 !== 0;
-      });
-
-    if (invalidPlaceBet !== undefined) {
-      setMessage(
-        `Fix your Place ${invalidPlaceBet} bet before rolling.`
-      );
-      return;
-    }
-
-    if (
-      point !== null &&
-      dontPassOddsBet > 0
-    ) {
-      const requiredIncrement =
-        getDontPassLayIncrement(point);
-
-      if (
-        dontPassOddsBet % requiredIncrement !==
-        0
-      ) {
-        setMessage(
-          `Fix your Don't Pass lay odds. For point ${point}, use a multiple of $${requiredIncrement}.`
-        );
-        return;
-      }
-    }
-
     let first: number;
     let second: number;
 
@@ -1085,60 +1274,60 @@ export default function TablePage() {
         makeDiceForTotal(forcedTotal);
     } else {
       first =
-        Math.floor(Math.random() * 6) + 1;
+        Math.floor(Math.random() * 6) +
+        1;
 
       second =
-        Math.floor(Math.random() * 6) + 1;
+        Math.floor(Math.random() * 6) +
+        1;
     }
 
-    const total = first + second;
+    const total =
+      first + second;
 
     setDieOne(first);
     setDieTwo(second);
     setRollTotal(total);
 
-    const rollMessages: string[] = [];
-
-    /*
-      FIELD
-    */
+    const messages: string[] = [];
 
     const fieldMessage =
-      resolveFieldBet(total);
+      resolveField(total);
 
     if (fieldMessage) {
-      rollMessages.push(fieldMessage);
+      messages.push(fieldMessage);
     }
 
-    /*
-      COME / DON'T COME
+    messages.push(
+      ...resolvePropBets(total)
+    );
 
-      These resolve on every roll while the
-      table point is ON.
-    */
+    messages.push(
+      ...resolveHardways(
+        first,
+        second,
+        total
+      )
+    );
 
     if (point !== null) {
-      rollMessages.push(
+      messages.push(
         ...resolveComeBets(total)
       );
 
-      rollMessages.push(
+      messages.push(
         ...resolveDontComeBets(total)
       );
     }
-
-    /*
-      TABLE COME-OUT
-    */
 
     if (point === null) {
       if (placeBetsWorking) {
         if (total === 7) {
           const placeLoss =
-            clearAllPlaceBets();
+            clearPlaceBets();
 
-          if (placeLoss > 0) {
-            rollMessages.push(
+          if (placeLoss) {
+            messages.push(
               `Working Place bets lose $${money(
                 placeLoss
               )}.`
@@ -1147,28 +1336,28 @@ export default function TablePage() {
         } else if (
           pointNumbers.includes(total)
         ) {
-          const placeMessage =
+          const result =
             resolvePlaceBet(total);
 
-          if (placeMessage) {
-            rollMessages.push(placeMessage);
+          if (result) {
+            messages.push(result);
           }
         }
       }
 
       if (total === 7 || total === 11) {
-        rollMessages.unshift(
+        messages.unshift(
           `${total} — Natural!`
         );
 
         if (passLineBet > 0) {
           setBankroll(
-            (currentBankroll) =>
-              currentBankroll +
+            (current) =>
+              current +
               passLineBet * 2
           );
 
-          rollMessages.push(
+          messages.push(
             `Pass Line wins $${money(
               passLineBet
             )}.`
@@ -1179,7 +1368,7 @@ export default function TablePage() {
         }
 
         if (dontPassBet > 0) {
-          rollMessages.push(
+          messages.push(
             `Don't Pass loses $${money(
               dontPassBet
             )}.`
@@ -1189,20 +1378,17 @@ export default function TablePage() {
           setDontPassOddsBet(0);
         }
 
-        setMessage(
-          rollMessages.join(" ")
-        );
-
+        setMessage(messages.join(" "));
         return;
       }
 
       if (total === 2 || total === 3) {
-        rollMessages.unshift(
+        messages.unshift(
           `${total} — Craps.`
         );
 
         if (passLineBet > 0) {
-          rollMessages.push(
+          messages.push(
             `Pass Line loses $${money(
               passLineBet
             )}.`
@@ -1214,12 +1400,12 @@ export default function TablePage() {
 
         if (dontPassBet > 0) {
           setBankroll(
-            (currentBankroll) =>
-              currentBankroll +
+            (current) =>
+              current +
               dontPassBet * 2
           );
 
-          rollMessages.push(
+          messages.push(
             `Don't Pass wins $${money(
               dontPassBet
             )}.`
@@ -1228,20 +1414,15 @@ export default function TablePage() {
           setDontPassBet(0);
         }
 
-        setMessage(
-          rollMessages.join(" ")
-        );
-
+        setMessage(messages.join(" "));
         return;
       }
 
       if (total === 12) {
-        rollMessages.unshift(
-          "12 — Craps."
-        );
+        messages.unshift("12 — Craps.");
 
         if (passLineBet > 0) {
-          rollMessages.push(
+          messages.push(
             `Pass Line loses $${money(
               passLineBet
             )}.`
@@ -1253,69 +1434,60 @@ export default function TablePage() {
 
         if (dontPassBet > 0) {
           setBankroll(
-            (currentBankroll) =>
-              currentBankroll +
-              dontPassBet
+            (current) =>
+              current + dontPassBet
           );
 
-          rollMessages.push(
-            `Don't Pass bars 12. $${money(
-              dontPassBet
-            )} returned.`
+          messages.push(
+            `Don't Pass bars 12.`
           );
 
           setDontPassBet(0);
         }
 
-        setMessage(
-          rollMessages.join(" ")
-        );
-
+        setMessage(messages.join(" "));
         return;
       }
 
-      if (pointNumbers.includes(total)) {
+      if (
+        pointNumbers.includes(total)
+      ) {
         setPoint(total);
 
-        rollMessages.unshift(
+        messages.unshift(
           `Point established: ${total}.`
         );
 
-        setMessage(
-          rollMessages.join(" ")
-        );
-
+        setMessage(messages.join(" "));
         return;
       }
     }
 
-    /*
-      TABLE POINT ON — SEVEN OUT
-    */
-
     if (total === 7) {
-      rollMessages.unshift(
+      messages.unshift(
         "7 — Seven out!"
       );
 
       const placeLoss =
-        clearAllPlaceBets();
+        clearPlaceBets();
 
       if (placeLoss > 0) {
-        rollMessages.push(
+        messages.push(
           `Place bets lose $${money(
             placeLoss
           )}.`
         );
       }
 
-      const passLoss =
-        passLineBet + passOddsBet;
-
-      if (passLoss > 0) {
-        rollMessages.push(
+      if (
+        passLineBet +
+          passOddsBet >
+        0
+      ) {
+        messages.push(
           `Pass Line/odds lose $${money(
-            passLoss
+            passLineBet +
+              passOddsBet
           )}.`
         );
       }
@@ -1324,34 +1496,35 @@ export default function TablePage() {
         let returned =
           dontPassBet * 2;
 
-        let layProfit = 0;
+        let profit = 0;
 
         if (dontPassOddsBet > 0) {
-          layProfit =
-            calculateDontPassOddsProfit(
+          profit =
+            calculateLayOddsProfit(
               point,
               dontPassOddsBet
             );
 
           returned +=
-            dontPassOddsBet + layProfit;
+            dontPassOddsBet +
+            profit;
         }
 
         setBankroll(
-          (currentBankroll) =>
-            currentBankroll + returned
+          (current) =>
+            current + returned
         );
 
-        rollMessages.push(
+        messages.push(
           `Don't Pass wins $${money(
             dontPassBet
           )}.`
         );
 
-        if (dontPassOddsBet > 0) {
-          rollMessages.push(
+        if (profit > 0) {
+          messages.push(
             `Lay odds win $${money(
-              layProfit
+              profit
             )}.`
           );
         }
@@ -1365,30 +1538,19 @@ export default function TablePage() {
 
       setPoint(null);
 
-      setMessage(
-        rollMessages.join(" ")
-      );
-
+      setMessage(messages.join(" "));
       return;
     }
-
-    /*
-      PLACE BET HIT
-    */
 
     const placeMessage =
       resolvePlaceBet(total);
 
     if (placeMessage) {
-      rollMessages.push(placeMessage);
+      messages.push(placeMessage);
     }
 
-    /*
-      TABLE POINT MADE
-    */
-
     if (total === point) {
-      rollMessages.unshift(
+      messages.unshift(
         `${total} — Point made!`
       );
 
@@ -1406,23 +1568,24 @@ export default function TablePage() {
             );
 
           returned +=
-            passOddsBet + oddsProfit;
+            passOddsBet +
+            oddsProfit;
         }
 
         setBankroll(
-          (currentBankroll) =>
-            currentBankroll + returned
+          (current) =>
+            current + returned
         );
 
-        rollMessages.push(
+        messages.push(
           `Pass Line wins $${money(
             passLineBet
           )}.`
         );
 
-        if (passOddsBet > 0) {
-          rollMessages.push(
-            `Odds win $${money(
+        if (oddsProfit) {
+          messages.push(
+            `Pass odds win $${money(
               oddsProfit
             )}.`
           );
@@ -1430,11 +1593,12 @@ export default function TablePage() {
       }
 
       if (
-        dontPassBet > 0 ||
-        dontPassOddsBet > 0
+        dontPassBet +
+          dontPassOddsBet >
+        0
       ) {
-        rollMessages.push(
-          `Don't Pass and lay odds lose $${money(
+        messages.push(
+          `Don't Pass/lay odds lose $${money(
             dontPassBet +
               dontPassOddsBet
           )}.`
@@ -1449,33 +1613,26 @@ export default function TablePage() {
 
       setPoint(null);
 
-      setMessage(
-        rollMessages.join(" ")
-      );
-
+      setMessage(messages.join(" "));
       return;
     }
 
-    if (rollMessages.length === 0) {
-      rollMessages.push(
+    if (messages.length === 0) {
+      messages.push(
         `${total} — No decision.`
       );
     } else {
-      rollMessages.unshift(
+      messages.unshift(
         `${total} rolled.`
       );
     }
 
-    setMessage(
-      rollMessages.join(" ")
-    );
+    setMessage(messages.join(" "));
   }
 
   return (
     <main className="min-h-screen bg-emerald-950 p-6 text-white">
       <div className="mx-auto max-w-7xl">
-        {/* HEADER */}
-
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">
@@ -1511,253 +1668,286 @@ export default function TablePage() {
               </p>
 
               <p className="text-2xl font-bold">
-                {point === null
-                  ? "OFF"
-                  : point}
+                {point === null ? "OFF" : point}
               </p>
             </div>
           </div>
         </div>
 
-        {/* TABLE */}
-
         <div className="rounded-3xl border-4 border-amber-700 bg-emerald-800 p-6 shadow-2xl">
-          {/* BOX NUMBERS */}
-
           <div className="grid grid-cols-6 gap-2">
-            {pointNumbers.map(
-              (number) => (
+            {pointNumbers.map((number) => (
+              <div
+                key={number}
+                className={`rounded-lg border-2 p-3 text-center ${
+                  point === number
+                    ? "border-amber-300 bg-amber-500 text-black"
+                    : "border-white/70 bg-emerald-700"
+                }`}
+              >
                 <button
-                  key={number}
                   onClick={() =>
                     removeMode
-                      ? removeNumberBet(
-                          number
-                        )
-                      : placeNumberBet(
-                          number
-                        )
+                      ? removeNumberBet(number)
+                      : placeNumberBet(number)
                   }
-                  className={`rounded-lg border-2 p-5 text-3xl font-bold ${
-                    point === number
-                      ? "border-amber-300 bg-amber-500 text-black"
-                      : "border-white/70 bg-emerald-700 hover:bg-emerald-600"
-                  }`}
+                  className="w-full"
                 >
-                  {number}
+                  <span className="text-3xl font-bold">
+                    {number}
+                  </span>
 
-                  <span className="mt-1 block text-xs font-normal">
+                  <span className="block text-xs">
                     PLACE
                   </span>
 
-                  {placeBets[number] >
-                    0 && (
-                    <span className="mt-2 block rounded-full bg-white px-2 py-1 text-sm text-black">
-                      $
-                      {money(
-                        placeBets[
-                          number
-                        ]
-                      )}
-                    </span>
-                  )}
-
-                  {comeBets[number] >
-                    0 && (
-                    <span className="mt-2 block text-xs text-blue-100">
-                      COME $
-                      {money(
-                        comeBets[number]
-                      )}
-                    </span>
-                  )}
-
-                  {dontComeBets[
-                    number
-                  ] > 0 && (
-                    <span className="mt-1 block text-xs text-red-100">
-                      DC $
-                      {money(
-                        dontComeBets[
-                          number
-                        ]
-                      )}
+                  {placeBets[number] > 0 && (
+                    <span className="mt-1 block rounded-full bg-white px-2 py-1 text-xs text-black">
+                      ${money(placeBets[number])}
                     </span>
                   )}
                 </button>
-              )
-            )}
-          </div>
 
-          {/* COME */}
+                {comeBets[number] > 0 && (
+                  <div className="mt-2 border-t border-white/30 pt-2 text-xs">
+                    <div>
+                      COME ${money(comeBets[number])}
+                    </div>
+
+                    <button
+                      onClick={() => handleComeOdds(number)}
+                      className="mt-1 rounded bg-blue-800 px-2 py-1 text-white"
+                    >
+                      ODDS ${money(comeOdds[number])}
+                    </button>
+                  </div>
+                )}
+
+                {dontComeBets[number] > 0 && (
+                  <div className="mt-2 border-t border-white/30 pt-2 text-xs">
+                    <div>
+                      DC ${money(dontComeBets[number])}
+                    </div>
+
+                    <button
+                      onClick={() => handleDontComeOdds(number)}
+                      className="mt-1 rounded bg-red-900 px-2 py-1 text-white"
+                    >
+                      LAY ${money(dontComeOdds[number])}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
           <button
             onClick={handleComeBet}
-            className="mt-3 w-full rounded-lg border-2 border-white/70 p-6 text-3xl font-bold hover:bg-emerald-700"
+            className="mt-3 w-full rounded-lg border-2 border-white/70 p-5 text-3xl font-bold"
           >
             COME
 
             {activeComeBet > 0 && (
               <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                $
-                {money(
-                  activeComeBet
-                )}
+                ${money(activeComeBet)}
               </span>
             )}
           </button>
-
-          {/* FIELD */}
 
           <button
             onClick={handleFieldBet}
-            className="mt-3 w-full rounded-lg border-2 border-white/70 p-5 text-2xl font-bold hover:bg-emerald-700"
+            className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-2xl font-bold"
           >
-            FIELD
-
-            <span className="ml-5 text-lg">
-              2 • 3 • 4 • 9 • 10 •
-              11 • 12
-            </span>
+            FIELD — 2 • 3 • 4 • 9 • 10 • 11 • 12
 
             {fieldBet > 0 && (
               <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                $
-                {money(fieldBet)}
+                ${money(fieldBet)}
               </span>
             )}
           </button>
-
-          {/* DON'T COME */}
 
           <button
             onClick={handleDontComeBet}
-            className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold hover:bg-emerald-700"
+            className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold"
           >
             DON&apos;T COME — BAR 12
 
-            {activeDontComeBet >
-              0 && (
+            {activeDontComeBet > 0 && (
               <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                $
-                {money(
-                  activeDontComeBet
-                )}
+                ${money(activeDontComeBet)}
               </span>
             )}
           </button>
 
-          {/* DON'T PASS */}
-
           <button
             onClick={handleDontPassBet}
-            className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold hover:bg-emerald-700"
+            className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold"
           >
             DON&apos;T PASS — BAR 12
 
             {dontPassBet > 0 && (
               <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                $
-                {money(
-                  dontPassBet
-                )}
+                ${money(dontPassBet)}
               </span>
             )}
           </button>
 
-          {/* DON'T PASS ODDS */}
-
-          {point !== null &&
-            dontPassBet > 0 && (
-              <button
-                onClick={
-                  handleDontPassOdds
-                }
-                className="mt-3 w-full rounded-lg border-2 border-red-300 bg-red-900/60 p-4 text-xl font-bold hover:bg-red-800"
-              >
-                DON&apos;T PASS LAY
-                ODDS
-
-                {dontPassOddsBet >
-                  0 && (
-                  <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                    $
-                    {money(
-                      dontPassOddsBet
-                    )}
-                  </span>
-                )}
-
-                <span className="ml-4 text-sm">
-                  Max lay $
-                  {money(
-                    getMaxDontPassLayOdds()
-                  )}
-                </span>
-              </button>
-            )}
-
-          {/* PASS LINE */}
+          {point !== null && dontPassBet > 0 && (
+            <button
+              onClick={handleDontPassOdds}
+              className="mt-3 w-full rounded-lg border-2 border-red-300 bg-red-900/60 p-3 font-bold"
+            >
+              DON&apos;T PASS LAY ODDS — $
+              {money(dontPassOddsBet)}
+            </button>
+          )}
 
           <button
             onClick={handlePassLineBet}
-            className="mt-3 w-full rounded-lg border-2 border-white bg-emerald-700 p-5 text-2xl font-bold hover:bg-emerald-600"
+            className="mt-3 w-full rounded-lg border-2 border-white bg-emerald-700 p-5 text-2xl font-bold"
           >
             PASS LINE
 
             {passLineBet > 0 && (
               <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                $
-                {money(
-                  passLineBet
-                )}
+                ${money(passLineBet)}
               </span>
             )}
           </button>
 
-          {/* PASS ODDS */}
+          {point !== null && passLineBet > 0 && (
+            <button
+              onClick={handlePassOdds}
+              className="mt-3 w-full rounded-lg border-2 border-amber-300 bg-amber-500 p-3 font-bold text-black"
+            >
+              PASS ODDS — ${money(passOddsBet)}
+            </button>
+          )}
 
-          {point !== null &&
-            passLineBet > 0 && (
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {hardwayNumbers.map((number) => (
               <button
-                onClick={
-                  handlePassOdds
-                }
-                className="mt-3 w-full rounded-lg border-2 border-amber-300 bg-amber-500 p-4 text-xl font-bold text-black hover:bg-amber-400"
+                key={number}
+                onClick={() => handleHardway(number)}
+                className="rounded-lg border border-white/60 bg-emerald-900 p-3 font-bold"
               >
-                PASS LINE ODDS
+                HARD {number}
 
-                {passOddsBet >
-                  0 && (
-                  <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
-                    $
-                    {money(
-                      passOddsBet
-                    )}
+                {hardways[number] > 0 && (
+                  <span className="ml-2">
+                    ${money(hardways[number])}
                   </span>
                 )}
-
-                <span className="ml-4 text-sm">
-                  Max $
-                  {money(
-                    getMaxPassOdds()
-                  )}
-                </span>
               </button>
-            )}
-        </div>
+            ))}
+          </div>
 
-        {/* PLACE WORKING */}
+          <div className="mt-4 rounded-xl border border-white/30 bg-emerald-950/50 p-4">
+            <p className="mb-3 text-center text-sm font-bold uppercase tracking-widest text-emerald-200">
+              Proposition Bets
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              <button
+                onClick={() =>
+                  handlePropBet(
+                    anySevenBet,
+                    setAnySevenBet,
+                    "Any 7"
+                  )
+                }
+                className="rounded-lg border border-white/60 p-3 font-bold"
+              >
+                ANY 7
+                <span className="block text-xs">
+                  Pays 4:1
+                </span>
+
+                {anySevenBet > 0 && (
+                  <span>
+                    ${money(anySevenBet)}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() =>
+                  handlePropBet(
+                    anyCrapsBet,
+                    setAnyCrapsBet,
+                    "Any Craps"
+                  )
+                }
+                className="rounded-lg border border-white/60 p-3 font-bold"
+              >
+                ANY CRAPS
+                <span className="block text-xs">
+                  2 • 3 • 12 — 7:1
+                </span>
+
+                {anyCrapsBet > 0 && (
+                  <span>
+                    ${money(anyCrapsBet)}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() =>
+                  handlePropBet(
+                    yoBet,
+                    setYoBet,
+                    "Yo 11"
+                  )
+                }
+                className="rounded-lg border border-white/60 p-3 font-bold"
+              >
+                YO 11
+                <span className="block text-xs">
+                  Pays 15:1
+                </span>
+
+                {yoBet > 0 && (
+                  <span>
+                    ${money(yoBet)}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() =>
+                  handlePropBet(
+                    hornBet,
+                    setHornBet,
+                    "Horn"
+                  )
+                }
+                className="rounded-lg border border-white/60 p-3 font-bold"
+              >
+                HORN
+                <span className="block text-xs">
+                  2 • 3 • 11 • 12
+                </span>
+
+                {hornBet > 0 && (
+                  <span>
+                    ${money(hornBet)}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           <button
             onClick={() =>
               setPlaceBetsWorking(
-                (current) =>
-                  !current
+                (current) => !current
               )
             }
-            className={`rounded-lg px-6 py-3 font-bold ${
+            className={`rounded-lg px-5 py-3 font-bold ${
               placeBetsWorking
                 ? "bg-amber-500 text-black"
                 : "border border-emerald-400 bg-emerald-900"
@@ -1771,53 +1961,35 @@ export default function TablePage() {
 
           <button
             onClick={resetTable}
-            className="rounded-lg border border-red-400 px-6 py-3 font-bold text-red-200 hover:bg-red-900"
+            className="rounded-lg border border-red-400 px-5 py-3 font-bold text-red-200"
           >
             RESET TABLE
           </button>
         </div>
 
-        {/* CHIPS */}
-
         <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-          <span className="mr-2 text-sm uppercase text-emerald-200">
+          <span className="text-sm uppercase text-emerald-200">
             Select Chip
           </span>
 
-          {chipValues.map(
-            (chip) => (
-              <button
-                key={chip}
-                onClick={() =>
-                  setSelectedChip(
-                    chip
-                  )
-                }
-                className={`flex h-16 w-16 items-center justify-center rounded-full border-4 font-bold shadow-lg transition hover:scale-110 ${
-                  selectedChip ===
-                  chip
-                    ? "border-amber-400 bg-amber-100 text-black"
-                    : "border-dashed border-white bg-white text-black"
-                }`}
-              >
-                ${chip}
-              </button>
-            )
-          )}
+          {chipValues.map((chip) => (
+            <button
+              key={chip}
+              onClick={() => setSelectedChip(chip)}
+              className={`flex h-16 w-16 items-center justify-center rounded-full border-4 font-bold shadow-lg ${
+                selectedChip === chip
+                  ? "border-amber-400 bg-amber-100 text-black"
+                  : "border-dashed border-white bg-white text-black"
+              }`}
+            >
+              ${chip}
+            </button>
+          ))}
         </div>
-
-        <p className="mt-3 text-center text-sm text-emerald-200">
-          Selected chip: $
-          {selectedChip}
-        </p>
-
-        {/* ADD / REMOVE */}
 
         <div className="mt-4 flex justify-center gap-3">
           <button
-            onClick={() =>
-              setRemoveMode(false)
-            }
+            onClick={() => setRemoveMode(false)}
             className={`rounded-lg px-6 py-2 font-bold ${
               !removeMode
                 ? "bg-amber-500 text-black"
@@ -1828,9 +2000,7 @@ export default function TablePage() {
           </button>
 
           <button
-            onClick={() =>
-              setRemoveMode(true)
-            }
+            onClick={() => setRemoveMode(true)}
             className={`rounded-lg px-6 py-2 font-bold ${
               removeMode
                 ? "bg-red-600"
@@ -1841,26 +2011,17 @@ export default function TablePage() {
           </button>
         </div>
 
-        {/* TESTING MODE */}
-
         <div className="mx-auto mt-6 max-w-xl rounded-xl border border-purple-400/50 bg-purple-950/40 p-4 text-center">
           <button
             onClick={() =>
               setTestingMode(
-                (current) =>
-                  !current
+                (current) => !current
               )
             }
-            className={`rounded-lg px-5 py-2 font-bold ${
-              testingMode
-                ? "bg-purple-500 text-white"
-                : "border border-purple-300"
-            }`}
+            className="rounded-lg border border-purple-300 px-5 py-2 font-bold"
           >
             TEST MODE:{" "}
-            {testingMode
-              ? "ON"
-              : "OFF"}
+            {testingMode ? "ON" : "OFF"}
           </button>
 
           {testingMode && (
@@ -1873,70 +2034,61 @@ export default function TablePage() {
                 value={forcedTotal}
                 onChange={(event) =>
                   setForcedTotal(
-                    Number(
-                      event.target
-                        .value
-                    )
+                    Number(event.target.value)
                   )
                 }
                 className="rounded bg-white px-3 py-2 text-black"
               >
                 {Array.from(
                   { length: 11 },
-                  (_, index) =>
-                    index + 2
-                ).map(
-                  (number) => (
-                    <option
-                      key={
-                        number
-                      }
-                      value={
-                        number
-                      }
-                    >
-                      {number}
-                    </option>
-                  )
-                )}
+                  (_, index) => index + 2
+                ).map((number) => (
+                  <option
+                    key={number}
+                    value={number}
+                  >
+                    {number}
+                  </option>
+                ))}
               </select>
 
-              <p className="mt-2 text-xs text-purple-200">
-                ROLL DICE will
-                produce the selected
-                total.
-              </p>
+              {hardwayNumbers.includes(forcedTotal) && (
+                <label className="ml-4">
+                  <input
+                    type="checkbox"
+                    checked={forceHardway}
+                    onChange={(event) =>
+                      setForceHardway(
+                        event.target.checked
+                      )
+                    }
+                    className="mr-2"
+                  />
+
+                  Force Hardway
+                </label>
+              )}
             </div>
           )}
         </div>
 
-        {/* DICE */}
-
         <div className="mt-8 text-center">
           <div className="mb-2 text-7xl">
-            {
-              diceFaces[
-                dieOne - 1
-              ]
-            }{" "}
-            {
-              diceFaces[
-                dieTwo - 1
-              ]
-            }
+            {diceFaces[dieOne - 1]}{" "}
+            {diceFaces[dieTwo - 1]}
           </div>
 
           <p className="text-2xl font-bold">
             You rolled {rollTotal}
           </p>
 
-          <p className="mx-auto mb-4 mt-2 min-h-7 max-w-4xl text-lg text-amber-300">
+          <p className="mx-auto mb-4 mt-2 min-h-7 max-w-5xl text-lg text-amber-300">
             {message}
           </p>
 
           <button
             onClick={rollDice}
-            className="rounded-xl bg-amber-500 px-12 py-4 text-xl font-bold text-black shadow-lg hover:bg-amber-400"
+            className="rounded-xl bg-amber-500 px-12 py-4 text-xl font-bold text-black shadow-lg"
           >
             ROLL DICE
           </button>
