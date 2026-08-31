@@ -26,6 +26,7 @@ export default function TablePage() {
 
   const [passLineBet, setPassLineBet] = useState(0);
   const [oddsBet, setOddsBet] = useState(0);
+  const [dontPassBet, setDontPassBet] = useState(0);
   const [fieldBet, setFieldBet] = useState(0);
 
   const [placeBets, setPlaceBets] = useState<PlaceBets>({
@@ -49,8 +50,34 @@ export default function TablePage() {
   }
 
   function placePassLineBet() {
+    if (removeMode) {
+      if (passLineBet === 0) {
+        setMessage("There is no Pass Line bet to remove.");
+        return;
+      }
+
+      if (selectedChip > passLineBet) {
+        setMessage(
+          `You only have $${passLineBet} on the Pass Line. Select a smaller chip.`
+        );
+        return;
+      }
+
+      setPassLineBet((currentBet) => currentBet - selectedChip);
+      setBankroll((currentBankroll) => currentBankroll + selectedChip);
+      setMessage(`Removed $${selectedChip} from the Pass Line.`);
+      return;
+    }
+
     if (point !== null) {
       setMessage("Pass Line bets can only be added while the point is OFF.");
+      return;
+    }
+
+    if (dontPassBet > 0) {
+      setMessage(
+        "Remove your Don't Pass bet before betting the Pass Line."
+      );
       return;
     }
 
@@ -63,6 +90,59 @@ export default function TablePage() {
     setBankroll((currentBankroll) => currentBankroll - selectedChip);
 
     setMessage(`Added $${selectedChip} to the Pass Line.`);
+  }
+
+  function handleDontPassBet() {
+    if (removeMode) {
+      if (dontPassBet === 0) {
+        setMessage("There is no Don't Pass bet to remove.");
+        return;
+      }
+
+      if (point !== null) {
+        setMessage(
+          "Don't Pass bets cannot be removed after a point is established."
+        );
+        return;
+      }
+
+      if (selectedChip > dontPassBet) {
+        setMessage(
+          `You only have $${dontPassBet} on Don't Pass. Select a smaller chip.`
+        );
+        return;
+      }
+
+      setDontPassBet((currentBet) => currentBet - selectedChip);
+      setBankroll((currentBankroll) => currentBankroll + selectedChip);
+
+      setMessage(`Removed $${selectedChip} from Don't Pass.`);
+      return;
+    }
+
+    if (point !== null) {
+      setMessage(
+        "Don't Pass bets can only be added while the point is OFF."
+      );
+      return;
+    }
+
+    if (passLineBet > 0) {
+      setMessage(
+        "Remove your Pass Line bet before betting Don't Pass."
+      );
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll for that chip.");
+      return;
+    }
+
+    setDontPassBet((currentBet) => currentBet + selectedChip);
+    setBankroll((currentBankroll) => currentBankroll - selectedChip);
+
+    setMessage(`Added $${selectedChip} to Don't Pass.`);
   }
 
   function placeOddsBet() {
@@ -246,10 +326,9 @@ export default function TablePage() {
 
     if (total === 2) {
       const profit = fieldBet * 2;
-      const amountReturned = fieldBet + profit;
 
       setBankroll(
-        (currentBankroll) => currentBankroll + amountReturned
+        (currentBankroll) => currentBankroll + fieldBet + profit
       );
 
       setFieldBet(0);
@@ -259,10 +338,9 @@ export default function TablePage() {
 
     if (total === 12) {
       const profit = fieldBet * 3;
-      const amountReturned = fieldBet + profit;
 
       setBankroll(
-        (currentBankroll) => currentBankroll + amountReturned
+        (currentBankroll) => currentBankroll + fieldBet + profit
       );
 
       setFieldBet(0);
@@ -272,10 +350,9 @@ export default function TablePage() {
 
     if ([3, 4, 9, 10, 11].includes(total)) {
       const profit = fieldBet;
-      const amountReturned = fieldBet + profit;
 
       setBankroll(
-        (currentBankroll) => currentBankroll + amountReturned
+        (currentBankroll) => currentBankroll + fieldBet + profit
       );
 
       setFieldBet(0);
@@ -320,8 +397,13 @@ export default function TablePage() {
 
     const fieldMessage = resolveFieldBet(total);
 
+    /*
+      COME-OUT ROLL
+    */
+
     if (point === null) {
       let placeMessage: string | null = null;
+      let lineMessage = `${total} — Come-out roll.`;
 
       if (placeBetsWorking) {
         if (total === 7) {
@@ -336,24 +418,27 @@ export default function TablePage() {
       }
 
       if (total === 7 || total === 11) {
-        let passMessage = `${total} — Natural!`;
+        lineMessage = `${total} — Natural!`;
 
         if (passLineBet > 0) {
-          const amountReturned = passLineBet * 2;
-
           setBankroll(
             (currentBankroll) =>
-              currentBankroll + amountReturned
+              currentBankroll + passLineBet * 2
           );
 
-          passMessage += ` Pass Line wins $${passLineBet}.`;
+          lineMessage += ` Pass Line wins $${passLineBet}.`;
 
           setPassLineBet(0);
           setOddsBet(0);
         }
 
+        if (dontPassBet > 0) {
+          lineMessage += ` Don't Pass loses $${dontPassBet}.`;
+          setDontPassBet(0);
+        }
+
         const messages = [
-          passMessage,
+          lineMessage,
           placeMessage,
           fieldMessage,
         ].filter(Boolean);
@@ -362,18 +447,56 @@ export default function TablePage() {
         return;
       }
 
-      if (total === 2 || total === 3 || total === 12) {
-        let passMessage = `${total} — Craps.`;
+      if (total === 2 || total === 3) {
+        lineMessage = `${total} — Craps.`;
 
         if (passLineBet > 0) {
-          passMessage += ` Pass Line loses $${passLineBet}.`;
-
+          lineMessage += ` Pass Line loses $${passLineBet}.`;
           setPassLineBet(0);
           setOddsBet(0);
         }
 
+        if (dontPassBet > 0) {
+          setBankroll(
+            (currentBankroll) =>
+              currentBankroll + dontPassBet * 2
+          );
+
+          lineMessage += ` Don't Pass wins $${dontPassBet}.`;
+          setDontPassBet(0);
+        }
+
         const messages = [
-          passMessage,
+          lineMessage,
+          placeMessage,
+          fieldMessage,
+        ].filter(Boolean);
+
+        setMessage(messages.join(" "));
+        return;
+      }
+
+      if (total === 12) {
+        lineMessage = "12 — Craps. Don't Pass bars 12.";
+
+        if (passLineBet > 0) {
+          lineMessage += ` Pass Line loses $${passLineBet}.`;
+          setPassLineBet(0);
+          setOddsBet(0);
+        }
+
+        if (dontPassBet > 0) {
+          setBankroll(
+            (currentBankroll) =>
+              currentBankroll + dontPassBet
+          );
+
+          lineMessage += ` Don't Pass pushes. $${dontPassBet} returned.`;
+          setDontPassBet(0);
+        }
+
+        const messages = [
+          lineMessage,
           placeMessage,
           fieldMessage,
         ].filter(Boolean);
@@ -385,10 +508,10 @@ export default function TablePage() {
       if (pointNumbers.includes(total)) {
         setPoint(total);
 
-        const pointMessage = `Point established: ${total}.`;
+        lineMessage = `Point established: ${total}.`;
 
         const messages = [
-          pointMessage,
+          lineMessage,
           placeMessage,
           fieldMessage,
         ].filter(Boolean);
@@ -398,22 +521,43 @@ export default function TablePage() {
       }
     }
 
+    /*
+      POINT IS ON
+    */
+
     if (total === 7) {
       const placeLoss = clearAllPlaceBets();
+
+      let lineMessage = "7 — Seven out!";
+
       const passLoss = passLineBet + oddsBet;
+
+      if (passLoss > 0) {
+        lineMessage += ` Pass Line/odds lose $${passLoss}.`;
+      }
+
+      if (dontPassBet > 0) {
+        setBankroll(
+          (currentBankroll) =>
+            currentBankroll + dontPassBet * 2
+        );
+
+        lineMessage += ` Don't Pass wins $${dontPassBet}.`;
+      }
+
+      if (placeLoss > 0) {
+        lineMessage += ` Place bets lose $${placeLoss}.`;
+      }
 
       setPassLineBet(0);
       setOddsBet(0);
+      setDontPassBet(0);
       setPoint(null);
 
-      const totalLost = passLoss + placeLoss;
-
-      const sevenMessage =
-        totalLost > 0
-          ? `7 — Seven out! Total lost: $${totalLost}.`
-          : "7 — Seven out!";
-
-      const messages = [sevenMessage, fieldMessage].filter(Boolean);
+      const messages = [
+        lineMessage,
+        fieldMessage,
+      ].filter(Boolean);
 
       setMessage(messages.join(" "));
       return;
@@ -424,49 +568,47 @@ export default function TablePage() {
     if (total === point) {
       const madePoint = point;
 
-      let amountReturned = 0;
+      let lineMessage = `${total} — Point made!`;
 
       if (passLineBet > 0) {
-        amountReturned += passLineBet * 2;
-      }
+        let amountReturned = passLineBet * 2;
 
-      if (oddsBet > 0) {
-        const oddsProfit = calculateOddsProfit(
-          madePoint,
-          oddsBet
-        );
+        const passProfit = passLineBet;
 
-        amountReturned += oddsBet + oddsProfit;
-      }
+        let oddsProfit = 0;
 
-      if (amountReturned > 0) {
+        if (oddsBet > 0) {
+          oddsProfit = calculateOddsProfit(
+            madePoint,
+            oddsBet
+          );
+
+          amountReturned += oddsBet + oddsProfit;
+        }
+
         setBankroll(
           (currentBankroll) =>
             currentBankroll + amountReturned
         );
+
+        lineMessage += ` Pass Line wins $${passProfit}.`;
+
+        if (oddsBet > 0) {
+          lineMessage += ` Odds win $${oddsProfit}.`;
+        }
       }
 
-      const passProfit = passLineBet;
-
-      const oddsProfit =
-        oddsBet > 0
-          ? calculateOddsProfit(madePoint, oddsBet)
-          : 0;
+      if (dontPassBet > 0) {
+        lineMessage += ` Don't Pass loses $${dontPassBet}.`;
+      }
 
       setPassLineBet(0);
       setOddsBet(0);
+      setDontPassBet(0);
       setPoint(null);
 
-      const passMessage =
-        passLineBet > 0
-          ? `${total} — Point made! Pass Line wins $${passProfit}` +
-            (oddsBet > 0
-              ? ` and Odds win $${oddsProfit}.`
-              : ".")
-          : `${total} — Point made!`;
-
       const messages = [
-        passMessage,
+        lineMessage,
         placeMessage,
         fieldMessage,
       ].filter(Boolean);
@@ -572,8 +714,17 @@ export default function TablePage() {
             )}
           </button>
 
-          <button className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold hover:bg-emerald-700">
-            DON&apos;T PASS BAR
+          <button
+            onClick={handleDontPassBet}
+            className="mt-3 w-full rounded-lg border-2 border-white/70 p-4 text-xl font-bold hover:bg-emerald-700"
+          >
+            DON&apos;T PASS BAR 12
+
+            {dontPassBet > 0 && (
+              <span className="ml-4 rounded-full bg-white px-3 py-1 text-base text-black">
+                ${dontPassBet}
+              </span>
+            )}
           </button>
 
           <button
@@ -623,7 +774,9 @@ export default function TablePage() {
             }`}
           >
             PLACE BETS:{" "}
-            {placeBetsWorking ? "WORKING" : "OFF ON COME-OUT"}
+            {placeBetsWorking
+              ? "WORKING"
+              : "OFF ON COME-OUT"}
           </button>
         </div>
 
