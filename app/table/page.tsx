@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  useEffect,
   useState,
   type Dispatch,
   type MouseEvent,
@@ -20,6 +21,13 @@ type RollHistoryItem = {
   first: number;
   second: number;
   total: number;
+};
+
+type TravelAnimation = {
+  id: number;
+  kind: "come" | "dontCome";
+  number: number;
+  amount: number;
 };
 
 type BetSnapshot = {
@@ -138,6 +146,77 @@ function BetChip({
   );
 }
 
+function MiniDie({
+  value,
+  large = false,
+}: {
+  value: number;
+  large?: boolean;
+}) {
+  const pipsByValue: Record<number, number[]> = {
+    1: [5],
+    2: [1, 9],
+    3: [1, 5, 9],
+    4: [1, 3, 7, 9],
+    5: [1, 3, 5, 7, 9],
+    6: [1, 3, 4, 6, 7, 9],
+  };
+
+  const activePips = pipsByValue[value] ?? [];
+
+  return (
+    <span
+      className={`inline-grid shrink-0 grid-cols-3 grid-rows-3 rounded-[5px] border border-red-200/70 bg-red-700 p-[3px] shadow-md ${
+        large ? "h-10 w-10 sm:h-11 sm:w-11" : "h-6 w-6"
+      }`}
+      aria-label={`Die showing ${value}`}
+    >
+      {Array.from({ length: 9 }, (_, index) => {
+        const position = index + 1;
+        return (
+          <span
+            key={position}
+            className="flex items-center justify-center"
+          >
+            {activePips.includes(position) && (
+              <span
+                className={`rounded-full bg-white ${
+                  large ? "h-2 w-2 sm:h-2.5 sm:w-2.5" : "h-1.5 w-1.5"
+                }`}
+              />
+            )}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+function TravelChip({
+  amount,
+  kind,
+}: {
+  amount: number;
+  kind: "come" | "dontCome";
+}) {
+  return (
+    <span
+      className={`lucky-travel pointer-events-none absolute left-1/2 top-1/2 z-50 inline-flex h-9 min-w-9 items-center justify-center rounded-full border-[3px] border-dashed px-1 text-[8px] font-black shadow-2xl ${chipRangeStyle(
+        amount
+      )}`}
+      style={{
+        animation:
+          kind === "come"
+            ? "comeChipTravel 760ms cubic-bezier(.2,.8,.2,1) both"
+            : "dontComeChipTravel 760ms cubic-bezier(.2,.8,.2,1) both",
+      }}
+    >
+      <span className="absolute inset-[3px] rounded-full border border-current opacity-40" />
+      <span className="relative z-10">${money(amount)}</span>
+    </span>
+  );
+}
+
 function Stat({
   label,
   value,
@@ -185,6 +264,9 @@ export default function TablePage() {
   const [selectedChip, setSelectedChip] = useState(25);
   const [removeMode, setRemoveMode] = useState(false);
   const [placeBetsWorking, setPlaceBetsWorking] = useState(false);
+  const [hardwaysWorking, setHardwaysWorking] = useState(false);
+  const [travelAnimation, setTravelAnimation] =
+    useState<TravelAnimation | null>(null);
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
@@ -222,6 +304,27 @@ export default function TablePage() {
   const [anyCrapsBet, setAnyCrapsBet] = useState(0);
   const [yoBet, setYoBet] = useState(0);
   const [hornBet, setHornBet] = useState(0);
+
+  useEffect(() => {
+    // Hardways follow the puck by default. The player can override this
+    // at any time; the default is re-applied only when the puck changes.
+    setHardwaysWorking(point !== null);
+  }, [point]);
+
+  function triggerTravel(
+    kind: "come" | "dontCome",
+    number: number,
+    amount: number
+  ) {
+    const id = Date.now() + Math.floor(Math.random() * 1000);
+    setTravelAnimation({ id, kind, number, amount });
+
+    window.setTimeout(() => {
+      setTravelAnimation((current) =>
+        current?.id === id ? null : current
+      );
+    }, 820);
+  }
 
   function wantsRemove(event?: MouseEvent<HTMLButtonElement>) {
     return removeMode || Boolean(event?.shiftKey);
@@ -607,6 +710,7 @@ export default function TablePage() {
     setSelectedChip(25);
     setRemoveMode(false);
     setPlaceBetsWorking(false);
+    setHardwaysWorking(false);
     setPassLineBet(0);
     setPassOddsBet(0);
     setDontPassBet(0);
@@ -627,6 +731,7 @@ export default function TablePage() {
     setHornBet(0);
     setLastBetSnapshot(null);
     setLastRollBets(null);
+    setTravelAnimation(null);
   }
 
   function makeDiceForTotal(total: number) {
@@ -686,6 +791,18 @@ export default function TablePage() {
     if (number === 4 || number === 10) return "1:2";
     if (number === 5 || number === 9) return "2:3";
     return "5:6";
+  }
+
+  function placeOddsLabel(number: number) {
+    if (number === 4 || number === 10) return "9:5";
+    if (number === 5 || number === 9) return "7:5";
+    return "7:6";
+  }
+
+  function passOddsLabel(number: number) {
+    if (number === 4 || number === 10) return "2:1";
+    if (number === 5 || number === 9) return "3:2";
+    return "6:5";
   }
 
   function smartAddOdds(
@@ -781,7 +898,7 @@ export default function TablePage() {
       passOddsBet,
       passLineBet * getPassOddsMultiplier(point),
       setPassOddsBet,
-      "Pass odds"
+      `Pass odds at ${passOddsLabel(point)}`
     );
   }
 
@@ -849,7 +966,7 @@ export default function TablePage() {
       dontPassOddsBet,
       dontPassBet * 6,
       setDontPassOddsBet,
-      "Don't Pass lay odds"
+      `Don't Pass lay odds at ${layOddsLabel(point)}`
     );
   }
 
@@ -955,7 +1072,9 @@ export default function TablePage() {
     }));
     setBankroll((current) => current - selectedChip);
     setMessage(
-      `Place ${number} is now $${money(placeBets[number] + selectedChip)}.`
+      `Place ${number} is now $${money(
+        placeBets[number] + selectedChip
+      )}. Pays ${placeOddsLabel(number)}.`
     );
   }
 
@@ -1140,10 +1259,14 @@ export default function TablePage() {
       setMessage(
         `Added the maximum available $${money(
           amountToAdd
-        )} in Come odds on ${number}.`
+        )} in Come odds on ${number} at ${passOddsLabel(number)}.`
       );
     } else {
-      setMessage(`Added $${money(amountToAdd)} in Come odds on ${number}.`);
+      setMessage(
+        `Added $${money(amountToAdd)} in Come odds on ${number} at ${passOddsLabel(
+          number
+        )}.`
+      );
     }
   }
 
@@ -1204,11 +1327,13 @@ export default function TablePage() {
       setMessage(
         `Added the maximum available $${money(
           amountToAdd
-        )} in Don't Come lay odds behind ${number}.`
+        )} in Don't Come lay odds behind ${number} at ${layOddsLabel(number)}.`
       );
     } else {
       setMessage(
-        `Added $${money(amountToAdd)} in Don't Come lay odds behind ${number}.`
+        `Added $${money(
+          amountToAdd
+        )} in Don't Come lay odds behind ${number} at ${layOddsLabel(number)}.`
       );
     }
   }
@@ -1422,7 +1547,8 @@ export default function TablePage() {
         setActiveComeBet(0);
       } else if (pointNumbers.includes(total)) {
         nextCome[total] += bet;
-        messages.push(`$${money(bet)} Come moves to ${total}.`);
+        triggerTravel("come", total, bet);
+        messages.push(`$${money(bet)} Come travels to ${total}.`);
         setActiveComeBet(0);
       }
     }
@@ -1484,7 +1610,8 @@ export default function TablePage() {
         setActiveDontComeBet(0);
       } else if (pointNumbers.includes(total)) {
         nextDC[total] += bet;
-        messages.push(`$${money(bet)} Don't Come moves behind ${total}.`);
+        triggerTravel("dontCome", total, bet);
+        messages.push(`$${money(bet)} Don't Come travels behind ${total}.`);
         setActiveDontComeBet(0);
       }
     }
@@ -1498,6 +1625,7 @@ export default function TablePage() {
     if (isRolling) return;
 
     setIsRolling(true);
+    setTravelAnimation(null);
     setLastRollBets(captureBetSnapshot());
     setLastBetSnapshot(null);
     setMessage("Dice are rolling...");
@@ -1546,7 +1674,10 @@ export default function TablePage() {
     if (fieldMessage) messages.push(fieldMessage);
 
     messages.push(...resolvePropBets(total));
-    messages.push(...resolveHardways(first, second, total));
+
+    if (hardwaysWorking) {
+      messages.push(...resolveHardways(first, second, total));
+    }
 
     if (point !== null) {
       messages.push(...resolveComeBets(total));
@@ -1726,6 +1857,46 @@ export default function TablePage() {
 
   return (
     <main className="min-h-screen bg-[#03130e] px-2 py-2 text-white sm:px-4 sm:py-3">
+      <style>{`
+        @keyframes comeChipTravel {
+          0% {
+            transform: translate(-50%, 155px) scale(.78) rotate(-18deg);
+            opacity: 0;
+          }
+          18% { opacity: 1; }
+          72% {
+            transform: translate(-50%, -8px) scale(1.08) rotate(4deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            opacity: 0;
+          }
+        }
+
+        @keyframes dontComeChipTravel {
+          0% {
+            transform: translate(160px, 70px) scale(.78) rotate(16deg);
+            opacity: 0;
+          }
+          18% { opacity: 1; }
+          72% {
+            transform: translate(-58%, -54%) scale(1.08) rotate(-4deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            opacity: 0;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .lucky-travel {
+            animation-duration: 1ms !important;
+          }
+        }
+      `}</style>
+
       <div className="mx-auto max-w-[1500px]">
         {/* COMPACT HEADER */}
         <div className="mb-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-900/80 bg-black/30 px-4 py-2">
@@ -1772,7 +1943,7 @@ export default function TablePage() {
             }}
           >
             {/* SUBTLE BRAND / FUTURE LOGO AREA */}
-            <div className="pointer-events-none absolute left-1/2 top-[44%] z-0 -translate-x-1/2 -translate-y-1/2 text-center opacity-[0.09]">
+            <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 -translate-x-1/2 -translate-y-1/2 text-center opacity-[0.07]">
               <div className="text-3xl font-black tracking-[0.28em] sm:text-5xl">
                 LUCKY PENNY
               </div>
@@ -1781,270 +1952,433 @@ export default function TablePage() {
               </div>
             </div>
 
-            {/* BOX NUMBERS */}
-            <div className="relative z-10 grid grid-cols-3 gap-[3px] md:grid-cols-6">
-              {pointNumbers.map((number) => (
-                <div
-                  key={number}
-                  className={`relative min-h-[152px] border border-white/55 bg-black/[0.025] px-1 py-2 text-center transition ${
-                    point === number
-                      ? "bg-white/[0.06] ring-2 ring-inset ring-amber-300/80"
-                      : ""
-                  } ${
-                    layBets[number] > 0
-                      ? "shadow-[inset_0_3px_0_rgba(248,113,113,0.75)]"
-                      : ""
-                  }`}
-                >
-                  {point === number && (
-                    <div className="absolute -top-4 left-1/2 z-30 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-white bg-zinc-950 text-[9px] font-black shadow-xl">
-                      ON
-                    </div>
-                  )}
-
-                  <button
-                    onClick={(event) => handleLayBet(event, number)}
-                    className={`absolute inset-x-1 top-1 z-20 flex min-h-9 items-center justify-between border-b px-1.5 text-left font-black uppercase transition ${
-                      layBets[number] > 0
-                        ? "border-red-300/60 bg-red-950/45 text-red-50"
-                        : "border-white/20 text-red-100 hover:bg-red-950/25"
-                    }`}
-                    title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
-                  >
-                    <span className="leading-tight">
-                      <span className="block text-[8px] tracking-[0.16em]">
-                        LAY • {layOddsLabel(number)}
-                      </span>
-                      {layBets[number] > 0 && (
-                        <span className="block text-[7px] normal-case tracking-normal text-red-200">
-                          Win +${money(
-                            calculateNumberLayNetProfit(
-                              number,
-                              layBets[number]
-                            )
-                          )} net
-                        </span>
+            <div className="relative z-10 grid gap-1 xl:grid-cols-[minmax(0,2.5fr)_minmax(360px,1fr)]">
+              {/* MAIN PLAYER AREA */}
+              <div className="min-w-0">
+                {/* BOX NUMBERS */}
+                <div className="relative grid grid-cols-3 gap-[3px] md:grid-cols-6">
+                  {pointNumbers.map((number) => (
+                    <div
+                      key={number}
+                      className={`relative min-h-[220px] overflow-visible border border-white/60 bg-black/[0.025] text-center transition ${
+                        point === number
+                          ? "ring-2 ring-inset ring-amber-300/85"
+                          : ""
+                      }`}
+                    >
+                      {point === number && (
+                        <div className="absolute -top-4 left-1/2 z-[70] flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-white bg-zinc-950 text-[10px] font-black shadow-xl">
+                          ON
+                        </div>
                       )}
-                    </span>
 
-                    <BetChip amount={layBets[number]} compact />
-                  </button>
-
-                  <button
-                    onClick={(event) => handleNumberBet(event, number)}
-                    className="h-full w-full pt-9"
-                  >
-                    <span className="block text-4xl font-black leading-none sm:text-5xl">
-                      {number === 6 ? "SIX" : number === 9 ? "NINE" : number}
-                    </span>
-                    <span className="block text-[9px] font-black uppercase tracking-[0.18em] text-emerald-100/70">
-                      Place
-                    </span>
-                    <div className="mt-1 flex justify-center">
-                      <BetChip amount={placeBets[number]} />
-                    </div>
-                  </button>
-
-                  {comeBets[number] > 0 && (
-                    <div className="absolute bottom-1 left-1 rounded bg-blue-950/80 px-1 py-0.5 text-[8px] font-black">
-                      C ${money(comeBets[number])}
-                      <button
-                        onClick={(event) => handleComeOdds(event, number)}
-                        className="ml-1 rounded bg-blue-700 px-1"
+                      {/* DON'T COME TRAVEL ZONE */}
+                      <div
+                        className={`absolute inset-x-0 top-0 h-[44px] border-b border-white/35 px-1 ${
+                          dontComeBets[number] > 0
+                            ? "bg-red-950/30"
+                            : "bg-black/[0.035]"
+                        }`}
                       >
-                        O ${money(comeOdds[number])}
+                        <div className="flex h-full items-center justify-between gap-1">
+                          <span className="text-[7px] font-black uppercase tracking-[0.12em] text-red-100/65">
+                            Don&apos;t Come
+                          </span>
+
+                          {dontComeBets[number] > 0 && (
+                            <div className="flex items-center gap-1">
+                              <BetChip amount={dontComeBets[number]} compact />
+                              <button
+                                onClick={(event) =>
+                                  handleDontComeOdds(event, number)
+                                }
+                                className="rounded border border-red-300/50 bg-red-950/80 px-1 py-0.5 text-[7px] font-black text-red-50"
+                                title={`Don't Come odds pay ${layOddsLabel(
+                                  number
+                                )}`}
+                              >
+                                ODDS ${money(dontComeOdds[number])}
+                                <span className="block text-[6px] text-red-200">
+                                  {layOddsLabel(number)}
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {travelAnimation?.kind === "dontCome" &&
+                          travelAnimation.number === number && (
+                            <TravelChip
+                              key={travelAnimation.id}
+                              amount={travelAnimation.amount}
+                              kind="dontCome"
+                            />
+                          )}
+                      </div>
+
+                      {/* LAY ZONE */}
+                      <button
+                        onClick={(event) => handleLayBet(event, number)}
+                        className={`absolute inset-x-0 top-[44px] flex h-[38px] items-center justify-between border-b px-2 text-left font-black uppercase transition ${
+                          layBets[number] > 0
+                            ? "border-red-300/60 bg-red-950/45 text-red-50"
+                            : "border-white/35 bg-black/[0.025] text-red-100 hover:bg-red-950/25"
+                        }`}
+                        title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
+                      >
+                        <span className="leading-tight">
+                          <span className="block text-[8px] tracking-[0.14em]">
+                            LAY • {layOddsLabel(number)}
+                          </span>
+                          {layBets[number] > 0 && (
+                            <span className="block text-[6px] normal-case tracking-normal text-red-200">
+                              wins +$
+                              {money(
+                                calculateNumberLayNetProfit(
+                                  number,
+                                  layBets[number]
+                                )
+                              )} net
+                            </span>
+                          )}
+                        </span>
+                        <BetChip amount={layBets[number]} compact />
+                      </button>
+
+                      {/* COME TRAVEL ZONE */}
+                      <div
+                        className={`absolute inset-x-0 top-[82px] h-[42px] border-b border-white/35 px-1 ${
+                          comeBets[number] > 0
+                            ? "bg-blue-950/28"
+                            : "bg-black/[0.02]"
+                        }`}
+                      >
+                        <div className="flex h-full items-center justify-between gap-1">
+                          <span className="text-[7px] font-black uppercase tracking-[0.14em] text-blue-100/65">
+                            Come
+                          </span>
+
+                          {comeBets[number] > 0 && (
+                            <div className="flex items-center gap-1">
+                              <BetChip amount={comeBets[number]} compact />
+                              <button
+                                onClick={(event) =>
+                                  handleComeOdds(event, number)
+                                }
+                                className="rounded border border-blue-300/50 bg-blue-950/80 px-1 py-0.5 text-[7px] font-black text-blue-50"
+                                title={`Come odds pay ${passOddsLabel(number)}`}
+                              >
+                                ODDS ${money(comeOdds[number])}
+                                <span className="block text-[6px] text-blue-200">
+                                  {passOddsLabel(number)}
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {travelAnimation?.kind === "come" &&
+                          travelAnimation.number === number && (
+                            <TravelChip
+                              key={travelAnimation.id}
+                              amount={travelAnimation.amount}
+                              kind="come"
+                            />
+                          )}
+                      </div>
+
+                      {/* NUMBER */}
+                      <div className="absolute inset-x-0 bottom-[42px] top-[124px] flex items-center justify-center bg-black/[0.025]">
+                        <span className="text-4xl font-black leading-none sm:text-5xl">
+                          {number === 6
+                            ? "SIX"
+                            : number === 9
+                              ? "NINE"
+                              : number}
+                        </span>
+                      </div>
+
+                      {/* PLACE ZONE */}
+                      <button
+                        onClick={(event) => handleNumberBet(event, number)}
+                        className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-white/40 px-2 font-black transition hover:bg-white/[0.04] ${
+                          placeBets[number] > 0 ? "bg-emerald-950/30" : ""
+                        }`}
+                        title={`Place ${number} pays ${placeOddsLabel(number)}`}
+                      >
+                        <span className="text-[8px] uppercase tracking-[0.14em] text-emerald-50/85">
+                          PLACE • {placeOddsLabel(number)}
+                        </span>
+                        <BetChip amount={placeBets[number]} compact />
                       </button>
                     </div>
-                  )}
+                  ))}
 
-                  {dontComeBets[number] > 0 && (
-                    <div className="absolute bottom-1 right-1 rounded bg-red-950/80 px-1 py-0.5 text-[8px] font-black">
-                      DC ${money(dontComeBets[number])}
-                      <button
-                        onClick={(event) => handleDontComeOdds(event, number)}
-                        className="ml-1 rounded bg-red-700 px-1"
-                      >
-                        L ${money(dontComeOdds[number])}
-                      </button>
+                  {point === null && (
+                    <div className="absolute -left-2 bottom-2 z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-900 bg-white text-[9px] font-black text-black shadow-xl">
+                      OFF
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
 
-            {/* OFF PUCK */}
-            {point === null && (
-              <div className="absolute left-3 top-[130px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-900 bg-white text-[9px] font-black text-black shadow-xl md:left-4">
-                OFF
+                {/* COME / FIELD / DON'T PASS / PASS */}
+                <div className="mt-1 space-y-1">
+                  <button
+                    onClick={handleComeBet}
+                    className="relative min-h-[58px] w-full border border-white/60 bg-transparent text-3xl font-black tracking-[0.18em] hover:bg-white/[0.035]"
+                  >
+                    COME
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <BetChip amount={activeComeBet} />
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={handleFieldBet}
+                    className="relative min-h-[66px] w-full border border-white/60 bg-transparent px-3 py-2 hover:bg-white/[0.035]"
+                  >
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                      <span className="text-3xl font-black">2</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100/70">
+                        pays 2:1
+                      </span>
+                      <span className="text-xl font-black tracking-[0.14em]">
+                        FIELD
+                      </span>
+                      <span className="text-sm font-black tracking-[0.16em]">
+                        3 • 4 • 9 • 10 • 11
+                      </span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100/70">
+                        pays 3:1
+                      </span>
+                      <span className="text-3xl font-black">12</span>
+                    </div>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <BetChip amount={fieldBet} />
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={handleDontPassBet}
+                    className="relative min-h-[44px] w-full border border-white/45 bg-black/[0.035] text-base font-black tracking-[0.1em] hover:bg-white/[0.025]"
+                  >
+                    DON&apos;T PASS — BAR 12
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <BetChip amount={dontPassBet} />
+                    </span>
+                  </button>
+
+                  {point !== null && dontPassBet > 0 && (
+                    <button
+                      onClick={handleDontPassOdds}
+                      className="w-full border border-red-300/70 bg-red-950/55 py-1.5 text-[10px] font-black"
+                      title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
+                    >
+                      DON&apos;T PASS LAY ODDS ${money(dontPassOddsBet)}
+                      {" • "}PAYS {layOddsLabel(point)}
+                      {" • "}MAX ${money(dontPassBet * 6)}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handlePassLineBet}
+                    className="relative min-h-[56px] w-full rounded-[15px] border-[3px] border-white bg-transparent text-2xl font-black tracking-[0.18em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-white/[0.035]"
+                  >
+                    PASS LINE
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <BetChip amount={passLineBet} />
+                    </span>
+                  </button>
+
+                  {point !== null && passLineBet > 0 && (
+                    <button
+                      onClick={handlePassOdds}
+                      className="w-full rounded-b-md border border-yellow-300 bg-yellow-400 py-1.5 text-[10px] font-black text-black"
+                      title={`Pass odds pay ${passOddsLabel(point)}`}
+                    >
+                      PASS ODDS ${money(passOddsBet)}
+                      {" • "}PAYS {passOddsLabel(point)}
+                      {" • "}MAX $
+                      {money(passLineBet * getPassOddsMultiplier(point))}
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
 
-            {/* MAIN TABLE BODY */}
-            <div className="relative z-10 mt-1 grid gap-1 xl:grid-cols-[2.65fr_1fr]">
-              <div className="space-y-1">
-                <button
-                  onClick={handleComeBet}
-                  className="relative min-h-[62px] w-full border border-white/60 bg-transparent text-3xl font-black tracking-[0.18em] hover:bg-white/[0.035]"
-                >
-                  COME
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <BetChip amount={activeComeBet} />
-                  </span>
-                </button>
-
-                <button
-                  onClick={handleFieldBet}
-                  className="relative min-h-[70px] w-full border border-white/60 bg-transparent px-3 py-2 hover:bg-white/[0.035]"
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-3xl font-black">2</span>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100/70">
-                      pays 2:1
-                    </span>
-                    <span className="text-xl font-black tracking-[0.14em]">
-                      FIELD
-                    </span>
-                    <span className="text-sm font-black tracking-[0.16em]">
-                      3 • 4 • 9 • 10 • 11
-                    </span>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100/70">
-                      pays 3:1
-                    </span>
-                    <span className="text-3xl font-black">12</span>
-                  </div>
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <BetChip amount={fieldBet} />
-                  </span>
-                </button>
-
+              {/* RIGHT RAIL: DON'T COME + CENTER ACTION */}
+              <div className="grid min-w-0 grid-rows-[220px_auto] gap-1">
                 <button
                   onClick={handleDontComeBet}
-                  className="relative min-h-[46px] w-full border border-white/45 bg-black/[0.035] text-base font-black tracking-[0.1em] hover:bg-white/[0.025]"
+                  className="relative flex h-full min-h-[220px] flex-col items-center justify-center border border-white/60 bg-black/[0.045] px-3 text-center font-black hover:bg-white/[0.035]"
                 >
-                  DON&apos;T COME — BAR 12
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <span className="text-xl tracking-[0.08em] text-red-100">
+                    DON&apos;T COME
+                  </span>
+                  <span className="mt-1 text-sm tracking-[0.18em] text-red-200">
+                    BAR 12
+                  </span>
+                  <span className="mt-3 flex items-center gap-2">
+                    <MiniDie value={6} />
+                    <MiniDie value={6} />
+                  </span>
+                  <span className="mt-3 text-[8px] uppercase tracking-[0.14em] text-red-100/65">
+                    New Don&apos;t Come bet
+                  </span>
+                  <span className="mt-2">
                     <BetChip amount={activeDontComeBet} />
                   </span>
                 </button>
 
-                <button
-                  onClick={handleDontPassBet}
-                  className="relative min-h-[44px] w-full border border-white/45 bg-black/[0.035] text-base font-black tracking-[0.1em] hover:bg-white/[0.025]"
-                >
-                  DON&apos;T PASS — BAR 12
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <BetChip amount={dontPassBet} />
-                  </span>
-                </button>
+                {/* CENTER ACTION */}
+                <div className="border border-white/55 bg-black/[0.055] p-1.5">
+                  <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-white/15 pb-1.5">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-100">
+                        Hardways
+                      </p>
+                      <p className="text-[7px] text-emerald-100/60">
+                        follows the puck by default • tap to override
+                      </p>
+                    </div>
 
-                {point !== null && dontPassBet > 0 && (
-                  <button
-                    onClick={handleDontPassOdds}
-                    className="w-full border border-red-300/70 bg-red-950/55 py-1.5 text-[10px] font-black"
-                  >
-                    DON&apos;T PASS LAY ODDS ${money(dontPassOddsBet)}
-                  </button>
-                )}
-
-                <button
-                  onClick={handlePassLineBet}
-                  className="relative min-h-[58px] w-full rounded-[15px] border-[3px] border-white bg-transparent text-2xl font-black tracking-[0.18em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-white/[0.035]"
-                >
-                  PASS LINE
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <BetChip amount={passLineBet} />
-                  </span>
-                </button>
-
-                {point !== null && passLineBet > 0 && (
-                  <button
-                    onClick={handlePassOdds}
-                    className="w-full rounded-b-md border border-yellow-300 bg-yellow-400 py-1.5 text-[10px] font-black text-black"
-                  >
-                    PASS ODDS ${money(passOddsBet)}
-                  </button>
-                )}
-              </div>
-
-              {/* COMPACT CENTER ACTION */}
-              <div className="border border-white/55 bg-black/[0.055] p-1.5">
-                <p className="mb-1 text-center text-[8px] font-black uppercase tracking-[0.28em] text-emerald-100/70">
-                  Center Action
-                </p>
-
-                <div className="grid grid-cols-2 gap-[3px]">
-                  {hardwayNumbers.map((number) => (
                     <button
-                      key={number}
-                      onClick={(event) => handleHardway(event, number)}
-                      className="relative min-h-[62px] border border-white/40 bg-transparent p-1 text-sm font-black hover:bg-white/[0.035]"
+                      onClick={() => {
+                        setHardwaysWorking((current) => {
+                          const next = !current;
+                          setMessage(
+                            next
+                              ? "Hardways are ON and working."
+                              : "Hardways are OFF and not working."
+                          );
+                          return next;
+                        });
+                      }}
+                      className={`min-w-[92px] rounded border px-2 py-1.5 text-[9px] font-black ${
+                        hardwaysWorking
+                          ? "border-amber-300 bg-amber-400 text-black"
+                          : "border-red-400 bg-red-950/45 text-red-100"
+                      }`}
                     >
-                      HARD {number}
-                      <span className="block text-[8px] text-emerald-100/65">
-                        {number === 4 || number === 10 ? "7 TO 1" : "9 TO 1"}
-                      </span>
+                      HARDWAY {hardwaysWorking ? "ON" : "OFF"}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-[3px]">
+                    {hardwayNumbers.map((number) => {
+                      const dieValue = number / 2;
+                      return (
+                        <button
+                          key={number}
+                          onClick={(event) => handleHardway(event, number)}
+                          className="relative min-h-[78px] border border-white/45 bg-black/[0.025] p-1.5 text-center font-black hover:bg-white/[0.035]"
+                        >
+                          <div className="text-[9px] uppercase tracking-[0.14em] text-emerald-50/85">
+                            HARD {number}
+                          </div>
+
+                          <div className="my-1 flex items-center justify-center gap-2">
+                            <MiniDie value={dieValue} large />
+                            <MiniDie value={dieValue} large />
+                          </div>
+
+                          <div className="text-[8px] text-emerald-100/70">
+                            {number === 4 || number === 10
+                              ? "7 TO 1"
+                              : "9 TO 1"}
+                          </div>
+
+                          <div className="absolute bottom-1 right-1">
+                            <BetChip amount={hardways[number]} compact />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="my-1.5 border-t border-white/15 pt-1.5 text-center text-[8px] font-black uppercase tracking-[0.22em] text-emerald-100/70">
+                    One Roll
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-[3px]">
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(
+                          event,
+                          anySevenBet,
+                          setAnySevenBet,
+                          "Any 7"
+                        )
+                      }
+                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                    >
+                      <div className="text-[10px] text-red-200">ANY 7</div>
+                      <div className="my-1 flex items-center justify-center gap-0.5">
+                        <MiniDie value={3} />
+                        <MiniDie value={4} />
+                      </div>
+                      <div className="text-[7px]">4 TO 1</div>
                       <div className="absolute bottom-1 right-1">
-                        <BetChip amount={hardways[number]} />
+                        <BetChip amount={anySevenBet} compact />
                       </div>
                     </button>
-                  ))}
 
-                  <button
-                    onClick={(event) =>
-                      handlePropBet(event, anySevenBet, setAnySevenBet, "Any 7")
-                    }
-                    className="relative min-h-[58px] border border-white/40 p-1 text-sm font-black hover:bg-white/[0.035]"
-                  >
-                    ANY 7
-                    <span className="block text-[8px]">4 TO 1</span>
-                    <div className="absolute bottom-1 right-1">
-                      <BetChip amount={anySevenBet} />
-                    </div>
-                  </button>
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(
+                          event,
+                          anyCrapsBet,
+                          setAnyCrapsBet,
+                          "Any Craps"
+                        )
+                      }
+                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                    >
+                      <div className="text-[10px] text-red-200">CRAPS</div>
+                      <div className="my-1 flex items-center justify-center gap-0.5">
+                        <MiniDie value={1} />
+                        <MiniDie value={2} />
+                      </div>
+                      <div className="text-[7px]">7 TO 1</div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={anyCrapsBet} compact />
+                      </div>
+                    </button>
 
-                  <button
-                    onClick={(event) =>
-                      handlePropBet(
-                        event,
-                        anyCrapsBet,
-                        setAnyCrapsBet,
-                        "Any Craps"
-                      )
-                    }
-                    className="relative min-h-[58px] border border-white/40 p-1 text-sm font-black hover:bg-white/[0.035]"
-                  >
-                    ANY CRAPS
-                    <span className="block text-[8px]">2 • 3 • 12</span>
-                    <div className="absolute bottom-1 right-1">
-                      <BetChip amount={anyCrapsBet} />
-                    </div>
-                  </button>
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(event, yoBet, setYoBet, "Yo 11")
+                      }
+                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                    >
+                      <div className="text-[10px]">YO 11</div>
+                      <div className="my-1 flex items-center justify-center gap-0.5">
+                        <MiniDie value={5} />
+                        <MiniDie value={6} />
+                      </div>
+                      <div className="text-[7px]">15 TO 1</div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={yoBet} compact />
+                      </div>
+                    </button>
 
-                  <button
-                    onClick={(event) =>
-                      handlePropBet(event, yoBet, setYoBet, "Yo 11")
-                    }
-                    className="relative min-h-[58px] border border-white/40 p-1 text-sm font-black hover:bg-white/[0.035]"
-                  >
-                    YO 11
-                    <span className="block text-[8px]">15 TO 1</span>
-                    <div className="absolute bottom-1 right-1">
-                      <BetChip amount={yoBet} />
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={(event) =>
-                      handlePropBet(event, hornBet, setHornBet, "Horn")
-                    }
-                    className="relative min-h-[58px] border border-white/40 p-1 text-sm font-black hover:bg-white/[0.035]"
-                  >
-                    HORN
-                    <span className="block text-[8px]">2 • 3 • 11 • 12</span>
-                    <div className="absolute bottom-1 right-1">
-                      <BetChip amount={hornBet} />
-                    </div>
-                  </button>
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(event, hornBet, setHornBet, "Horn")
+                      }
+                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                    >
+                      <div className="text-[10px]">HORN</div>
+                      <div className="my-1 text-[8px] font-black tracking-[0.08em] text-emerald-50">
+                        2 • 3 • 11 • 12
+                      </div>
+                      <div className="text-[6px] text-emerald-100/60">
+                        one-roll combo
+                      </div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={hornBet} compact />
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
