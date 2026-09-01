@@ -69,6 +69,12 @@ type BetSnapshot = {
   anyCrapsBet: number;
   yoBet: number;
   hornBet: number;
+  worldBet: number;
+  ceBet: number;
+  hornHigh2Bet: number;
+  hornHigh3Bet: number;
+  hornHigh11Bet: number;
+  hornHigh12Bet: number;
 };
 
 function emptyNumberBets(): NumberBets {
@@ -328,6 +334,12 @@ export default function TablePage() {
   const [anyCrapsBet, setAnyCrapsBet] = useState(0);
   const [yoBet, setYoBet] = useState(0);
   const [hornBet, setHornBet] = useState(0);
+  const [worldBet, setWorldBet] = useState(0);
+  const [ceBet, setCeBet] = useState(0);
+  const [hornHigh2Bet, setHornHigh2Bet] = useState(0);
+  const [hornHigh3Bet, setHornHigh3Bet] = useState(0);
+  const [hornHigh11Bet, setHornHigh11Bet] = useState(0);
+  const [hornHigh12Bet, setHornHigh12Bet] = useState(0);
 
   useEffect(() => {
     // Hardways follow the puck by default. The player can override this
@@ -441,9 +453,108 @@ export default function TablePage() {
     anySevenBet +
     anyCrapsBet +
     yoBet +
-    hornBet;
+    hornBet +
+    worldBet +
+    ceBet +
+    hornHigh2Bet +
+    hornHigh3Bet +
+    hornHigh11Bet +
+    hornHigh12Bet;
 
   const sessionPL = bankroll + totalOnTable - STARTING_BANKROLL;
+
+  // Quick Bets scale from the selected chip. $1/$5 selections use a
+  // $5 minimum base. The second row is a 2x version that mirrors a
+  // $10 table-minimum layout when the $5 chip is selected.
+  const quickBetBase = Math.max(5, selectedChip);
+  const quickBetDoubleBase = quickBetBase * 2;
+
+  function properSixEightAmount(baseAmount: number) {
+    // $5 base -> $6 on 6/8; $10 -> $12; $25 -> $30; etc.
+    return casinoPayout((baseAmount * 6) / 5);
+  }
+
+  function buildInsideTarget(baseAmount: number): NumberBets {
+    const sixEight = properSixEightAmount(baseAmount);
+    return {
+      4: 0,
+      5: baseAmount,
+      6: sixEight,
+      8: sixEight,
+      9: baseAmount,
+      10: 0,
+    };
+  }
+
+  function buildAcrossTarget(baseAmount: number): NumberBets {
+    const sixEight = properSixEightAmount(baseAmount);
+    return {
+      4: baseAmount,
+      5: baseAmount,
+      6: sixEight,
+      8: sixEight,
+      9: baseAmount,
+      10: baseAmount,
+    };
+  }
+
+  function buildIronCrossTarget(baseAmount: number): NumberBets {
+    const fiveAmount = baseAmount * 2;
+    const sixEightAmount = properSixEightAmount(baseAmount * 2);
+
+    return {
+      4: 0,
+      5: fiveAmount,
+      6: sixEightAmount,
+      8: sixEightAmount,
+      9: 0,
+      10: 0,
+    };
+  }
+
+  const quickInsideTarget = buildInsideTarget(quickBetBase);
+  const quickAcrossTarget = buildAcrossTarget(quickBetBase);
+  const quickIronCrossTarget = buildIronCrossTarget(quickBetBase);
+
+  const quickDoubleInsideTarget = buildInsideTarget(quickBetDoubleBase);
+  const quickDoubleAcrossTarget = buildAcrossTarget(quickBetDoubleBase);
+  const quickDoubleIronCrossTarget = buildIronCrossTarget(quickBetDoubleBase);
+
+  function totalTarget(target: NumberBets, fieldAmount = 0) {
+    return (
+      Object.values(target).reduce((sum, amount) => sum + amount, 0) +
+      fieldAmount
+    );
+  }
+
+  const quickInsideTotal = totalTarget(quickInsideTarget);
+  const quickAcrossTotal = totalTarget(quickAcrossTarget);
+  const quickIronCrossTotal = totalTarget(
+    quickIronCrossTarget,
+    quickBetBase
+  );
+
+  const quickDoubleInsideTotal = totalTarget(quickDoubleInsideTarget);
+  const quickDoubleAcrossTotal = totalTarget(quickDoubleAcrossTarget);
+  const quickDoubleIronCrossTotal = totalTarget(
+    quickDoubleIronCrossTarget,
+    quickBetDoubleBase
+  );
+
+  const quickPrimaryLabel =
+    selectedChip <= 5 ? "$5 MIN" : `$${money(quickBetBase)} BASE`;
+  const quickDoubleLabel =
+    selectedChip <= 5
+      ? "$10 MIN"
+      : `$${money(quickBetDoubleBase)} BASE`;
+
+  function getPlaceBetMax(number: number) {
+    return number === 6 || number === 8 ? 1200 : 1000;
+  }
+
+  function placeMaxLabel(number: number) {
+    return number === 6 || number === 8 ? '$1.2K' : '$1K';
+  }
 
   function captureBetSnapshot(): BetSnapshot {
     return {
@@ -469,6 +580,12 @@ export default function TablePage() {
       anyCrapsBet,
       yoBet,
       hornBet,
+      worldBet,
+      ceBet,
+      hornHigh2Bet,
+      hornHigh3Bet,
+      hornHigh11Bet,
+      hornHigh12Bet,
     };
   }
 
@@ -499,6 +616,12 @@ export default function TablePage() {
     setAnyCrapsBet(snapshot.anyCrapsBet);
     setYoBet(snapshot.yoBet);
     setHornBet(snapshot.hornBet);
+    setWorldBet(snapshot.worldBet);
+    setCeBet(snapshot.ceBet);
+    setHornHigh2Bet(snapshot.hornHigh2Bet);
+    setHornHigh3Bet(snapshot.hornHigh3Bet);
+    setHornHigh11Bet(snapshot.hornHigh11Bet);
+    setHornHigh12Bet(snapshot.hornHigh12Bet);
   }
 
   function undoLastBet() {
@@ -532,7 +655,13 @@ export default function TablePage() {
     anySevenBet +
     anyCrapsBet +
     yoBet +
-    hornBet;
+    hornBet +
+    worldBet +
+    ceBet +
+    hornHigh2Bet +
+    hornHigh3Bet +
+    hornHigh11Bet +
+    hornHigh12Bet;
 
   function clearRemovableBets() {
     if (removableBetsTotal <= 0) {
@@ -562,6 +691,12 @@ export default function TablePage() {
     setAnyCrapsBet(0);
     setYoBet(0);
     setHornBet(0);
+    setWorldBet(0);
+    setCeBet(0);
+    setHornHigh2Bet(0);
+    setHornHigh3Bet(0);
+    setHornHigh11Bet(0);
+    setHornHigh12Bet(0);
     setBankroll((current) => current + removableBetsTotal);
 
     const contractsRemain =
@@ -575,23 +710,42 @@ export default function TablePage() {
     );
   }
 
-  function applyPlacePreset(name: string, target: NumberBets) {
-    const additions = pointNumbers.reduce(
-      (sum, number) => sum + Math.max(0, target[number] - placeBets[number]),
+  function applyQuickBet(
+    name: string,
+    requestedTarget: NumberBets,
+    fieldTarget = 0
+  ) {
+    const target = emptyNumberBets();
+
+    for (const number of pointNumbers) {
+      target[number] = Math.min(
+        requestedTarget[number],
+        getPlaceBetMax(number)
+      );
+    }
+
+    const placeAdditions = pointNumbers.reduce(
+      (sum, number) =>
+        sum + Math.max(0, target[number] - placeBets[number]),
       0
     );
+    const fieldAddition = Math.max(0, fieldTarget - fieldBet);
+    const additions = placeAdditions + fieldAddition;
 
     if (additions <= 0) {
-      setMessage(`${name} is already covered by your current Place bets.`);
+      setMessage(`${name} is already covered by your current wagers.`);
       return;
     }
 
     if (additions > bankroll) {
-      setMessage(`You need $${money(additions)} to apply ${name}.`);
+      setMessage(
+        `You need $${money(additions)} to bring your bets up to ${name}.`
+      );
       return;
     }
 
     rememberUndo();
+
     setPlaceBets((current) => {
       const next = { ...current };
       for (const number of pointNumbers) {
@@ -599,14 +753,23 @@ export default function TablePage() {
       }
       return next;
     });
+
+    if (fieldTarget > 0) {
+      setFieldBet((current) => Math.max(current, fieldTarget));
+    }
+
     setBankroll((current) => current - additions);
+
     const layout = pointNumbers
       .filter((number) => target[number] > 0)
-      .map((number) => `${number}=$${money(target[number])}`)
-      .join(" • ");
+      .map((number) => `${number}=$${money(target[number])}`);
+
+    if (fieldTarget > 0) {
+      layout.push(`Field=$${money(fieldTarget)}`);
+    }
 
     setMessage(
-      `${name}: added $${money(additions)} in Place bets. ${layout}`
+      `${name}: added $${money(additions)}. ${layout.join(' • ')}`
     );
   }
 
@@ -691,6 +854,24 @@ export default function TablePage() {
     const addAnyCraps = Math.max(0, lastRollBets.anyCrapsBet - anyCrapsBet);
     const addYo = Math.max(0, lastRollBets.yoBet - yoBet);
     const addHorn = Math.max(0, lastRollBets.hornBet - hornBet);
+    const addWorld = Math.max(0, lastRollBets.worldBet - worldBet);
+    const addCe = Math.max(0, lastRollBets.ceBet - ceBet);
+    const addHornHigh2 = Math.max(
+      0,
+      lastRollBets.hornHigh2Bet - hornHigh2Bet
+    );
+    const addHornHigh3 = Math.max(
+      0,
+      lastRollBets.hornHigh3Bet - hornHigh3Bet
+    );
+    const addHornHigh11 = Math.max(
+      0,
+      lastRollBets.hornHigh11Bet - hornHigh11Bet
+    );
+    const addHornHigh12 = Math.max(
+      0,
+      lastRollBets.hornHigh12Bet - hornHigh12Bet
+    );
 
     const required =
       addPassLine +
@@ -707,6 +888,12 @@ export default function TablePage() {
       addAnyCraps +
       addYo +
       addHorn +
+      addWorld +
+      addCe +
+      addHornHigh2 +
+      addHornHigh3 +
+      addHornHigh11 +
+      addHornHigh12 +
       Object.values(addPlace).reduce((sum, value) => sum + value, 0) +
       Object.values(addLay).reduce((sum, value) => sum + value, 0) +
       Object.values(addHardways).reduce((sum, value) => sum + value, 0) +
@@ -744,6 +931,12 @@ export default function TablePage() {
     setAnyCrapsBet((current) => current + addAnyCraps);
     setYoBet((current) => current + addYo);
     setHornBet((current) => current + addHorn);
+    setWorldBet((current) => current + addWorld);
+    setCeBet((current) => current + addCe);
+    setHornHigh2Bet((current) => current + addHornHigh2);
+    setHornHigh3Bet((current) => current + addHornHigh3);
+    setHornHigh11Bet((current) => current + addHornHigh11);
+    setHornHigh12Bet((current) => current + addHornHigh12);
     setPlaceBets((current) => {
       const next = { ...current };
       for (const number of pointNumbers) next[number] += addPlace[number];
@@ -813,6 +1006,12 @@ export default function TablePage() {
     setAnyCrapsBet(0);
     setYoBet(0);
     setHornBet(0);
+    setWorldBet(0);
+    setCeBet(0);
+    setHornHigh2Bet(0);
+    setHornHigh3Bet(0);
+    setHornHigh11Bet(0);
+    setHornHigh12Bet(0);
     setLastBetSnapshot(null);
     setLastRollBets(null);
     setTravelAnimation(null);
@@ -1148,20 +1347,38 @@ export default function TablePage() {
       return;
     }
 
-    if (selectedChip > bankroll) {
+    const maxBet = getPlaceBetMax(number);
+    const remainingRoom = maxBet - placeBets[number];
+
+    if (remainingRoom <= 0) {
+      setMessage(
+        `Place ${number} is already at the table maximum of $${money(maxBet)}.`
+      );
+      return;
+    }
+
+    const amountToAdd = Math.min(selectedChip, remainingRoom, bankroll);
+
+    if (amountToAdd <= 0) {
       setMessage("Not enough bankroll.");
       return;
     }
 
     setPlaceBets((current) => ({
       ...current,
-      [number]: current[number] + selectedChip,
+      [number]: current[number] + amountToAdd,
     }));
-    setBankroll((current) => current - selectedChip);
+    setBankroll((current) => current - amountToAdd);
+
+    const newTotal = placeBets[number] + amountToAdd;
     setMessage(
-      `Place ${number} is now $${money(
-        placeBets[number] + selectedChip
-      )}. Pays ${placeOddsLabel(number)}.`
+      amountToAdd < selectedChip
+        ? `Added $${money(amountToAdd)} to Place ${number}, reaching $${money(
+            newTotal
+          )}. Table max is $${money(maxBet)}.`
+        : `Place ${number} is now $${money(newTotal)}. Pays ${placeOddsLabel(
+            number
+          )}. Table max $${money(maxBet)}.`
     );
   }
 
@@ -1545,6 +1762,52 @@ export default function TablePage() {
     setBankroll((current) => current - selectedChip);
   }
 
+  function resolveWorldNetProfit(total: number, bet: number) {
+    const unit = bet / 5;
+    if (total === 2 || total === 12) {
+      return casinoPayout(unit * 26);
+    }
+    if (total === 3 || total === 11) {
+      return casinoPayout(unit * 11);
+    }
+    if (total === 7) {
+      return 0;
+    }
+    return -1;
+  }
+
+  function resolveCeNetProfit(total: number, bet: number) {
+    const unit = bet / 2;
+    if ([2, 3, 12].includes(total)) {
+      return casinoPayout(unit * 6);
+    }
+    if (total === 11) {
+      return casinoPayout(unit * 14);
+    }
+    return -1;
+  }
+
+  function resolveHornHighNetProfit(
+    total: number,
+    bet: number,
+    highNumber: number
+  ) {
+    const hornNumbers = [2, 3, 11, 12];
+
+    if (!hornNumbers.includes(total)) {
+      return -1;
+    }
+
+    const unit = bet / 5;
+    const payoutMultiplier = total === 2 || total === 12 ? 30 : 15;
+
+    if (total === highNumber) {
+      return casinoPayout(unit * 2 * payoutMultiplier - unit * 3);
+    }
+
+    return casinoPayout(unit * payoutMultiplier - unit * 4);
+  }
+
   function resolvePropBets(total: number) {
     const messages: string[] = [];
 
@@ -1645,6 +1908,95 @@ export default function TablePage() {
         flashOutcome("prop", "horn", "loss");
         messages.push(`Horn loses $${money(hornBet)}.`);
         setHornBet(0);
+      }
+    }
+
+    if (worldBet > 0) {
+      const profit = resolveWorldNetProfit(total, worldBet);
+
+      if (profit >= 0) {
+        flashOutcome("prop", "world", "win");
+        if (profit > 0) {
+          setBankroll((current) => current + profit);
+          messages.push(
+            `World hits ${total}. Net profit $${money(profit)}. Bet stays up.`
+          );
+        } else {
+          messages.push("World hits 7. Overall push. Bet stays up.");
+        }
+      } else {
+        flashOutcome("prop", "world", "loss");
+        messages.push(`World loses $${money(worldBet)}.`);
+        setWorldBet(0);
+      }
+    }
+
+    if (ceBet > 0) {
+      const profit = resolveCeNetProfit(total, ceBet);
+
+      if (profit >= 0) {
+        flashOutcome("prop", "ce", "win");
+        setBankroll((current) => current + profit);
+        messages.push(
+          `C & E hits ${total}. Net profit $${money(profit)}. Bet stays up.`
+        );
+      } else {
+        flashOutcome("prop", "ce", "loss");
+        messages.push(`C & E loses $${money(ceBet)}.`);
+        setCeBet(0);
+      }
+    }
+
+    const hornHighConfigs = [
+      {
+        high: 2,
+        bet: hornHigh2Bet,
+        setter: setHornHigh2Bet,
+        key: "horn-high-2",
+      },
+      {
+        high: 3,
+        bet: hornHigh3Bet,
+        setter: setHornHigh3Bet,
+        key: "horn-high-3",
+      },
+      {
+        high: 11,
+        bet: hornHigh11Bet,
+        setter: setHornHigh11Bet,
+        key: "horn-high-11",
+      },
+      {
+        high: 12,
+        bet: hornHigh12Bet,
+        setter: setHornHigh12Bet,
+        key: "horn-high-12",
+      },
+    ];
+
+    for (const config of hornHighConfigs) {
+      if (config.bet <= 0) continue;
+
+      const profit = resolveHornHighNetProfit(
+        total,
+        config.bet,
+        config.high
+      );
+
+      if (profit >= 0) {
+        flashOutcome("prop", config.key, "win");
+        setBankroll((current) => current + profit);
+        messages.push(
+          `Horn High ${config.high} hits ${total}. Net profit $${money(
+            profit
+          )}. Bet stays up.`
+        );
+      } else {
+        flashOutcome("prop", config.key, "loss");
+        messages.push(
+          `Horn High ${config.high} loses $${money(config.bet)}.`
+        );
+        config.setter(0);
       }
     }
 
@@ -2142,16 +2494,6 @@ export default function TablePage() {
                 "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.035), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.12), transparent 30%)",
             }}
           >
-            {/* SUBTLE BRAND / FUTURE LOGO AREA */}
-            <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 -translate-x-1/2 -translate-y-1/2 text-center opacity-[0.07]">
-              <div className="text-3xl font-black tracking-[0.28em] sm:text-5xl">
-                LUCKY PENNY
-              </div>
-              <div className="mt-1 text-[9px] font-black tracking-[0.5em]">
-                CRAPS
-              </div>
-            </div>
-
             <div className="relative z-10 grid gap-1 xl:grid-cols-[minmax(0,2.5fr)_minmax(360px,1fr)]">
               {/* MAIN PLAYER AREA */}
               <div className="min-w-0">
@@ -2179,7 +2521,7 @@ export default function TablePage() {
                         } ${flashClass("dontCome", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[8px] font-black uppercase tracking-[0.13em] text-red-100/90">
+                          <span className="text-[9px] font-black uppercase tracking-[0.13em] text-red-50">
                             Don&apos;t Come
                           </span>
 
@@ -2225,7 +2567,7 @@ export default function TablePage() {
                         title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
                       >
                         <span className="leading-tight">
-                          <span className="block text-[9px] tracking-[0.14em]">
+                          <span className="block text-[10px] tracking-[0.14em]">
                             LAY • {layOddsLabel(number)}
                           </span>
                           {layBets[number] > 0 && (
@@ -2250,7 +2592,7 @@ export default function TablePage() {
                         } ${flashClass("come", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[8px] font-black uppercase tracking-[0.14em] text-blue-100/90">
+                          <span className="text-[9px] font-black uppercase tracking-[0.14em] text-blue-50">
                             Come
                           </span>
 
@@ -2285,7 +2627,13 @@ export default function TablePage() {
 
                       {/* NUMBER */}
                       <div className="absolute inset-x-0 bottom-[42px] top-[120px] flex items-center justify-center bg-emerald-950/[0.13]">
-                        <span className="text-4xl font-black leading-none sm:text-5xl">
+                        <span
+                          className="box-number text-5xl font-black leading-none sm:text-6xl"
+                          style={{
+                            textShadow:
+                              "0 2px 0 rgba(0,0,0,.75), 0 0 12px rgba(255,255,255,.10)",
+                          }}
+                        >
                           {number === 6
                             ? "SIX"
                             : number === 9
@@ -2302,8 +2650,13 @@ export default function TablePage() {
                         } ${flashClass("place", String(number))}`}
                         title={`Place ${number} pays ${placeOddsLabel(number)}`}
                       >
-                        <span className="text-[9px] uppercase tracking-[0.14em] text-emerald-50">
-                          PLACE • {placeOddsLabel(number)}
+                        <span className="text-left leading-tight">
+                          <span className="block text-[10px] uppercase tracking-[0.14em] text-emerald-50">
+                            PLACE • {placeOddsLabel(number)}
+                          </span>
+                          <span className="block text-[6px] font-black uppercase tracking-[0.1em] text-emerald-200/65">
+                            MAX {placeMaxLabel(number)}
+                          </span>
                         </span>
                         <BetChip amount={placeBets[number]} compact />
                       </button>
@@ -2408,55 +2761,66 @@ export default function TablePage() {
                   )}
 
                   {/* INTEGRATED DEALER / ROLL TRAY */}
-                  <div className="mt-1 min-h-[154px] border border-emerald-100/25 bg-black/[0.10] px-3 py-3">
-                    <div className="grid h-full gap-3 lg:grid-cols-[auto_auto_auto_1fr] lg:items-center">
-                      <div
-                        className={`flex items-center justify-center gap-1 text-5xl ${
-                          isRolling ? "animate-pulse" : ""
-                        }`}
-                        aria-live="polite"
-                        aria-label={
-                          isRolling ? "Dice rolling" : `Rolled ${rollTotal}`
-                        }
-                      >
-                        <span
-                          className={
-                            isRolling
-                              ? "animate-[spin_0.18s_linear_infinite]"
-                              : ""
-                          }
-                        >
-                          {diceFaces[dieOne - 1]}
-                        </span>
-                        <span
-                          className={
-                            isRolling
-                              ? "animate-[spin_0.21s_linear_infinite]"
-                              : ""
-                          }
-                          style={
-                            isRolling
-                              ? { animationDirection: "reverse" }
-                              : undefined
-                          }
-                        >
-                          {diceFaces[dieTwo - 1]}
-                        </span>
+                  <div className="relative mt-1 min-h-[154px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-4 py-3">
+                    <div className="pointer-events-none absolute bottom-1 right-4 text-right opacity-[0.055]">
+                      <div className="text-3xl font-black tracking-[0.25em]">
+                        LUCKY PENNY
                       </div>
+                      <div className="text-[7px] font-black tracking-[0.45em]">
+                        CRAPS
+                      </div>
+                    </div>
 
-                      <div className="min-w-[76px] text-center">
-                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
-                          {isRolling ? "Rolling" : "Last Roll"}
-                        </p>
-                        <p className="text-3xl font-black">
-                          {isRolling ? "…" : rollTotal}
-                        </p>
+                    <div className="relative z-10 grid h-full gap-4 lg:grid-cols-[auto_auto_1fr] lg:items-center">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex items-center justify-center gap-2 ${
+                            isRolling ? "animate-pulse" : ""
+                          }`}
+                          aria-live="polite"
+                          aria-label={
+                            isRolling ? "Dice rolling" : `Rolled ${rollTotal}`
+                          }
+                        >
+                          <span
+                            className={
+                              isRolling
+                                ? "animate-[spin_0.18s_linear_infinite]"
+                                : ""
+                            }
+                          >
+                            <MiniDie value={dieOne} large />
+                          </span>
+                          <span
+                            className={
+                              isRolling
+                                ? "animate-[spin_0.21s_linear_infinite]"
+                                : ""
+                            }
+                            style={
+                              isRolling
+                                ? { animationDirection: "reverse" }
+                                : undefined
+                            }
+                          >
+                            <MiniDie value={dieTwo} large />
+                          </span>
+                        </div>
+
+                        <div className="min-w-[70px] text-center">
+                          <p className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                            {isRolling ? "Rolling" : "Last Roll"}
+                          </p>
+                          <p className="text-3xl font-black">
+                            {isRolling ? "…" : rollTotal}
+                          </p>
+                        </div>
                       </div>
 
                       <button
                         onClick={rollDice}
                         disabled={isRolling}
-                        className={`rounded-lg px-8 py-4 text-base font-black text-black shadow-lg transition ${
+                        className={`rounded-lg px-9 py-4 text-base font-black text-black shadow-lg transition ${
                           isRolling
                             ? "cursor-not-allowed bg-amber-200"
                             : "bg-amber-400 hover:scale-105 hover:bg-amber-300"
@@ -2465,11 +2829,16 @@ export default function TablePage() {
                         {isRolling ? "ROLLING…" : "ROLL DICE"}
                       </button>
 
-                      <div className="min-w-0">
-                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-400">
-                          Dealer
-                        </p>
-                        <p className="mt-1 min-h-10 text-sm font-semibold text-amber-200">
+                      <div className="min-w-0 border-t border-white/10 pt-3 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-emerald-950/70 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                            Dealer
+                          </span>
+                          <span className="text-[7px] font-bold uppercase tracking-[0.12em] text-emerald-100/45">
+                            table call
+                          </span>
+                        </div>
+                        <p className="mt-2 min-h-9 text-sm font-semibold text-amber-200">
                           {message}
                         </p>
 
@@ -2540,7 +2909,7 @@ export default function TablePage() {
                         Hardways
                       </p>
                       <p className="text-[7px] text-emerald-100/60">
-                        follows the puck by default • tap to override
+                        follows the puck by default • tap anytime to override
                       </p>
                     </div>
 
@@ -2556,10 +2925,10 @@ export default function TablePage() {
                           return next;
                         });
                       }}
-                      className={`min-w-[92px] rounded border px-2 py-1.5 text-[9px] font-black ${
+                      className={`min-w-[100px] rounded border px-2 py-1.5 text-[9px] font-black shadow-sm transition ${
                         hardwaysWorking
-                          ? "border-amber-300 bg-amber-400 text-black"
-                          : "border-red-400 bg-red-950/45 text-red-100"
+                          ? "border-emerald-200 bg-emerald-400 text-emerald-950 shadow-emerald-300/20"
+                          : "border-red-500/80 bg-zinc-950 text-red-200"
                       }`}
                     >
                       HARDWAY {hardwaysWorking ? "ON" : "OFF"}
@@ -2584,7 +2953,7 @@ export default function TablePage() {
                             <MiniDie value={dieValue} large />
                           </div>
 
-                          <div className="text-[8px] text-emerald-100/70">
+                          <div className="text-[9px] font-black text-emerald-100/80">
                             {number === 4 || number === 10
                               ? "7 TO 1"
                               : "9 TO 1"}
@@ -2598,24 +2967,24 @@ export default function TablePage() {
                     })}
                   </div>
 
-                  <div className="my-1 border-t border-white/15 pt-1 text-center text-[8px] font-black uppercase tracking-[0.22em] text-emerald-100/75">
+                  <div className="my-1 border-t border-white/15 pt-1 text-center text-[9px] font-black uppercase tracking-[0.22em] text-emerald-100/80">
                     One Roll
                   </div>
 
-                  {/* Individual horn numbers: 2 / 3 / 12 */}
-                  <div className="grid grid-cols-3 gap-[3px]">
+                  {/* Individual one-roll numbers: 2 / 3 / Yo 11 / 12 */}
+                  <div className="grid grid-cols-4 gap-[3px]">
                     <button
                       onClick={(event) =>
                         handlePropBet(event, twoBet, setTwoBet, "2")
                       }
-                      className={`relative min-h-[62px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "2")}`}
+                      className={`relative min-h-[68px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "2")}`}
                     >
-                      <div className="text-[10px] text-red-200">2</div>
+                      <div className="text-[11px] text-red-100">2</div>
                       <div className="my-0.5 flex items-center justify-center gap-1">
                         <MiniDie value={1} />
                         <MiniDie value={1} />
                       </div>
-                      <div className="text-[7px]">30 TO 1</div>
+                      <div className="text-[9px] font-black">30 TO 1</div>
                       <div className="absolute bottom-1 right-1">
                         <BetChip amount={twoBet} compact />
                       </div>
@@ -2625,14 +2994,14 @@ export default function TablePage() {
                       onClick={(event) =>
                         handlePropBet(event, threeBet, setThreeBet, "3")
                       }
-                      className={`relative min-h-[62px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "3")}`}
+                      className={`relative min-h-[68px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "3")}`}
                     >
-                      <div className="text-[10px] text-red-200">3</div>
+                      <div className="text-[11px] text-red-100">3</div>
                       <div className="my-0.5 flex items-center justify-center gap-1">
                         <MiniDie value={1} />
                         <MiniDie value={2} />
                       </div>
-                      <div className="text-[7px]">15 TO 1</div>
+                      <div className="text-[9px] font-black">15 TO 1</div>
                       <div className="absolute bottom-1 right-1">
                         <BetChip amount={threeBet} compact />
                       </div>
@@ -2640,42 +3009,41 @@ export default function TablePage() {
 
                     <button
                       onClick={(event) =>
+                        handlePropBet(event, yoBet, setYoBet, "Yo 11")
+                      }
+                      className={`relative min-h-[68px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "yo")}`}
+                    >
+                      <div className="text-[10px] text-red-100">YO 11</div>
+                      <div className="my-0.5 flex items-center justify-center gap-1">
+                        <MiniDie value={5} />
+                        <MiniDie value={6} />
+                      </div>
+                      <div className="text-[9px] font-black">15 TO 1</div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={yoBet} compact />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={(event) =>
                         handlePropBet(event, twelveBet, setTwelveBet, "12")
                       }
-                      className={`relative min-h-[62px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "12")}`}
+                      className={`relative min-h-[68px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "12")}`}
                     >
-                      <div className="text-[10px] text-red-200">12</div>
+                      <div className="text-[11px] text-red-100">12</div>
                       <div className="my-0.5 flex items-center justify-center gap-1">
                         <MiniDie value={6} />
                         <MiniDie value={6} />
                       </div>
-                      <div className="text-[7px]">30 TO 1</div>
+                      <div className="text-[9px] font-black">30 TO 1</div>
                       <div className="absolute bottom-1 right-1">
                         <BetChip amount={twelveBet} compact />
                       </div>
                     </button>
                   </div>
 
-                  {/* Combination / one-roll bets */}
+                  {/* Main combination bets — Any Craps intentionally before Any Seven */}
                   <div className="mt-[3px] grid grid-cols-4 gap-[3px]">
-                    <button
-                      onClick={(event) =>
-                        handlePropBet(
-                          event,
-                          anySevenBet,
-                          setAnySevenBet,
-                          "Any Seven"
-                        )
-                      }
-                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-seven")}`}
-                    >
-                      <div className="text-[9px] text-red-200">ANY SEVEN</div>
-                      <div className="mt-1 text-[8px]">4 TO 1</div>
-                      <div className="absolute bottom-1 right-1">
-                        <BetChip amount={anySevenBet} compact />
-                      </div>
-                    </button>
-
                     <button
                       onClick={(event) =>
                         handlePropBet(
@@ -2685,13 +3053,13 @@ export default function TablePage() {
                           "Any Craps"
                         )
                       }
-                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-craps")}`}
+                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-craps")}`}
                     >
-                      <div className="text-[9px] text-red-200">ANY CRAPS</div>
-                      <div className="mt-0.5 text-[8px] font-black tracking-[0.08em]">
+                      <div className="text-[10px] text-red-100">ANY CRAPS</div>
+                      <div className="mt-0.5 text-[9px] font-black tracking-[0.08em]">
                         2 • 3 • 12
                       </div>
-                      <div className="text-[7px]">7 TO 1</div>
+                      <div className="text-[9px] font-black">7 TO 1</div>
                       <div className="absolute bottom-1 right-1">
                         <BetChip amount={anyCrapsBet} compact />
                       </div>
@@ -2699,41 +3067,132 @@ export default function TablePage() {
 
                     <button
                       onClick={(event) =>
-                        handlePropBet(event, yoBet, setYoBet, "Yo 11")
+                        handlePropBet(
+                          event,
+                          anySevenBet,
+                          setAnySevenBet,
+                          "Any Seven"
+                        )
                       }
-                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "yo")}`}
+                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-seven")}`}
                     >
-                      <div className="text-[9px]">YO 11</div>
-                      <div className="mt-0.5 flex items-center justify-center gap-0.5">
-                        <MiniDie value={5} />
-                        <MiniDie value={6} />
-                      </div>
-                      <div className="text-[7px]">15 TO 1</div>
+                      <div className="text-[10px] text-red-100">ANY SEVEN</div>
+                      <div className="mt-2 text-[10px] font-black">4 TO 1</div>
                       <div className="absolute bottom-1 right-1">
-                        <BetChip amount={yoBet} compact />
+                        <BetChip amount={anySevenBet} compact />
                       </div>
                     </button>
 
                     <button
                       onClick={(event) =>
-                        handlePropBet(event, hornBet, setHornBet, "Horn")
+                        handlePropBet(event, ceBet, setCeBet, "C & E")
                       }
-                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "horn")}`}
+                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "ce")}`}
                     >
-                      <div className="text-[9px]">HORN</div>
-                      <div className="mt-0.5 text-[7px] font-black tracking-[0.05em]">
-                        2 • 3 • 11 • 12
+                      <div className="text-[11px] text-amber-100">C &amp; E</div>
+                      <div className="mt-1 text-[8px] font-bold">
+                        CRAPS • 11
                       </div>
-                      <div className="text-[6px] text-emerald-100/60">
+                      <div className="text-[7px] text-emerald-100/65">
                         combo
                       </div>
                       <div className="absolute bottom-1 right-1">
-                        <BetChip amount={hornBet} compact />
+                        <BetChip amount={ceBet} compact />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(event, worldBet, setWorldBet, "World")
+                      }
+                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "world")}`}
+                    >
+                      <div className="text-[11px] text-amber-100">WORLD</div>
+                      <div className="mt-1 text-[8px] font-bold">
+                        2 • 3 • 7 • 11 • 12
+                      </div>
+                      <div className="text-[7px] text-emerald-100/65">
+                        5-part combo
+                      </div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={worldBet} compact />
                       </div>
                     </button>
                   </div>
 
-                  <p className="mt-0.5 text-center text-[6px] font-bold uppercase tracking-[0.06em] text-emerald-100/45">
+                  {/* Horn High bets */}
+                  <div className="mt-[3px] grid grid-cols-4 gap-[3px]">
+                    {[
+                      {
+                        label: "HORN HIGH 2",
+                        bet: hornHigh2Bet,
+                        setter: setHornHigh2Bet,
+                        key: "horn-high-2",
+                      },
+                      {
+                        label: "HORN HIGH 3",
+                        bet: hornHigh3Bet,
+                        setter: setHornHigh3Bet,
+                        key: "horn-high-3",
+                      },
+                      {
+                        label: "HORN HIGH 11",
+                        bet: hornHigh11Bet,
+                        setter: setHornHigh11Bet,
+                        key: "horn-high-11",
+                      },
+                      {
+                        label: "HORN HIGH 12",
+                        bet: hornHigh12Bet,
+                        setter: setHornHigh12Bet,
+                        key: "horn-high-12",
+                      },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={(event) =>
+                          handlePropBet(
+                            event,
+                            item.bet,
+                            item.setter,
+                            item.label
+                          )
+                        }
+                        className={`relative min-h-[54px] border border-teal-300/35 bg-teal-950/25 px-1 py-1.5 text-center font-black hover:bg-teal-950/45 ${flashClass("prop", item.key)}`}
+                      >
+                        <div className="text-[8px] leading-tight text-teal-50">
+                          {item.label}
+                        </div>
+                        <div className="mt-1 text-[6px] text-teal-200/65">
+                          5-unit combo
+                        </div>
+                        <div className="absolute bottom-1 right-1">
+                          <BetChip amount={item.bet} compact />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Horn across the bottom */}
+                  <button
+                    onClick={(event) =>
+                      handlePropBet(event, hornBet, setHornBet, "Horn")
+                    }
+                    className={`relative mt-[3px] min-h-[42px] w-full border border-white/45 bg-black/[0.02] px-2 py-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "horn")}`}
+                  >
+                    <span className="text-[10px]">HORN</span>
+                    <span className="ml-2 text-[8px] font-black tracking-[0.05em]">
+                      2 • 3 • 11 • 12
+                    </span>
+                    <span className="ml-2 text-[7px] text-emerald-100/60">
+                      4-part combo
+                    </span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <BetChip amount={hornBet} compact />
+                    </span>
+                  </button>
+
+                  <p className="mt-1 text-center text-[7px] font-bold uppercase tracking-[0.06em] text-emerald-100/50">
                     Winners stay up • losers come down
                   </p>
                 </div>
@@ -2762,10 +3221,10 @@ export default function TablePage() {
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={() => setRemoveMode(false)}
-              className={`rounded px-4 py-2 text-xs font-black ${
+              className={`rounded-lg px-5 py-2 text-xs font-black shadow-sm transition ${
                 !removeMode
-                  ? "bg-amber-400 text-black"
-                  : "border border-white/35"
+                  ? "bg-amber-400 text-black shadow-amber-400/20"
+                  : "border border-white/30 bg-black/20"
               }`}
             >
               ADD
@@ -2773,8 +3232,10 @@ export default function TablePage() {
 
             <button
               onClick={() => setRemoveMode(true)}
-              className={`rounded px-4 py-2 text-xs font-black ${
-                removeMode ? "bg-red-600" : "border border-white/35"
+              className={`rounded-lg px-5 py-2 text-xs font-black transition ${
+                removeMode
+                  ? "bg-red-600 text-white"
+                  : "border border-white/30 bg-black/20"
               }`}
             >
               REMOVE
@@ -2865,58 +3326,139 @@ export default function TablePage() {
             </span>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 border-t border-white/10 pt-2">
-            <span className="mr-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-400">
-              Quick Place
-            </span>
-            <span className="mr-2 hidden text-[8px] text-emerald-600 sm:inline">
-              brings current Place bets up to the selected layout
-            </span>
-            <button
-              onClick={() =>
-                applyPlacePreset("$44 Inside", {
-                  4: 0,
-                  5: 10,
-                  6: 12,
-                  8: 12,
-                  9: 10,
-                  10: 0,
-                })
-              }
-              className="rounded border border-emerald-600 px-2 py-1 text-[9px] font-black hover:bg-emerald-950/45"
-            >
-              $44 INSIDE
-            </button>
-            <button
-              onClick={() =>
-                applyPlacePreset("$66 Inside", {
-                  4: 0,
-                  5: 15,
-                  6: 18,
-                  8: 18,
-                  9: 15,
-                  10: 0,
-                })
-              }
-              className="rounded border border-emerald-600 px-2 py-1 text-[9px] font-black hover:bg-emerald-950/45"
-            >
-              $66 INSIDE
-            </button>
-            <button
-              onClick={() =>
-                applyPlacePreset("$96 Across", {
-                  4: 15,
-                  5: 15,
-                  6: 18,
-                  8: 18,
-                  9: 15,
-                  10: 15,
-                })
-              }
-              className="rounded border border-emerald-600 px-2 py-1 text-[9px] font-black hover:bg-emerald-950/45"
-            >
-              $96 ACROSS
-            </button>
+          <div className="mt-2 border-t border-white/10 pt-2">
+            <div className="mb-2 text-center">
+              <span className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                Quick Bets
+              </span>
+              <span className="ml-2 text-[8px] text-emerald-600">
+                proper 6/8 amounts • second row = 2× base
+              </span>
+            </div>
+
+            <div className="mx-auto grid max-w-[1040px] gap-2">
+              {/* Base / $5-min row */}
+              <div className="grid gap-2 sm:grid-cols-[90px_repeat(3,minmax(0,1fr))] sm:items-stretch">
+                <div className="flex items-center justify-center rounded-lg border border-emerald-700/60 bg-emerald-950/30 px-2 py-2 text-center">
+                  <span className="text-[10px] font-black text-emerald-200">
+                    {quickPrimaryLabel}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() =>
+                    applyQuickBet(
+                      `$${money(quickInsideTotal)} Inside`,
+                      quickInsideTarget
+                    )
+                  }
+                  className="rounded-lg border border-emerald-500/70 bg-emerald-950/25 px-3 py-2 text-left transition hover:bg-emerald-950/55"
+                >
+                  <span className="block text-[12px] font-black text-white">
+                    ${money(quickInsideTotal)} INSIDE
+                  </span>
+                  <span className="mt-0.5 block text-[8px] font-bold text-emerald-300/80">
+                    5/9 ${money(quickInsideTarget[5])} • 6/8 ${money(quickInsideTarget[6])}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    applyQuickBet(
+                      `$${money(quickAcrossTotal)} Across`,
+                      quickAcrossTarget
+                    )
+                  }
+                  className="rounded-lg border border-emerald-500/70 bg-emerald-950/25 px-3 py-2 text-left transition hover:bg-emerald-950/55"
+                >
+                  <span className="block text-[12px] font-black text-white">
+                    ${money(quickAcrossTotal)} ACROSS
+                  </span>
+                  <span className="mt-0.5 block text-[8px] font-bold text-emerald-300/80">
+                    4/5/9/10 ${money(quickAcrossTarget[4])} • 6/8 ${money(quickAcrossTarget[6])}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    applyQuickBet(
+                      `$${money(quickIronCrossTotal)} Iron Cross`,
+                      quickIronCrossTarget,
+                      quickBetBase
+                    )
+                  }
+                  className="rounded-lg border border-amber-500/70 bg-amber-950/20 px-3 py-2 text-left transition hover:bg-amber-950/40"
+                >
+                  <span className="block text-[12px] font-black text-amber-100">
+                    ${money(quickIronCrossTotal)} IRON CROSS
+                  </span>
+                  <span className="mt-0.5 block text-[8px] font-bold text-amber-300/85">
+                    5 ${money(quickIronCrossTarget[5])} • 6/8 ${money(quickIronCrossTarget[6])} • Field ${money(quickBetBase)}
+                  </span>
+                </button>
+              </div>
+
+              {/* Double / $10-min row */}
+              <div className="grid gap-2 sm:grid-cols-[90px_repeat(3,minmax(0,1fr))] sm:items-stretch">
+                <div className="flex items-center justify-center rounded-lg border border-cyan-700/60 bg-cyan-950/25 px-2 py-2 text-center">
+                  <span className="text-[10px] font-black text-cyan-200">
+                    {quickDoubleLabel}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() =>
+                    applyQuickBet(
+                      `$${money(quickDoubleInsideTotal)} Inside`,
+                      quickDoubleInsideTarget
+                    )
+                  }
+                  className="rounded-lg border border-cyan-500/55 bg-cyan-950/15 px-3 py-2 text-left transition hover:bg-cyan-950/35"
+                >
+                  <span className="block text-[12px] font-black text-white">
+                    ${money(quickDoubleInsideTotal)} INSIDE
+                  </span>
+                  <span className="mt-0.5 block text-[8px] font-bold text-cyan-200/75">
+                    5/9 ${money(quickDoubleInsideTarget[5])} • 6/8 ${money(quickDoubleInsideTarget[6])}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    applyQuickBet(
+                      `$${money(quickDoubleAcrossTotal)} Across`,
+                      quickDoubleAcrossTarget
+                    )
+                  }
+                  className="rounded-lg border border-cyan-500/55 bg-cyan-950/15 px-3 py-2 text-left transition hover:bg-cyan-950/35"
+                >
+                  <span className="block text-[12px] font-black text-white">
+                    ${money(quickDoubleAcrossTotal)} ACROSS
+                  </span>
+                  <span className="mt-0.5 block text-[8px] font-bold text-cyan-200/75">
+                    4/5/9/10 ${money(quickDoubleAcrossTarget[4])} • 6/8 ${money(quickDoubleAcrossTarget[6])}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    applyQuickBet(
+                      `$${money(quickDoubleIronCrossTotal)} Iron Cross`,
+                      quickDoubleIronCrossTarget,
+                      quickBetDoubleBase
+                    )
+                  }
+                  className="rounded-lg border border-amber-400/60 bg-amber-950/25 px-3 py-2 text-left transition hover:bg-amber-950/45"
+                >
+                  <span className="block text-[12px] font-black text-amber-100">
+                    ${money(quickDoubleIronCrossTotal)} IRON CROSS
+                  </span>
+                  <span className="mt-0.5 block text-[8px] font-bold text-amber-200/80">
+                    5 ${money(quickDoubleIronCrossTarget[5])} • 6/8 ${money(quickDoubleIronCrossTarget[6])} • Field ${money(quickBetDoubleBase)}
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
