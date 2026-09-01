@@ -340,7 +340,7 @@ export default function TablePage() {
 
     restoreBetSnapshot(lastBetSnapshot);
     setLastBetSnapshot(null);
-    setMessage("Last bet change undone.");
+    setMessage("Undo complete — table restored to before your last bet change.");
   }
 
   const removableBetsTotal =
@@ -425,7 +425,14 @@ export default function TablePage() {
       return next;
     });
     setBankroll((current) => current - additions);
-    setMessage(`${name} placed for $${money(additions)}.`);
+    const layout = pointNumbers
+      .filter((number) => target[number] > 0)
+      .map((number) => `${number}=$${money(target[number])}`)
+      .join(" • ");
+
+    setMessage(
+      `${name}: added $${money(additions)} in Place bets. ${layout}`
+    );
   }
 
   function rebetLastRoll() {
@@ -585,7 +592,7 @@ export default function TablePage() {
       }
       return next;
     });
-    setMessage(`Rebet restored $${money(required)} in eligible wagers.`);
+    setMessage(`Rebet restored $${money(required)} from the previous roll.`);
   }
 
   function resetTable() {
@@ -673,6 +680,12 @@ export default function TablePage() {
 
     // True odds less a 5% commission on the amount won, rounded down.
     return casinoPayout(trueOddsProfit * 0.95);
+  }
+
+  function layOddsLabel(number: number) {
+    if (number === 4 || number === 10) return "1:2";
+    if (number === 5 || number === 9) return "2:3";
+    return "5:6";
   }
 
   function smartAddOdds(
@@ -1773,8 +1786,14 @@ export default function TablePage() {
               {pointNumbers.map((number) => (
                 <div
                   key={number}
-                  className={`relative min-h-[145px] border border-white/55 bg-black/[0.025] px-1 py-2 text-center transition ${
-                    point === number ? "bg-white/[0.06] ring-2 ring-inset ring-amber-300/80" : ""
+                  className={`relative min-h-[152px] border border-white/55 bg-black/[0.025] px-1 py-2 text-center transition ${
+                    point === number
+                      ? "bg-white/[0.06] ring-2 ring-inset ring-amber-300/80"
+                      : ""
+                  } ${
+                    layBets[number] > 0
+                      ? "shadow-[inset_0_3px_0_rgba(248,113,113,0.75)]"
+                      : ""
                   }`}
                 >
                   {point === number && (
@@ -1785,18 +1804,35 @@ export default function TablePage() {
 
                   <button
                     onClick={(event) => handleLayBet(event, number)}
-                    className="absolute inset-x-1 top-1 z-20 flex min-h-7 items-center justify-between border-b border-white/20 px-1 text-[8px] font-black uppercase tracking-[0.16em] text-red-100 hover:bg-red-950/25"
+                    className={`absolute inset-x-1 top-1 z-20 flex min-h-9 items-center justify-between border-b px-1.5 text-left font-black uppercase transition ${
+                      layBets[number] > 0
+                        ? "border-red-300/60 bg-red-950/45 text-red-50"
+                        : "border-white/20 text-red-100 hover:bg-red-950/25"
+                    }`}
                     title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
                   >
-                    <span>
-                      Lay {number === 4 || number === 10 ? "1:2" : number === 5 || number === 9 ? "2:3" : "5:6"}
+                    <span className="leading-tight">
+                      <span className="block text-[8px] tracking-[0.16em]">
+                        LAY • {layOddsLabel(number)}
+                      </span>
+                      {layBets[number] > 0 && (
+                        <span className="block text-[7px] normal-case tracking-normal text-red-200">
+                          Win +${money(
+                            calculateNumberLayNetProfit(
+                              number,
+                              layBets[number]
+                            )
+                          )} net
+                        </span>
+                      )}
                     </span>
+
                     <BetChip amount={layBets[number]} compact />
                   </button>
 
                   <button
                     onClick={(event) => handleNumberBet(event, number)}
-                    className="h-full w-full pt-7"
+                    className="h-full w-full pt-9"
                   >
                     <span className="block text-4xl font-black leading-none sm:text-5xl">
                       {number === 6 ? "SIX" : number === 9 ? "NINE" : number}
@@ -2093,6 +2129,21 @@ export default function TablePage() {
 
         {/* PLAYER CONTROLS + CHIP RACK */}
         <div className="mt-2 rounded-xl border border-emerald-900/80 bg-black/30 px-3 py-2">
+          <div className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-white/10 pb-2 text-[9px] font-black uppercase tracking-[0.12em]">
+            <span className={removeMode ? "text-red-300" : "text-amber-300"}>
+              Mode: {removeMode ? "Remove" : "Add"}
+            </span>
+            <span className="text-emerald-300">
+              Selected: ${money(selectedChip)}
+            </span>
+            <span className="text-red-200">
+              Lay action: ${money(totalLayBets)}
+            </span>
+            <span className="text-cyan-200">
+              Removable: ${money(removableBetsTotal)}
+            </span>
+          </div>
+
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={() => setRemoveMode(false)}
@@ -2128,6 +2179,7 @@ export default function TablePage() {
             <button
               onClick={undoLastBet}
               disabled={!lastBetSnapshot || isRolling}
+              title="Restore the table to before your most recent bet change"
               className={`rounded border px-3 py-2 text-[10px] font-black ${
                 lastBetSnapshot && !isRolling
                   ? "border-blue-400 text-blue-100 hover:bg-blue-950/40"
@@ -2140,6 +2192,7 @@ export default function TablePage() {
             <button
               onClick={rebetLastRoll}
               disabled={!lastRollBets || isRolling}
+              title="Restore eligible wagers that were up immediately before the previous roll"
               className={`rounded border px-3 py-2 text-[10px] font-black ${
                 lastRollBets && !isRolling
                   ? "border-amber-400 text-amber-100 hover:bg-amber-950/40"
@@ -2152,6 +2205,7 @@ export default function TablePage() {
             <button
               onClick={clearRemovableBets}
               disabled={removableBetsTotal <= 0 || isRolling}
+              title="Return all currently removable wagers to your bankroll"
               className={`rounded border px-3 py-2 text-[10px] font-black ${
                 removableBetsTotal > 0 && !isRolling
                   ? "border-cyan-500 text-cyan-100 hover:bg-cyan-950/40"
@@ -2197,8 +2251,11 @@ export default function TablePage() {
           </div>
 
           <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 border-t border-white/10 pt-2">
-            <span className="mr-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-500">
+            <span className="mr-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-400">
               Quick Place
+            </span>
+            <span className="mr-2 hidden text-[8px] text-emerald-600 sm:inline">
+              brings current Place bets up to the selected layout
             </span>
             <button
               onClick={() =>
