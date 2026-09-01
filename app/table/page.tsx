@@ -30,6 +30,22 @@ type TravelAnimation = {
   amount: number;
 };
 
+type ResolutionFlash = {
+  id: number;
+  area:
+    | "place"
+    | "lay"
+    | "come"
+    | "dontCome"
+    | "hardway"
+    | "prop"
+    | "field"
+    | "pass"
+    | "dontPass";
+  key: string;
+  result: "win" | "loss";
+};
+
 type BetSnapshot = {
   bankroll: number;
   passLineBet: number;
@@ -46,6 +62,9 @@ type BetSnapshot = {
   placeBets: NumberBets;
   layBets: NumberBets;
   hardways: NumberBets;
+  twoBet: number;
+  threeBet: number;
+  twelveBet: number;
   anySevenBet: number;
   anyCrapsBet: number;
   yoBet: number;
@@ -131,7 +150,7 @@ function BetChip({
     <span
       className={`relative inline-flex items-center justify-center rounded-full border-dashed font-black shadow-xl ${
         compact
-          ? "h-7 min-w-7 border-[3px] px-1 text-[7px]"
+          ? "h-8 min-w-8 border-[3px] px-1.5 text-[8px] ring-1 ring-white/35"
           : "h-12 min-w-12 border-[4px] px-2 text-[10px]"
       } ${chipRangeStyle(amount)}`}
       title={`Total wager: $${money(amount)}`}
@@ -267,6 +286,8 @@ export default function TablePage() {
   const [hardwaysWorking, setHardwaysWorking] = useState(false);
   const [travelAnimation, setTravelAnimation] =
     useState<TravelAnimation | null>(null);
+  const [resolutionFlashes, setResolutionFlashes] =
+    useState<ResolutionFlash[]>([]);
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
@@ -300,6 +321,9 @@ export default function TablePage() {
   const [lastRollBets, setLastRollBets] =
     useState<BetSnapshot | null>(null);
 
+  const [twoBet, setTwoBet] = useState(0);
+  const [threeBet, setThreeBet] = useState(0);
+  const [twelveBet, setTwelveBet] = useState(0);
   const [anySevenBet, setAnySevenBet] = useState(0);
   const [anyCrapsBet, setAnyCrapsBet] = useState(0);
   const [yoBet, setYoBet] = useState(0);
@@ -324,6 +348,39 @@ export default function TablePage() {
         current?.id === id ? null : current
       );
     }, 820);
+  }
+
+  function flashOutcome(
+    area: ResolutionFlash["area"],
+    key: string,
+    result: ResolutionFlash["result"]
+  ) {
+    const id = Date.now() + Math.floor(Math.random() * 100000);
+
+    setResolutionFlashes((current) => [
+      ...current.filter(
+        (flash) => !(flash.area === area && flash.key === key)
+      ),
+      { id, area, key, result },
+    ]);
+
+    window.setTimeout(() => {
+      setResolutionFlashes((current) =>
+        current.filter((flash) => flash.id !== id)
+      );
+    }, 850);
+  }
+
+  function flashClass(area: ResolutionFlash["area"], key: string) {
+    const flash = resolutionFlashes.find(
+      (item) => item.area === area && item.key === key
+    );
+
+    if (!flash) return "";
+
+    return flash.result === "win"
+      ? "lucky-win-flash"
+      : "lucky-loss-flash";
   }
 
   function wantsRemove(event?: MouseEvent<HTMLButtonElement>) {
@@ -378,6 +435,9 @@ export default function TablePage() {
     totalDontComeOdds +
     totalLayBets +
     totalHardways +
+    twoBet +
+    threeBet +
+    twelveBet +
     anySevenBet +
     anyCrapsBet +
     yoBet +
@@ -402,6 +462,9 @@ export default function TablePage() {
       placeBets: { ...placeBets },
       layBets: { ...layBets },
       hardways: { ...hardways },
+      twoBet,
+      threeBet,
+      twelveBet,
       anySevenBet,
       anyCrapsBet,
       yoBet,
@@ -429,6 +492,9 @@ export default function TablePage() {
     setPlaceBets({ ...snapshot.placeBets });
     setLayBets({ ...snapshot.layBets });
     setHardways({ ...snapshot.hardways });
+    setTwoBet(snapshot.twoBet);
+    setThreeBet(snapshot.threeBet);
+    setTwelveBet(snapshot.twelveBet);
     setAnySevenBet(snapshot.anySevenBet);
     setAnyCrapsBet(snapshot.anyCrapsBet);
     setYoBet(snapshot.yoBet);
@@ -460,6 +526,9 @@ export default function TablePage() {
     totalComeOdds +
     totalDontComeBets +
     totalDontComeOdds +
+    twoBet +
+    threeBet +
+    twelveBet +
     anySevenBet +
     anyCrapsBet +
     yoBet +
@@ -486,6 +555,9 @@ export default function TablePage() {
     setComeOdds(emptyNumberBets());
     setDontComeBets(emptyNumberBets());
     setDontComeOdds(emptyNumberBets());
+    setTwoBet(0);
+    setThreeBet(0);
+    setTwelveBet(0);
     setAnySevenBet(0);
     setAnyCrapsBet(0);
     setYoBet(0);
@@ -612,6 +684,9 @@ export default function TablePage() {
             lastRollBets.activeDontComeBet - activeDontComeBet
           )
         : 0;
+    const addTwo = Math.max(0, lastRollBets.twoBet - twoBet);
+    const addThree = Math.max(0, lastRollBets.threeBet - threeBet);
+    const addTwelve = Math.max(0, lastRollBets.twelveBet - twelveBet);
     const addAnySeven = Math.max(0, lastRollBets.anySevenBet - anySevenBet);
     const addAnyCraps = Math.max(0, lastRollBets.anyCrapsBet - anyCrapsBet);
     const addYo = Math.max(0, lastRollBets.yoBet - yoBet);
@@ -625,6 +700,9 @@ export default function TablePage() {
       addField +
       addActiveCome +
       addActiveDontCome +
+      addTwo +
+      addThree +
+      addTwelve +
       addAnySeven +
       addAnyCraps +
       addYo +
@@ -659,6 +737,9 @@ export default function TablePage() {
     setFieldBet((current) => current + addField);
     setActiveComeBet((current) => current + addActiveCome);
     setActiveDontComeBet((current) => current + addActiveDontCome);
+    setTwoBet((current) => current + addTwo);
+    setThreeBet((current) => current + addThree);
+    setTwelveBet((current) => current + addTwelve);
     setAnySevenBet((current) => current + addAnySeven);
     setAnyCrapsBet((current) => current + addAnyCraps);
     setYoBet((current) => current + addYo);
@@ -725,6 +806,9 @@ export default function TablePage() {
     setPlaceBets(emptyNumberBets());
     setLayBets(emptyNumberBets());
     setHardways(emptyHardways());
+    setTwoBet(0);
+    setThreeBet(0);
+    setTwelveBet(0);
     setAnySevenBet(0);
     setAnyCrapsBet(0);
     setYoBet(0);
@@ -732,6 +816,7 @@ export default function TablePage() {
     setLastBetSnapshot(null);
     setLastRollBets(null);
     setTravelAnimation(null);
+    setResolutionFlashes([]);
   }
 
   function makeDiceForTotal(total: number) {
@@ -1017,6 +1102,7 @@ export default function TablePage() {
         if (bet > 0) {
           totalStake += bet;
           totalNetProfit += calculateNumberLayNetProfit(number, bet);
+          flashOutcome("lay", String(number), "win");
         }
       }
 
@@ -1032,6 +1118,7 @@ export default function TablePage() {
 
     if (pointNumbers.includes(total) && layBets[total] > 0) {
       const lost = layBets[total];
+      flashOutcome("lay", String(total), "loss");
       setLayBets((current) => ({ ...current, [total]: 0 }));
       return `Lay ${total} loses $${money(lost)}.`;
     }
@@ -1093,6 +1180,7 @@ export default function TablePage() {
     if (!bet) return null;
 
     const profit = calculatePlaceProfit(total, bet);
+    flashOutcome("place", String(total), "win");
     setBankroll((current) => current + profit);
     return `Place ${total} wins $${money(profit)}. Bet stays up.`;
   }
@@ -1102,6 +1190,13 @@ export default function TablePage() {
       (sum, value) => sum + value,
       0
     );
+
+    for (const number of pointNumbers) {
+      if (placeBets[number] > 0) {
+        flashOutcome("place", String(number), "loss");
+      }
+    }
+
     setPlaceBets(emptyNumberBets());
     return lost;
   }
@@ -1138,12 +1233,14 @@ export default function TablePage() {
     else if ([3, 4, 9, 10, 11].includes(total)) profit = fieldBet;
 
     if (profit > 0) {
+      flashOutcome("field", "field", "win");
       setBankroll((current) => current + fieldBet + profit);
       setFieldBet(0);
       return `Field wins $${money(profit)}.`;
     }
 
     const lost = fieldBet;
+    flashOutcome("field", "field", "loss");
     setFieldBet(0);
     return `Field loses $${money(lost)}.`;
   }
@@ -1383,6 +1480,12 @@ export default function TablePage() {
 
       if (lost > 0) {
         messages.push(`Hardways lose $${money(lost)}.`);
+
+        for (const number of hardwayNumbers) {
+          if (next[number] > 0) {
+            flashOutcome("hardway", String(number), "loss");
+          }
+        }
       }
 
       setHardways(emptyHardways());
@@ -1398,11 +1501,13 @@ export default function TablePage() {
       const multiplier = total === 4 || total === 10 ? 7 : 9;
       const profit = casinoPayout(bet * multiplier);
 
+      flashOutcome("hardway", String(total), "win");
       setBankroll((current) => current + profit);
       messages.push(
         `Hard ${total} wins $${money(profit)}. Bet stays up.`
       );
     } else {
+      flashOutcome("hardway", String(total), "loss");
       messages.push(
         `Easy ${total}. Hard ${total} loses $${money(bet)}.`
       );
@@ -1443,54 +1548,104 @@ export default function TablePage() {
   function resolvePropBets(total: number) {
     const messages: string[] = [];
 
+    // One-roll proposition bets stay up after a win. Because the original
+    // wager remains on the table, only the profit is returned to bankroll.
+    // Losing one-roll wagers come down normally.
+
+    if (twoBet > 0) {
+      if (total === 2) {
+        flashOutcome("prop", "2", "win");
+        const profit = casinoPayout(twoBet * 30);
+        setBankroll((current) => current + profit);
+        messages.push(`2 wins $${money(profit)}. Bet stays up.`);
+      } else {
+        flashOutcome("prop", "2", "loss");
+        messages.push(`2 loses $${money(twoBet)}.`);
+        setTwoBet(0);
+      }
+    }
+
+    if (threeBet > 0) {
+      if (total === 3) {
+        flashOutcome("prop", "3", "win");
+        const profit = casinoPayout(threeBet * 15);
+        setBankroll((current) => current + profit);
+        messages.push(`3 wins $${money(profit)}. Bet stays up.`);
+      } else {
+        flashOutcome("prop", "3", "loss");
+        messages.push(`3 loses $${money(threeBet)}.`);
+        setThreeBet(0);
+      }
+    }
+
+    if (twelveBet > 0) {
+      if (total === 12) {
+        flashOutcome("prop", "12", "win");
+        const profit = casinoPayout(twelveBet * 30);
+        setBankroll((current) => current + profit);
+        messages.push(`12 wins $${money(profit)}. Bet stays up.`);
+      } else {
+        flashOutcome("prop", "12", "loss");
+        messages.push(`12 loses $${money(twelveBet)}.`);
+        setTwelveBet(0);
+      }
+    }
+
     if (anySevenBet > 0) {
       if (total === 7) {
-        const profit = anySevenBet * 4;
-        setBankroll((current) => current + anySevenBet + profit);
-        messages.push(`Any 7 wins $${money(profit)}.`);
+        flashOutcome("prop", "any-seven", "win");
+        const profit = casinoPayout(anySevenBet * 4);
+        setBankroll((current) => current + profit);
+        messages.push(`Any Seven wins $${money(profit)}. Bet stays up.`);
       } else {
-        messages.push(`Any 7 loses $${money(anySevenBet)}.`);
+        flashOutcome("prop", "any-seven", "loss");
+        messages.push(`Any Seven loses $${money(anySevenBet)}.`);
+        setAnySevenBet(0);
       }
-      setAnySevenBet(0);
     }
 
     if (anyCrapsBet > 0) {
       if ([2, 3, 12].includes(total)) {
-        const profit = anyCrapsBet * 7;
-        setBankroll((current) => current + anyCrapsBet + profit);
-        messages.push(`Any Craps wins $${money(profit)}.`);
+        flashOutcome("prop", "any-craps", "win");
+        const profit = casinoPayout(anyCrapsBet * 7);
+        setBankroll((current) => current + profit);
+        messages.push(`Any Craps wins $${money(profit)}. Bet stays up.`);
       } else {
+        flashOutcome("prop", "any-craps", "loss");
         messages.push(`Any Craps loses $${money(anyCrapsBet)}.`);
+        setAnyCrapsBet(0);
       }
-      setAnyCrapsBet(0);
     }
 
     if (yoBet > 0) {
       if (total === 11) {
-        const profit = yoBet * 15;
-        setBankroll((current) => current + yoBet + profit);
-        messages.push(`Yo 11 wins $${money(profit)}.`);
+        flashOutcome("prop", "yo", "win");
+        const profit = casinoPayout(yoBet * 15);
+        setBankroll((current) => current + profit);
+        messages.push(`Yo 11 wins $${money(profit)}. Bet stays up.`);
       } else {
+        flashOutcome("prop", "yo", "loss");
         messages.push(`Yo 11 loses $${money(yoBet)}.`);
+        setYoBet(0);
       }
-      setYoBet(0);
     }
 
     if (hornBet > 0) {
       if ([2, 3, 11, 12].includes(total)) {
+        flashOutcome("prop", "horn", "win");
         const unit = hornBet / 4;
         const multiplier = total === 2 || total === 12 ? 30 : 15;
         const profit = casinoPayout(unit * multiplier - unit * 3);
-        const returnAmount = hornBet + profit;
 
-        setBankroll((current) => current + returnAmount);
+        setBankroll((current) => current + profit);
         messages.push(
-          `Horn hits ${total}. Net profit $${money(profit)}.`
+          `Horn hits ${total}. Net profit $${money(profit)}. Bet stays up.`
         );
       } else {
+        flashOutcome("prop", "horn", "loss");
         messages.push(`Horn loses $${money(hornBet)}.`);
+        setHornBet(0);
       }
-      setHornBet(0);
     }
 
     return messages;
@@ -1505,6 +1660,9 @@ export default function TablePage() {
       let lost = 0;
 
       for (const number of pointNumbers) {
+        if (nextCome[number] + nextOdds[number] > 0) {
+          flashOutcome("come", String(number), "loss");
+        }
         lost += nextCome[number] + nextOdds[number];
         nextCome[number] = 0;
         nextOdds[number] = 0;
@@ -1514,6 +1672,7 @@ export default function TablePage() {
         messages.push(`Come bets and odds lose $${money(lost)}.`);
       }
     } else if (pointNumbers.includes(total) && nextCome[total] > 0) {
+      flashOutcome("come", String(total), "win");
       const flat = nextCome[total];
       const odds = nextOdds[total];
 
@@ -1569,6 +1728,7 @@ export default function TablePage() {
         const lay = nextOdds[number];
 
         if (flat > 0) {
+          flashOutcome("dontCome", String(number), "win");
           let returned = flat * 2;
           let layProfit = 0;
 
@@ -1588,6 +1748,7 @@ export default function TablePage() {
         }
       }
     } else if (pointNumbers.includes(total) && nextDC[total] > 0) {
+      flashOutcome("dontCome", String(total), "loss");
       const lost = nextDC[total] + nextOdds[total];
       messages.push(`Don't Come ${total} loses $${money(lost)}.`);
       nextDC[total] = 0;
@@ -1703,6 +1864,7 @@ export default function TablePage() {
         messages.unshift(`${total} — Natural!`);
 
         if (passLineBet > 0) {
+          flashOutcome("pass", "pass", "win");
           setBankroll((current) => current + passLineBet * 2);
           messages.push(`Pass Line wins $${money(passLineBet)}.`);
           setPassLineBet(0);
@@ -1710,6 +1872,7 @@ export default function TablePage() {
         }
 
         if (dontPassBet > 0) {
+          flashOutcome("dontPass", "dont-pass", "loss");
           messages.push(`Don't Pass loses $${money(dontPassBet)}.`);
           setDontPassBet(0);
           setDontPassOddsBet(0);
@@ -1723,12 +1886,14 @@ export default function TablePage() {
         messages.unshift(`${total} — Craps.`);
 
         if (passLineBet > 0) {
+          flashOutcome("pass", "pass", "loss");
           messages.push(`Pass Line loses $${money(passLineBet)}.`);
           setPassLineBet(0);
           setPassOddsBet(0);
         }
 
         if (dontPassBet > 0) {
+          flashOutcome("dontPass", "dont-pass", "win");
           setBankroll((current) => current + dontPassBet * 2);
           messages.push(`Don't Pass wins $${money(dontPassBet)}.`);
           setDontPassBet(0);
@@ -1742,6 +1907,7 @@ export default function TablePage() {
         messages.unshift("12 — Craps.");
 
         if (passLineBet > 0) {
+          flashOutcome("pass", "pass", "loss");
           messages.push(`Pass Line loses $${money(passLineBet)}.`);
           setPassLineBet(0);
           setPassOddsBet(0);
@@ -1774,12 +1940,14 @@ export default function TablePage() {
       }
 
       if (passLineBet + passOddsBet > 0) {
+        flashOutcome("pass", "pass", "loss");
         messages.push(
           `Pass Line/odds lose $${money(passLineBet + passOddsBet)}.`
         );
       }
 
       if (dontPassBet > 0) {
+        flashOutcome("dontPass", "dont-pass", "win");
         let returned = dontPassBet * 2;
         let profit = 0;
 
@@ -1812,6 +1980,7 @@ export default function TablePage() {
       messages.unshift(`${total} — Point made!`);
 
       if (passLineBet > 0) {
+        flashOutcome("pass", "pass", "win");
         let returned = passLineBet * 2;
         let oddsProfit = 0;
 
@@ -1829,6 +1998,7 @@ export default function TablePage() {
       }
 
       if (dontPassBet + dontPassOddsBet > 0) {
+        flashOutcome("dontPass", "dont-pass", "loss");
         messages.push(
           `Don't Pass/lay odds lose $${money(
             dontPassBet + dontPassOddsBet
@@ -1890,8 +2060,38 @@ export default function TablePage() {
           }
         }
 
+        @keyframes luckyWinPulse {
+          0% { box-shadow: inset 0 0 0 0 rgba(250, 204, 21, 0); }
+          28% {
+            box-shadow:
+              inset 0 0 0 3px rgba(250, 204, 21, .95),
+              inset 0 0 24px rgba(250, 204, 21, .28);
+          }
+          100% { box-shadow: inset 0 0 0 0 rgba(250, 204, 21, 0); }
+        }
+
+        @keyframes luckyLossPulse {
+          0% { box-shadow: inset 0 0 0 0 rgba(248, 113, 113, 0); }
+          28% {
+            box-shadow:
+              inset 0 0 0 3px rgba(248, 113, 113, .95),
+              inset 0 0 24px rgba(127, 29, 29, .42);
+          }
+          100% { box-shadow: inset 0 0 0 0 rgba(248, 113, 113, 0); }
+        }
+
+        .lucky-win-flash {
+          animation: luckyWinPulse 820ms ease-out both;
+        }
+
+        .lucky-loss-flash {
+          animation: luckyLossPulse 820ms ease-out both;
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .lucky-travel {
+          .lucky-travel,
+          .lucky-win-flash,
+          .lucky-loss-flash {
             animation-duration: 1ms !important;
           }
         }
@@ -1960,28 +2160,26 @@ export default function TablePage() {
                   {pointNumbers.map((number) => (
                     <div
                       key={number}
-                      className={`relative min-h-[220px] overflow-visible border border-white/60 bg-black/[0.025] text-center transition ${
+                      className={`relative min-h-[212px] overflow-visible border border-white/60 bg-black/[0.025] text-center transition ${
                         point === number
                           ? "ring-2 ring-inset ring-amber-300/85"
                           : ""
                       }`}
                     >
                       {point === number && (
-                        <div className="absolute -top-4 left-1/2 z-[70] flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-white bg-zinc-950 text-[10px] font-black shadow-xl">
+                        <div className="absolute left-2 top-[130px] z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-white bg-zinc-950 text-[9px] font-black shadow-xl">
                           ON
                         </div>
                       )}
 
                       {/* DON'T COME TRAVEL ZONE */}
                       <div
-                        className={`absolute inset-x-0 top-0 h-[44px] border-b border-white/35 px-1 ${
-                          dontComeBets[number] > 0
-                            ? "bg-red-950/30"
-                            : "bg-black/[0.035]"
-                        }`}
+                        className={`absolute inset-x-0 top-0 h-[44px] border-b border-red-100/25 bg-red-950/[0.13] px-1 ${
+                          dontComeBets[number] > 0 ? "bg-red-950/50" : ""
+                        } ${flashClass("dontCome", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[7px] font-black uppercase tracking-[0.12em] text-red-100/65">
+                          <span className="text-[8px] font-black uppercase tracking-[0.13em] text-red-100/90">
                             Don&apos;t Come
                           </span>
 
@@ -1992,13 +2190,13 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleDontComeOdds(event, number)
                                 }
-                                className="rounded border border-red-300/50 bg-red-950/80 px-1 py-0.5 text-[7px] font-black text-red-50"
+                                className="min-w-[60px] rounded border border-red-300/60 bg-red-950/90 px-1.5 py-1 text-[9px] font-black leading-tight text-red-50"
                                 title={`Don't Come odds pay ${layOddsLabel(
                                   number
                                 )}`}
                               >
                                 ODDS ${money(dontComeOdds[number])}
-                                <span className="block text-[6px] text-red-200">
+                                <span className="block text-[8px] text-red-200">
                                   {layOddsLabel(number)}
                                 </span>
                               </button>
@@ -2021,13 +2219,13 @@ export default function TablePage() {
                         onClick={(event) => handleLayBet(event, number)}
                         className={`absolute inset-x-0 top-[44px] flex h-[38px] items-center justify-between border-b px-2 text-left font-black uppercase transition ${
                           layBets[number] > 0
-                            ? "border-red-300/60 bg-red-950/45 text-red-50"
-                            : "border-white/35 bg-black/[0.025] text-red-100 hover:bg-red-950/25"
-                        }`}
+                            ? "border-red-300/60 bg-red-950/48 text-red-50"
+                            : "border-red-100/20 bg-red-950/[0.09] text-red-100 hover:bg-red-950/25"
+                        } ${flashClass("lay", String(number))}`}
                         title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
                       >
                         <span className="leading-tight">
-                          <span className="block text-[8px] tracking-[0.14em]">
+                          <span className="block text-[9px] tracking-[0.14em]">
                             LAY • {layOddsLabel(number)}
                           </span>
                           {layBets[number] > 0 && (
@@ -2047,14 +2245,12 @@ export default function TablePage() {
 
                       {/* COME TRAVEL ZONE */}
                       <div
-                        className={`absolute inset-x-0 top-[82px] h-[42px] border-b border-white/35 px-1 ${
-                          comeBets[number] > 0
-                            ? "bg-blue-950/28"
-                            : "bg-black/[0.02]"
-                        }`}
+                        className={`absolute inset-x-0 top-[82px] h-[42px] border-b border-blue-100/25 bg-blue-950/[0.12] px-1 ${
+                          comeBets[number] > 0 ? "bg-blue-950/45" : ""
+                        } ${flashClass("come", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[7px] font-black uppercase tracking-[0.14em] text-blue-100/65">
+                          <span className="text-[8px] font-black uppercase tracking-[0.14em] text-blue-100/90">
                             Come
                           </span>
 
@@ -2065,11 +2261,11 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleComeOdds(event, number)
                                 }
-                                className="rounded border border-blue-300/50 bg-blue-950/80 px-1 py-0.5 text-[7px] font-black text-blue-50"
+                                className="min-w-[60px] rounded border border-blue-300/60 bg-blue-950/90 px-1.5 py-1 text-[9px] font-black leading-tight text-blue-50"
                                 title={`Come odds pay ${passOddsLabel(number)}`}
                               >
                                 ODDS ${money(comeOdds[number])}
-                                <span className="block text-[6px] text-blue-200">
+                                <span className="block text-[8px] text-blue-200">
                                   {passOddsLabel(number)}
                                 </span>
                               </button>
@@ -2088,7 +2284,7 @@ export default function TablePage() {
                       </div>
 
                       {/* NUMBER */}
-                      <div className="absolute inset-x-0 bottom-[42px] top-[124px] flex items-center justify-center bg-black/[0.025]">
+                      <div className="absolute inset-x-0 bottom-[42px] top-[120px] flex items-center justify-center bg-emerald-950/[0.13]">
                         <span className="text-4xl font-black leading-none sm:text-5xl">
                           {number === 6
                             ? "SIX"
@@ -2101,12 +2297,12 @@ export default function TablePage() {
                       {/* PLACE ZONE */}
                       <button
                         onClick={(event) => handleNumberBet(event, number)}
-                        className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-white/40 px-2 font-black transition hover:bg-white/[0.04] ${
-                          placeBets[number] > 0 ? "bg-emerald-950/30" : ""
-                        }`}
+                        className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-emerald-100/30 bg-emerald-950/[0.18] px-2 font-black transition hover:bg-white/[0.04] ${
+                          placeBets[number] > 0 ? "bg-emerald-950/45" : ""
+                        } ${flashClass("place", String(number))}`}
                         title={`Place ${number} pays ${placeOddsLabel(number)}`}
                       >
-                        <span className="text-[8px] uppercase tracking-[0.14em] text-emerald-50/85">
+                        <span className="text-[9px] uppercase tracking-[0.14em] text-emerald-50">
                           PLACE • {placeOddsLabel(number)}
                         </span>
                         <BetChip amount={placeBets[number]} compact />
@@ -2115,7 +2311,7 @@ export default function TablePage() {
                   ))}
 
                   {point === null && (
-                    <div className="absolute -left-2 bottom-2 z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-900 bg-white text-[9px] font-black text-black shadow-xl">
+                    <div className="absolute -left-2 -top-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-900 bg-white text-[9px] font-black text-black shadow-xl">
                       OFF
                     </div>
                   )}
@@ -2135,7 +2331,7 @@ export default function TablePage() {
 
                   <button
                     onClick={handleFieldBet}
-                    className="relative min-h-[66px] w-full border border-white/60 bg-transparent px-3 py-2 hover:bg-white/[0.035]"
+                    className={`relative min-h-[66px] w-full border border-white/60 bg-transparent px-3 py-2 hover:bg-white/[0.035] ${flashClass("field", "field")}`}
                   >
                     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                       <span className="text-3xl font-black">2</span>
@@ -2160,7 +2356,7 @@ export default function TablePage() {
 
                   <button
                     onClick={handleDontPassBet}
-                    className="relative min-h-[44px] w-full border border-white/45 bg-black/[0.035] text-base font-black tracking-[0.1em] hover:bg-white/[0.025]"
+                    className={`relative min-h-[44px] w-full border border-white/45 bg-black/[0.035] text-base font-black tracking-[0.1em] hover:bg-white/[0.025] ${flashClass("dontPass", "dont-pass")}`}
                   >
                     DON&apos;T PASS — BAR 12
                     <span className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -2171,18 +2367,22 @@ export default function TablePage() {
                   {point !== null && dontPassBet > 0 && (
                     <button
                       onClick={handleDontPassOdds}
-                      className="w-full border border-red-300/70 bg-red-950/55 py-1.5 text-[10px] font-black"
+                      className="relative min-h-[44px] w-full border border-red-300/70 bg-red-950/60 px-14 py-1.5 text-[10px] font-black"
                       title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
                     >
                       DON&apos;T PASS LAY ODDS ${money(dontPassOddsBet)}
                       {" • "}PAYS {layOddsLabel(point)}
                       {" • "}MAX ${money(dontPassBet * 6)}
+
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <BetChip amount={dontPassOddsBet} />
+                      </span>
                     </button>
                   )}
 
                   <button
                     onClick={handlePassLineBet}
-                    className="relative min-h-[56px] w-full rounded-[15px] border-[3px] border-white bg-transparent text-2xl font-black tracking-[0.18em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-white/[0.035]"
+                    className={`relative min-h-[56px] w-full rounded-[15px] border-[3px] border-white bg-transparent text-2xl font-black tracking-[0.18em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-white/[0.035] ${flashClass("pass", "pass")}`}
                   >
                     PASS LINE
                     <span className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -2193,23 +2393,126 @@ export default function TablePage() {
                   {point !== null && passLineBet > 0 && (
                     <button
                       onClick={handlePassOdds}
-                      className="w-full rounded-b-md border border-yellow-300 bg-yellow-400 py-1.5 text-[10px] font-black text-black"
+                      className="relative min-h-[50px] w-full rounded-b-md border border-yellow-300 bg-yellow-400 px-16 py-1.5 text-[10px] font-black text-black"
                       title={`Pass odds pay ${passOddsLabel(point)}`}
                     >
                       PASS ODDS ${money(passOddsBet)}
                       {" • "}PAYS {passOddsLabel(point)}
                       {" • "}MAX $
                       {money(passLineBet * getPassOddsMultiplier(point))}
+
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <BetChip amount={passOddsBet} />
+                      </span>
                     </button>
                   )}
+
+                  {/* INTEGRATED DEALER / ROLL TRAY */}
+                  <div className="mt-1 min-h-[154px] border border-emerald-100/25 bg-black/[0.10] px-3 py-3">
+                    <div className="grid h-full gap-3 lg:grid-cols-[auto_auto_auto_1fr] lg:items-center">
+                      <div
+                        className={`flex items-center justify-center gap-1 text-5xl ${
+                          isRolling ? "animate-pulse" : ""
+                        }`}
+                        aria-live="polite"
+                        aria-label={
+                          isRolling ? "Dice rolling" : `Rolled ${rollTotal}`
+                        }
+                      >
+                        <span
+                          className={
+                            isRolling
+                              ? "animate-[spin_0.18s_linear_infinite]"
+                              : ""
+                          }
+                        >
+                          {diceFaces[dieOne - 1]}
+                        </span>
+                        <span
+                          className={
+                            isRolling
+                              ? "animate-[spin_0.21s_linear_infinite]"
+                              : ""
+                          }
+                          style={
+                            isRolling
+                              ? { animationDirection: "reverse" }
+                              : undefined
+                          }
+                        >
+                          {diceFaces[dieTwo - 1]}
+                        </span>
+                      </div>
+
+                      <div className="min-w-[76px] text-center">
+                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                          {isRolling ? "Rolling" : "Last Roll"}
+                        </p>
+                        <p className="text-3xl font-black">
+                          {isRolling ? "…" : rollTotal}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={rollDice}
+                        disabled={isRolling}
+                        className={`rounded-lg px-8 py-4 text-base font-black text-black shadow-lg transition ${
+                          isRolling
+                            ? "cursor-not-allowed bg-amber-200"
+                            : "bg-amber-400 hover:scale-105 hover:bg-amber-300"
+                        }`}
+                      >
+                        {isRolling ? "ROLLING…" : "ROLL DICE"}
+                      </button>
+
+                      <div className="min-w-0">
+                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-400">
+                          Dealer
+                        </p>
+                        <p className="mt-1 min-h-10 text-sm font-semibold text-amber-200">
+                          {message}
+                        </p>
+
+                        <div className="mt-2 flex min-w-0 items-center gap-1.5 overflow-x-auto">
+                          <span className="mr-1 shrink-0 text-[7px] font-black uppercase tracking-[0.16em] text-emerald-500">
+                            Recent
+                          </span>
+                          {rollHistory.length === 0 ? (
+                            <span className="text-[9px] text-emerald-300/70">
+                              No rolls yet
+                            </span>
+                          ) : (
+                            rollHistory.slice(0, 8).map((roll, index) => (
+                              <div
+                                key={`${roll.first}-${roll.second}-${index}`}
+                                className={`shrink-0 rounded border px-1.5 py-1 text-center ${
+                                  roll.total === 7
+                                    ? "border-red-400/80 bg-red-950/45"
+                                    : "border-emerald-700 bg-emerald-950/45"
+                                }`}
+                              >
+                                <div className="text-xs leading-none">
+                                  {diceFaces[roll.first - 1]}
+                                  {diceFaces[roll.second - 1]}
+                                </div>
+                                <div className="text-[8px] font-black">
+                                  {roll.total}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* RIGHT RAIL: DON'T COME + CENTER ACTION */}
-              <div className="grid min-w-0 grid-rows-[220px_auto] gap-1">
+              <div className="grid min-w-0 grid-rows-[212px_auto] gap-1">
                 <button
                   onClick={handleDontComeBet}
-                  className="relative flex h-full min-h-[220px] flex-col items-center justify-center border border-white/60 bg-black/[0.045] px-3 text-center font-black hover:bg-white/[0.035]"
+                  className="relative flex h-full min-h-[212px] flex-col items-center justify-center border border-white/60 bg-black/[0.045] px-3 text-center font-black hover:bg-white/[0.035]"
                 >
                   <span className="text-xl tracking-[0.08em] text-red-100">
                     DON&apos;T COME
@@ -2270,7 +2573,7 @@ export default function TablePage() {
                         <button
                           key={number}
                           onClick={(event) => handleHardway(event, number)}
-                          className="relative min-h-[78px] border border-white/45 bg-black/[0.025] p-1.5 text-center font-black hover:bg-white/[0.035]"
+                          className={`relative min-h-[66px] border border-white/45 bg-black/[0.025] p-1.5 text-center font-black hover:bg-white/[0.035] ${flashClass("hardway", String(number))}`}
                         >
                           <div className="text-[9px] uppercase tracking-[0.14em] text-emerald-50/85">
                             HARD {number}
@@ -2295,28 +2598,79 @@ export default function TablePage() {
                     })}
                   </div>
 
-                  <div className="my-1.5 border-t border-white/15 pt-1.5 text-center text-[8px] font-black uppercase tracking-[0.22em] text-emerald-100/70">
+                  <div className="my-1 border-t border-white/15 pt-1 text-center text-[8px] font-black uppercase tracking-[0.22em] text-emerald-100/75">
                     One Roll
                   </div>
 
-                  <div className="grid grid-cols-4 gap-[3px]">
+                  {/* Individual horn numbers: 2 / 3 / 12 */}
+                  <div className="grid grid-cols-3 gap-[3px]">
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(event, twoBet, setTwoBet, "2")
+                      }
+                      className={`relative min-h-[62px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "2")}`}
+                    >
+                      <div className="text-[10px] text-red-200">2</div>
+                      <div className="my-0.5 flex items-center justify-center gap-1">
+                        <MiniDie value={1} />
+                        <MiniDie value={1} />
+                      </div>
+                      <div className="text-[7px]">30 TO 1</div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={twoBet} compact />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(event, threeBet, setThreeBet, "3")
+                      }
+                      className={`relative min-h-[62px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "3")}`}
+                    >
+                      <div className="text-[10px] text-red-200">3</div>
+                      <div className="my-0.5 flex items-center justify-center gap-1">
+                        <MiniDie value={1} />
+                        <MiniDie value={2} />
+                      </div>
+                      <div className="text-[7px]">15 TO 1</div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={threeBet} compact />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={(event) =>
+                        handlePropBet(event, twelveBet, setTwelveBet, "12")
+                      }
+                      className={`relative min-h-[62px] border border-white/45 bg-black/[0.03] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "12")}`}
+                    >
+                      <div className="text-[10px] text-red-200">12</div>
+                      <div className="my-0.5 flex items-center justify-center gap-1">
+                        <MiniDie value={6} />
+                        <MiniDie value={6} />
+                      </div>
+                      <div className="text-[7px]">30 TO 1</div>
+                      <div className="absolute bottom-1 right-1">
+                        <BetChip amount={twelveBet} compact />
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Combination / one-roll bets */}
+                  <div className="mt-[3px] grid grid-cols-4 gap-[3px]">
                     <button
                       onClick={(event) =>
                         handlePropBet(
                           event,
                           anySevenBet,
                           setAnySevenBet,
-                          "Any 7"
+                          "Any Seven"
                         )
                       }
-                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-seven")}`}
                     >
-                      <div className="text-[10px] text-red-200">ANY 7</div>
-                      <div className="my-1 flex items-center justify-center gap-0.5">
-                        <MiniDie value={3} />
-                        <MiniDie value={4} />
-                      </div>
-                      <div className="text-[7px]">4 TO 1</div>
+                      <div className="text-[9px] text-red-200">ANY SEVEN</div>
+                      <div className="mt-1 text-[8px]">4 TO 1</div>
                       <div className="absolute bottom-1 right-1">
                         <BetChip amount={anySevenBet} compact />
                       </div>
@@ -2331,12 +2685,11 @@ export default function TablePage() {
                           "Any Craps"
                         )
                       }
-                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-craps")}`}
                     >
-                      <div className="text-[10px] text-red-200">CRAPS</div>
-                      <div className="my-1 flex items-center justify-center gap-0.5">
-                        <MiniDie value={1} />
-                        <MiniDie value={2} />
+                      <div className="text-[9px] text-red-200">ANY CRAPS</div>
+                      <div className="mt-0.5 text-[8px] font-black tracking-[0.08em]">
+                        2 • 3 • 12
                       </div>
                       <div className="text-[7px]">7 TO 1</div>
                       <div className="absolute bottom-1 right-1">
@@ -2348,10 +2701,10 @@ export default function TablePage() {
                       onClick={(event) =>
                         handlePropBet(event, yoBet, setYoBet, "Yo 11")
                       }
-                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "yo")}`}
                     >
-                      <div className="text-[10px]">YO 11</div>
-                      <div className="my-1 flex items-center justify-center gap-0.5">
+                      <div className="text-[9px]">YO 11</div>
+                      <div className="mt-0.5 flex items-center justify-center gap-0.5">
                         <MiniDie value={5} />
                         <MiniDie value={6} />
                       </div>
@@ -2365,99 +2718,27 @@ export default function TablePage() {
                       onClick={(event) =>
                         handlePropBet(event, hornBet, setHornBet, "Horn")
                       }
-                      className="relative min-h-[70px] border border-white/40 p-1 text-center font-black hover:bg-white/[0.035]"
+                      className={`relative min-h-[58px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "horn")}`}
                     >
-                      <div className="text-[10px]">HORN</div>
-                      <div className="my-1 text-[8px] font-black tracking-[0.08em] text-emerald-50">
+                      <div className="text-[9px]">HORN</div>
+                      <div className="mt-0.5 text-[7px] font-black tracking-[0.05em]">
                         2 • 3 • 11 • 12
                       </div>
                       <div className="text-[6px] text-emerald-100/60">
-                        one-roll combo
+                        combo
                       </div>
                       <div className="absolute bottom-1 right-1">
                         <BetChip amount={hornBet} compact />
                       </div>
                     </button>
                   </div>
+
+                  <p className="mt-0.5 text-center text-[6px] font-bold uppercase tracking-[0.06em] text-emerald-100/45">
+                    Winners stay up • losers come down
+                  </p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* COMPACT GAME BAR */}
-        <div className="mt-2 grid gap-2 rounded-xl border border-emerald-900/80 bg-black/30 p-2 lg:grid-cols-[1.15fr_1fr]">
-          <div className="flex min-w-0 flex-wrap items-center justify-center gap-3">
-            <div
-              className={`flex items-center gap-1 text-5xl sm:text-6xl ${
-                isRolling ? "animate-pulse" : ""
-              }`}
-              aria-live="polite"
-              aria-label={isRolling ? "Dice rolling" : `Rolled ${rollTotal}`}
-            >
-              <span
-                className={isRolling ? "animate-[spin_0.18s_linear_infinite]" : ""}
-              >
-                {diceFaces[dieOne - 1]}
-              </span>
-              <span
-                className={isRolling ? "animate-[spin_0.21s_linear_infinite]" : ""}
-                style={isRolling ? { animationDirection: "reverse" } : undefined}
-              >
-                {diceFaces[dieTwo - 1]}
-              </span>
-            </div>
-
-            <div className="min-w-[78px] text-center">
-              <p className="text-[8px] font-black uppercase tracking-widest text-emerald-400">
-                {isRolling ? "Rolling" : "Last Roll"}
-              </p>
-              <p className="text-3xl font-black">
-                {isRolling ? "…" : rollTotal}
-              </p>
-            </div>
-
-            <button
-              onClick={rollDice}
-              disabled={isRolling}
-              className={`rounded-lg px-8 py-3 text-base font-black text-black shadow-lg transition ${
-                isRolling
-                  ? "cursor-not-allowed bg-amber-200"
-                  : "bg-amber-400 hover:scale-105 hover:bg-amber-300"
-              }`}
-            >
-              {isRolling ? "ROLLING…" : "ROLL DICE"}
-            </button>
-
-            <p className="min-w-0 flex-1 text-sm font-semibold text-amber-200">
-              {message}
-            </p>
-          </div>
-
-          <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
-            <span className="shrink-0 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-400">
-              Recent
-            </span>
-            {rollHistory.length === 0 ? (
-              <span className="text-xs text-emerald-300">No rolls yet</span>
-            ) : (
-              rollHistory.map((roll, index) => (
-                <div
-                  key={`${roll.first}-${roll.second}-${index}`}
-                  className={`shrink-0 rounded border px-2 py-1 text-center ${
-                    roll.total === 7
-                      ? "border-red-400 bg-red-950/45"
-                      : "border-emerald-800 bg-emerald-950/45"
-                  }`}
-                >
-                  <div className="text-base leading-none">
-                    {diceFaces[roll.first - 1]}
-                    {diceFaces[roll.second - 1]}
-                  </div>
-                  <div className="text-[9px] font-black">{roll.total}</div>
-                </div>
-              ))
-            )}
           </div>
         </div>
 
@@ -2514,10 +2795,10 @@ export default function TablePage() {
               onClick={undoLastBet}
               disabled={!lastBetSnapshot || isRolling}
               title="Restore the table to before your most recent bet change"
-              className={`rounded border px-3 py-2 text-[10px] font-black ${
+              className={`rounded border px-2.5 py-1.5 text-[9px] font-black ${
                 lastBetSnapshot && !isRolling
-                  ? "border-blue-400 text-blue-100 hover:bg-blue-950/40"
-                  : "cursor-not-allowed border-zinc-700 text-zinc-600"
+                  ? "border-blue-500/70 text-blue-200 hover:bg-blue-950/30"
+                  : "cursor-not-allowed border-zinc-800 text-zinc-700"
               }`}
             >
               UNDO BET
@@ -2527,10 +2808,10 @@ export default function TablePage() {
               onClick={rebetLastRoll}
               disabled={!lastRollBets || isRolling}
               title="Restore eligible wagers that were up immediately before the previous roll"
-              className={`rounded border px-3 py-2 text-[10px] font-black ${
+              className={`rounded border px-2.5 py-1.5 text-[9px] font-black ${
                 lastRollBets && !isRolling
-                  ? "border-amber-400 text-amber-100 hover:bg-amber-950/40"
-                  : "cursor-not-allowed border-zinc-700 text-zinc-600"
+                  ? "border-amber-500/70 text-amber-200 hover:bg-amber-950/30"
+                  : "cursor-not-allowed border-zinc-800 text-zinc-700"
               }`}
             >
               REBET
@@ -2540,10 +2821,10 @@ export default function TablePage() {
               onClick={clearRemovableBets}
               disabled={removableBetsTotal <= 0 || isRolling}
               title="Return all currently removable wagers to your bankroll"
-              className={`rounded border px-3 py-2 text-[10px] font-black ${
+              className={`rounded border px-2.5 py-1.5 text-[9px] font-black ${
                 removableBetsTotal > 0 && !isRolling
-                  ? "border-cyan-500 text-cyan-100 hover:bg-cyan-950/40"
-                  : "cursor-not-allowed border-zinc-700 text-zinc-600"
+                  ? "border-cyan-600/70 text-cyan-200 hover:bg-cyan-950/30"
+                  : "cursor-not-allowed border-zinc-800 text-zinc-700"
               }`}
             >
               CLEAR BETS
@@ -2551,7 +2832,7 @@ export default function TablePage() {
 
             <button
               onClick={resetTable}
-              className="rounded border border-red-500/70 px-3 py-2 text-[10px] font-black text-red-200"
+              className="rounded border border-red-800/70 px-2.5 py-1.5 text-[9px] font-black text-red-300/80"
             >
               RESET
             </button>
