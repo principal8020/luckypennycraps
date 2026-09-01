@@ -21,6 +21,8 @@ type RollHistoryItem = {
   first: number;
   second: number;
   total: number;
+  event: "normal" | "pointSet" | "pointMade" | "sevenOut";
+  pointBefore: number | null;
 };
 
 type TravelAnimation = {
@@ -402,6 +404,15 @@ export default function TablePage() {
     return flash.result === "win"
       ? "lucky-win-flash"
       : "lucky-loss-flash";
+  }
+
+  function classifyRollEvent(
+    total: number
+  ): RollHistoryItem["event"] {
+    if (point !== null && total === point) return "pointMade";
+    if (point !== null && total === 7) return "sevenOut";
+    if (point === null && pointNumbers.includes(total)) return "pointSet";
+    return "normal";
   }
 
   function wantsRemove(event?: MouseEvent<HTMLButtonElement>) {
@@ -1516,9 +1527,8 @@ export default function TablePage() {
 
     if (profit > 0) {
       flashOutcome("field", "field", "win");
-      setBankroll((current) => current + fieldBet + profit);
-      setFieldBet(0);
-      return `Field wins $${money(profit)}.`;
+      setBankroll((current) => current + profit);
+      return `Field wins $${money(profit)}. Bet stays up.`;
     }
 
     const lost = fieldBet;
@@ -2233,10 +2243,20 @@ export default function TablePage() {
 
     await new Promise((resolve) => setTimeout(resolve, 120));
 
+    const rollEvent = classifyRollEvent(total);
+    const pointBeforeRoll = point;
+
     setRollCount((current) => current + 1);
-    setRollHistory((current) =>
-      [{ first: finalFirst, second: finalSecond, total }, ...current].slice(0, 12)
-    );
+    setRollHistory((current) => [
+      {
+        first: finalFirst,
+        second: finalSecond,
+        total,
+        event: rollEvent,
+        pointBefore: pointBeforeRoll,
+      },
+      ...current,
+    ]);
 
     resolveRoll(finalFirst, finalSecond, total);
     setIsRolling(false);
@@ -2564,7 +2584,7 @@ export default function TablePage() {
                 "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.035), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.12), transparent 30%)",
             }}
           >
-            <div className="relative z-10 grid gap-1 xl:grid-cols-[minmax(0,2.5fr)_minmax(360px,1fr)]">
+            <div className="relative z-10 grid gap-1 xl:grid-cols-[minmax(0,3.25fr)_minmax(305px,.92fr)]">
               {/* MAIN PLAYER AREA */}
               <div className="min-w-0">
                 {/* BOX NUMBERS */}
@@ -2740,98 +2760,156 @@ export default function TablePage() {
                   )}
                 </div>
 
-                {/* COME / FIELD / DON'T PASS / PASS */}
-                <div className="mt-1 space-y-1">
-                  <button
-                    onClick={handleComeBet}
-                    className="relative min-h-[58px] w-full border border-white/60 bg-transparent text-3xl font-black tracking-[0.18em] hover:bg-white/[0.035]"
-                  >
-                    COME
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <BetChip amount={activeComeBet} />
-                    </span>
-                  </button>
+                {/* CLASSIC COME / FIELD / DON'T PASS / PASS LAYOUT */}
+                <div className="mt-1">
+                  {/* DON'T COME BAR + COME */}
+                  <div className="grid min-h-[92px] grid-cols-[150px_minmax(0,1fr)] gap-[3px] sm:grid-cols-[170px_minmax(0,1fr)]">
+                    <button
+                      onClick={handleDontComeBet}
+                      className="relative flex flex-col items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04]"
+                      title="New Don't Come bet. Bar 12."
+                    >
+                      <span className="text-[11px] uppercase tracking-[0.08em] text-red-100">
+                        DON&apos;T
+                      </span>
+                      <span className="text-[11px] uppercase tracking-[0.08em] text-red-100">
+                        COME
+                      </span>
+                      <span className="mt-1 text-[9px] uppercase tracking-[0.16em] text-red-200">
+                        BAR 12
+                      </span>
+                      <span className="mt-1 flex items-center gap-1">
+                        <MiniDie value={6} />
+                        <MiniDie value={6} />
+                      </span>
+                      <span className="absolute bottom-1 right-1">
+                        <BetChip amount={activeDontComeBet} compact />
+                      </span>
+                    </button>
 
+                    <button
+                      onClick={handleComeBet}
+                      className="relative flex items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.015] px-3 text-center transition hover:bg-white/[0.035]"
+                      title="Place a new Come bet"
+                    >
+                      <span
+                        className="font-serif text-5xl tracking-[0.05em] text-red-300 sm:text-6xl"
+                        style={{
+                          textShadow:
+                            "0 2px 0 rgba(0,0,0,.55), 0 0 12px rgba(248,113,113,.12)",
+                        }}
+                      >
+                        COME
+                      </span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <BetChip amount={activeComeBet} />
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* CLASSIC FIELD */}
                   <button
                     onClick={handleFieldBet}
-                    className={`relative min-h-[66px] w-full border border-white/60 bg-transparent px-3 py-2 transition hover:bg-white/[0.035] ${flashClass("field", "field")} ${quickPreviewFieldClass()}`}
+                    className={`relative mt-[3px] min-h-[102px] w-full overflow-hidden rounded-b-[54px] border-2 border-white/70 bg-black/[0.015] px-5 py-3 transition hover:bg-white/[0.035] ${flashClass(
+                      "field",
+                      "field"
+                    )} ${quickPreviewFieldClass()}`}
+                    title="Field: 3, 4, 9, 10, 11 pay even. 2 pays 2:1. 12 pays 3:1. Winning Field bets stay up."
                   >
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                      <span className="text-3xl font-black">2</span>
-                      <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100/70">
-                        pays 2:1
+                    <div className="flex h-full items-center justify-center gap-4 sm:gap-7">
+                      <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/80 bg-amber-300/5 text-3xl font-black text-amber-100">
+                        2
+                        <span className="absolute -top-2 whitespace-nowrap text-[6px] font-black uppercase tracking-[0.12em] text-amber-200/80">
+                          pays 2:1
+                        </span>
                       </span>
-                      <span className="text-xl font-black tracking-[0.14em]">
-                        FIELD
+
+                      <div className="text-center">
+                        <div className="text-xl font-black tracking-[0.18em] sm:text-2xl">
+                          3 • 4 • 9 • 10 • 11
+                        </div>
+                        <div className="mt-1 font-serif text-2xl font-black tracking-[0.12em] text-amber-100 sm:text-3xl">
+                          FIELD
+                        </div>
+                      </div>
+
+                      <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/80 bg-amber-300/5 text-3xl font-black text-amber-100">
+                        12
+                        <span className="absolute -top-2 whitespace-nowrap text-[6px] font-black uppercase tracking-[0.12em] text-amber-200/80">
+                          pays 3:1
+                        </span>
                       </span>
-                      <span className="text-sm font-black tracking-[0.16em]">
-                        3 • 4 • 9 • 10 • 11
-                      </span>
-                      <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100/70">
-                        pays 3:1
-                      </span>
-                      <span className="text-3xl font-black">12</span>
                     </div>
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
+
+                    <span className="absolute bottom-2 right-5">
                       <BetChip amount={fieldBet} />
                     </span>
                   </button>
 
-                  <button
-                    onClick={handleDontPassBet}
-                    className={`relative min-h-[44px] w-full border border-white/45 bg-black/[0.035] text-base font-black tracking-[0.1em] hover:bg-white/[0.025] ${flashClass("dontPass", "dont-pass")}`}
+                  {/* CLASSIC DON'T PASS BAR */}
+                  <div
+                    className={`relative mt-[3px] min-h-[56px] overflow-hidden rounded-b-[28px] border-2 border-white/65 bg-black/[0.035] ${flashClass(
+                      "dontPass",
+                      "dont-pass"
+                    )}`}
                   >
-                    DON&apos;T PASS — BAR 12
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <BetChip amount={dontPassBet} />
-                    </span>
-                  </button>
-
-                  {point !== null && dontPassBet > 0 && (
                     <button
-                      onClick={handleDontPassOdds}
-                      className="relative min-h-[44px] w-full border border-red-300/70 bg-red-950/60 px-14 py-1.5 text-[10px] font-black"
-                      title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
+                      onClick={handleDontPassBet}
+                      className="absolute inset-0 z-10 w-full text-base font-black tracking-[0.1em] hover:bg-white/[0.025]"
                     >
-                      DON&apos;T PASS LAY ODDS ${money(dontPassOddsBet)}
-                      {" • "}PAYS {layOddsLabel(point)}
-                      {" • "}MAX ${money(dontPassBet * 6)}
-
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2">
-                        <BetChip amount={dontPassOddsBet} />
+                      DON&apos;T PASS — BAR 12
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2">
+                        <BetChip amount={dontPassBet} compact />
                       </span>
                     </button>
-                  )}
 
-                  <button
-                    onClick={handlePassLineBet}
-                    className={`relative min-h-[56px] w-full rounded-[15px] border-[3px] border-white bg-transparent text-2xl font-black tracking-[0.18em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-white/[0.035] ${flashClass("pass", "pass")}`}
+                    {point !== null && dontPassBet > 0 && (
+                      <button
+                        onClick={handleDontPassOdds}
+                        className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded border border-red-300/60 bg-red-950/90 px-2 py-1 text-[8px] font-black text-red-50"
+                        title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
+                      >
+                        LAY ODDS ${money(dontPassOddsBet)}
+                        <span className="ml-1 text-red-200">
+                          {layOddsLabel(point)}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* CLASSIC PASS LINE */}
+                  <div
+                    className={`relative mt-[3px] min-h-[78px] overflow-hidden rounded-b-[46px] rounded-t-[8px] border-[3px] border-white bg-black/[0.005] shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)] ${flashClass(
+                      "pass",
+                      "pass"
+                    )}`}
                   >
-                    PASS LINE
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <BetChip amount={passLineBet} />
-                    </span>
-                  </button>
-
-                  {point !== null && passLineBet > 0 && (
                     <button
-                      onClick={handlePassOdds}
-                      className="relative min-h-[50px] w-full rounded-b-md border border-yellow-300 bg-yellow-400 px-16 py-1.5 text-[10px] font-black text-black"
-                      title={`Pass odds pay ${passOddsLabel(point)}`}
+                      onClick={handlePassLineBet}
+                      className="absolute inset-0 z-10 w-full pb-2 text-2xl font-black tracking-[0.2em] hover:bg-white/[0.025] sm:text-3xl"
                     >
-                      PASS ODDS ${money(passOddsBet)}
-                      {" • "}PAYS {passOddsLabel(point)}
-                      {" • "}MAX $
-                      {money(passLineBet * getPassOddsMultiplier(point))}
-
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2">
-                        <BetChip amount={passOddsBet} />
+                      PASS LINE
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2">
+                        <BetChip amount={passLineBet} />
                       </span>
                     </button>
-                  )}
 
-                  {/* INTEGRATED DEALER / ROLL TRAY */}
-                  <div className="relative mt-1 min-h-[154px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-4 py-3">
+                    {point !== null && passLineBet > 0 && (
+                      <button
+                        onClick={handlePassOdds}
+                        className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-yellow-200 bg-yellow-400 px-3 py-1 text-[8px] font-black text-black shadow-lg"
+                        title={`Pass odds pay ${passOddsLabel(point)}`}
+                      >
+                        <span>
+                          ODDS ${money(passOddsBet)} • {passOddsLabel(point)}
+                        </span>
+                        <BetChip amount={passOddsBet} compact />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* INTEGRATED DEALER / ROLL / CHIP TRAY */}
+                  <div className="relative mt-1 min-h-[230px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-4 py-3">
                     <div className="pointer-events-none absolute bottom-2 right-5 flex items-center gap-3 opacity-[0.07]">
                       <div className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white">
                         <span className="font-serif text-2xl font-black tracking-[-0.08em]">
@@ -2848,7 +2926,7 @@ export default function TablePage() {
                       </div>
                     </div>
 
-                    <div className="relative z-10 grid h-full gap-4 lg:grid-cols-[auto_auto_1fr] lg:items-center">
+                    <div className="relative z-10 grid gap-4 lg:grid-cols-[auto_auto_1fr] lg:items-center">
                       <div className="flex items-center gap-3">
                         <div
                           className={`flex items-center justify-center gap-2 ${
@@ -2918,68 +2996,127 @@ export default function TablePage() {
                         <p className="mt-2 min-h-9 text-sm font-semibold text-amber-200">
                           {message}
                         </p>
+                      </div>
+                    </div>
 
-                        <div className="mt-2 flex min-w-0 items-center gap-1.5 overflow-x-auto">
-                          <span className="mr-1 shrink-0 text-[7px] font-black uppercase tracking-[0.16em] text-emerald-500">
-                            Recent
+                    {/* CHIPS + PLACE WORKING */}
+                    <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-3">
+                      <span className="mr-1 text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">
+                        Chips
+                      </span>
+
+                      {chipValues.map((chip) => (
+                        <button
+                          key={chip}
+                          onClick={() => setSelectedChip(chip)}
+                          className="transition hover:scale-110"
+                          aria-label={`Select $${chip} chip`}
+                        >
+                          <div
+                            className={`relative flex h-11 w-11 items-center justify-center rounded-full border-[4px] border-dashed text-[10px] font-black shadow-lg ${rackChipStyle(
+                              chip
+                            )} ${
+                              selectedChip === chip
+                                ? "scale-105 ring-3 ring-yellow-300 ring-offset-1 ring-offset-[#03130e]"
+                                : ""
+                            }`}
+                          >
+                            ${chip}
+                          </div>
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() =>
+                          setPlaceBetsWorking((current) => !current)
+                        }
+                        className={`ml-2 rounded px-3 py-2 text-[9px] font-black ${
+                          placeBetsWorking
+                            ? "bg-amber-400 text-black"
+                            : "border border-emerald-600 bg-black/15"
+                        }`}
+                      >
+                        PLACE BETS:{" "}
+                        {placeBetsWorking ? "WORKING" : "OFF COME-OUT"}
+                      </button>
+                    </div>
+
+                    {/* FULL SESSION ROLL HISTORY */}
+                    <div className="relative z-10 mt-3 border-t border-white/10 pt-2">
+                      <div className="mb-1 flex items-center justify-between gap-3">
+                        <span className="text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">
+                          Roll History • {rollCount} rolls
+                        </span>
+                        <span className="text-[7px] text-emerald-100/45">
+                          newest first • scroll for full session
+                        </span>
+                      </div>
+
+                      <div className="flex min-w-0 gap-2 overflow-x-auto pb-2">
+                        {rollHistory.length === 0 ? (
+                          <span className="py-2 text-[9px] text-emerald-300/70">
+                            No rolls yet
                           </span>
-                          {rollHistory.length === 0 ? (
-                            <span className="text-[9px] text-emerald-300/70">
-                              No rolls yet
-                            </span>
-                          ) : (
-                            rollHistory.slice(0, 8).map((roll, index) => (
+                        ) : (
+                          rollHistory.map((roll, index) => {
+                            const eventStyle =
+                              roll.event === "pointMade"
+                                ? "border-amber-300 bg-amber-950/45 ring-1 ring-amber-300/50"
+                                : roll.event === "sevenOut"
+                                  ? "border-red-400 bg-red-950/55 ring-1 ring-red-400/40"
+                                  : roll.event === "pointSet"
+                                    ? "border-cyan-400 bg-cyan-950/45"
+                                    : "border-emerald-700 bg-emerald-950/45";
+
+                            const eventLabel =
+                              roll.event === "pointMade"
+                                ? "POINT MADE"
+                                : roll.event === "sevenOut"
+                                  ? "SEVEN OUT"
+                                  : roll.event === "pointSet"
+                                    ? "POINT ON"
+                                    : "";
+
+                            return (
                               <div
                                 key={`${roll.first}-${roll.second}-${index}`}
-                                className={`shrink-0 rounded border px-1.5 py-1 text-center ${
-                                  roll.total === 7
-                                    ? "border-red-400/80 bg-red-950/45"
-                                    : "border-emerald-700 bg-emerald-950/45"
-                                }`}
+                                className={`min-w-[96px] shrink-0 rounded-lg border px-2 py-2 text-center ${eventStyle}`}
+                                title={
+                                  eventLabel ||
+                                  `Roll ${roll.total}${
+                                    roll.pointBefore
+                                      ? ` with point ${roll.pointBefore}`
+                                      : ""
+                                  }`
+                                }
                               >
-                                <div className="text-xs leading-none">
-                                  {diceFaces[roll.first - 1]}
-                                  {diceFaces[roll.second - 1]}
+                                <div className="flex items-center justify-center gap-1">
+                                  <MiniDie value={roll.first} />
+                                  <MiniDie value={roll.second} />
                                 </div>
-                                <div className="text-[8px] font-black">
+                                <div className="mt-1 text-sm font-black">
                                   {roll.total}
                                 </div>
+                                <div className="min-h-[11px] text-[6px] font-black uppercase tracking-[0.08em] text-white/65">
+                                  {eventLabel}
+                                </div>
                               </div>
-                            ))
-                          )}
-                        </div>
+                            );
+                          })
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT RAIL: DON'T COME + CENTER ACTION */}
-              <div className="grid min-w-0 grid-rows-[212px_auto] gap-1">
-                <button
-                  onClick={handleDontComeBet}
-                  className="relative flex h-full min-h-[212px] flex-col items-center justify-center border border-white/60 bg-black/[0.045] px-3 text-center font-black hover:bg-white/[0.035]"
-                >
-                  <span className="text-xl tracking-[0.08em] text-red-100">
-                    DON&apos;T COME
-                  </span>
-                  <span className="mt-1 text-sm tracking-[0.18em] text-red-200">
-                    BAR 12
-                  </span>
-                  <span className="mt-3 flex items-center gap-2">
-                    <MiniDie value={6} />
-                    <MiniDie value={6} />
-                  </span>
-                  <span className="mt-3 text-[8px] uppercase tracking-[0.14em] text-red-100/65">
-                    New Don&apos;t Come bet
-                  </span>
-                  <span className="mt-2">
-                    <BetChip amount={activeDontComeBet} />
-                  </span>
-                </button>
-
+              {/* RIGHT RAIL: CENTER ACTION */}
+              <div className="min-w-0 self-start">
                 {/* CENTER ACTION */}
                 <div className="border border-white/55 bg-black/[0.055] p-1.5">
+                  <div className="mb-1.5 border-b border-white/15 pb-1 text-center text-[8px] font-black uppercase tracking-[0.22em] text-emerald-100/65">
+                    Center Action
+                  </div>
                   <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-white/15 pb-1.5">
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-100">
@@ -3284,7 +3421,7 @@ export default function TablePage() {
           </div>
         </div>
 
-        {/* PLAYER CONTROLS + CHIP RACK */}
+        {/* PLAYER CONTROLS */}
         <div className="mt-2 rounded-xl border border-emerald-900/80 bg-black/30 px-3 py-2">
           <div className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-white/10 pb-2 text-[9px] font-black uppercase tracking-[0.12em]">
             <span className={removeMode ? "text-red-300" : "text-amber-300"}>
@@ -3322,17 +3459,6 @@ export default function TablePage() {
               }`}
             >
               REMOVE
-            </button>
-
-            <button
-              onClick={() => setPlaceBetsWorking((current) => !current)}
-              className={`rounded px-3 py-2 text-[10px] font-black ${
-                placeBetsWorking
-                  ? "bg-amber-400 text-black"
-                  : "border border-emerald-600"
-              }`}
-            >
-              PLACE BETS: {placeBetsWorking ? "WORKING" : "OFF COME-OUT"}
             </button>
 
             <button
@@ -3381,31 +3507,8 @@ export default function TablePage() {
               RESET
             </button>
 
-            <span className="mx-1 hidden h-8 w-px bg-white/15 sm:block" />
-
-            {chipValues.map((chip) => (
-              <button
-                key={chip}
-                onClick={() => setSelectedChip(chip)}
-                className="transition hover:scale-110"
-                aria-label={`Select $${chip} chip`}
-              >
-                <div
-                  className={`relative flex h-11 w-11 items-center justify-center rounded-full border-[4px] border-dashed text-[10px] font-black shadow-lg ${rackChipStyle(
-                    chip
-                  )} ${
-                    selectedChip === chip
-                      ? "scale-105 ring-3 ring-yellow-300 ring-offset-1 ring-offset-[#03130e]"
-                      : ""
-                  }`}
-                >
-                  ${chip}
-                </div>
-              </button>
-            ))}
-
-            <span className="ml-2 text-[9px] font-bold text-emerald-400">
-              Shift-click reduces a wager
+            <span className="ml-2 text-[8px] font-bold text-emerald-500">
+              Chips + Place Working are in the dealer tray • Shift-click reduces a wager
             </span>
           </div>
 
