@@ -46,6 +46,13 @@ type ResolutionFlash = {
   result: "win" | "loss";
 };
 
+type QuickBetPreview = {
+  label: string;
+  target: NumberBets;
+  field: number;
+  tone: "emerald" | "cyan" | "amber";
+};
+
 type BetSnapshot = {
   bankroll: number;
   passLineBet: number;
@@ -294,6 +301,8 @@ export default function TablePage() {
     useState<TravelAnimation | null>(null);
   const [resolutionFlashes, setResolutionFlashes] =
     useState<ResolutionFlash[]>([]);
+  const [quickBetPreview, setQuickBetPreview] =
+    useState<QuickBetPreview | null>(null);
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
@@ -547,6 +556,61 @@ export default function TablePage() {
     selectedChip <= 5
       ? "$10 MIN"
       : `$${money(quickBetDoubleBase)} BASE`;
+
+  function startQuickPreview(
+    label: string,
+    target: NumberBets,
+    field: number,
+    tone: QuickBetPreview["tone"]
+  ) {
+    setQuickBetPreview({
+      label,
+      target: { ...target },
+      field,
+      tone,
+    });
+  }
+
+  function quickPreviewNumberClass(number: number) {
+    if (!quickBetPreview || quickBetPreview.target[number] <= 0) {
+      return "";
+    }
+
+    if (quickBetPreview.tone === "amber") {
+      return "shadow-[inset_0_0_0_3px_rgba(251,191,36,.92),inset_0_0_28px_rgba(251,191,36,.16)]";
+    }
+
+    if (quickBetPreview.tone === "cyan") {
+      return "shadow-[inset_0_0_0_3px_rgba(34,211,238,.82),inset_0_0_28px_rgba(34,211,238,.13)]";
+    }
+
+    return "shadow-[inset_0_0_0_3px_rgba(52,211,153,.88),inset_0_0_28px_rgba(52,211,153,.14)]";
+  }
+
+  function quickPreviewFieldClass() {
+    if (!quickBetPreview || quickBetPreview.field <= 0) return "";
+
+    return quickBetPreview.tone === "amber"
+      ? "shadow-[inset_0_0_0_3px_rgba(251,191,36,.92),inset_0_0_28px_rgba(251,191,36,.16)]"
+      : "shadow-[inset_0_0_0_3px_rgba(34,211,238,.82),inset_0_0_28px_rgba(34,211,238,.13)]";
+  }
+
+  function quickPreviewSummary() {
+    if (!quickBetPreview) return "";
+
+    const parts = pointNumbers
+      .filter((number) => quickBetPreview.target[number] > 0)
+      .map(
+        (number) =>
+          `${number} $${money(quickBetPreview.target[number])}`
+      );
+
+    if (quickBetPreview.field > 0) {
+      parts.push(`Field $${money(quickBetPreview.field)}`);
+    }
+
+    return parts.join(" • ");
+  }
 
   function getPlaceBetMax(number: number) {
     return number === 6 || number === 8 ? 1200 : 1000;
@@ -1016,6 +1080,7 @@ export default function TablePage() {
     setLastRollBets(null);
     setTravelAnimation(null);
     setResolutionFlashes([]);
+    setQuickBetPreview(null);
   }
 
   function makeDiceForTotal(total: number) {
@@ -2453,8 +2518,13 @@ export default function TablePage() {
         {/* COMPACT HEADER */}
         <div className="mb-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-900/80 bg-black/30 px-4 py-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-300/50 bg-amber-300/10 text-lg">
-              🐾
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-300/60 bg-amber-300/10 shadow-[inset_0_0_0_3px_rgba(251,191,36,.06)]">
+              <span className="font-serif text-[13px] font-black tracking-[-0.08em] text-amber-200">
+                LP
+              </span>
+              <span className="absolute bottom-[4px] text-[5px] font-black uppercase tracking-[0.18em] text-emerald-400">
+                craps
+              </span>
             </div>
             <div>
               <h1 className="text-lg font-black tracking-tight sm:text-xl">
@@ -2506,7 +2576,7 @@ export default function TablePage() {
                         point === number
                           ? "ring-2 ring-inset ring-amber-300/85"
                           : ""
-                      }`}
+                      } ${quickPreviewNumberClass(number)}`}
                     >
                       {point === number && (
                         <div className="absolute left-2 top-[130px] z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-white bg-zinc-950 text-[9px] font-black shadow-xl">
@@ -2521,7 +2591,7 @@ export default function TablePage() {
                         } ${flashClass("dontCome", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[9px] font-black uppercase tracking-[0.13em] text-red-50">
+                          <span className="text-[10px] font-black uppercase tracking-[0.13em] text-red-50">
                             Don&apos;t Come
                           </span>
 
@@ -2567,7 +2637,7 @@ export default function TablePage() {
                         title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
                       >
                         <span className="leading-tight">
-                          <span className="block text-[10px] tracking-[0.14em]">
+                          <span className="block text-[10px] font-black tracking-[0.14em] text-red-50">
                             LAY • {layOddsLabel(number)}
                           </span>
                           {layBets[number] > 0 && (
@@ -2592,7 +2662,7 @@ export default function TablePage() {
                         } ${flashClass("come", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[9px] font-black uppercase tracking-[0.14em] text-blue-50">
+                          <span className="text-[10px] font-black uppercase tracking-[0.14em] text-cyan-50">
                             Come
                           </span>
 
@@ -2628,7 +2698,7 @@ export default function TablePage() {
                       {/* NUMBER */}
                       <div className="absolute inset-x-0 bottom-[42px] top-[120px] flex items-center justify-center bg-emerald-950/[0.13]">
                         <span
-                          className="box-number text-5xl font-black leading-none sm:text-6xl"
+                          className="box-number text-5xl font-black leading-none text-white sm:text-6xl"
                           style={{
                             textShadow:
                               "0 2px 0 rgba(0,0,0,.75), 0 0 12px rgba(255,255,255,.10)",
@@ -2651,7 +2721,7 @@ export default function TablePage() {
                         title={`Place ${number} pays ${placeOddsLabel(number)}`}
                       >
                         <span className="text-left leading-tight">
-                          <span className="block text-[10px] uppercase tracking-[0.14em] text-emerald-50">
+                          <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-emerald-50">
                             PLACE • {placeOddsLabel(number)}
                           </span>
                           <span className="block text-[6px] font-black uppercase tracking-[0.1em] text-emerald-200/65">
@@ -2684,7 +2754,7 @@ export default function TablePage() {
 
                   <button
                     onClick={handleFieldBet}
-                    className={`relative min-h-[66px] w-full border border-white/60 bg-transparent px-3 py-2 hover:bg-white/[0.035] ${flashClass("field", "field")}`}
+                    className={`relative min-h-[66px] w-full border border-white/60 bg-transparent px-3 py-2 transition hover:bg-white/[0.035] ${flashClass("field", "field")} ${quickPreviewFieldClass()}`}
                   >
                     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                       <span className="text-3xl font-black">2</span>
@@ -2762,12 +2832,19 @@ export default function TablePage() {
 
                   {/* INTEGRATED DEALER / ROLL TRAY */}
                   <div className="relative mt-1 min-h-[154px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-4 py-3">
-                    <div className="pointer-events-none absolute bottom-1 right-4 text-right opacity-[0.055]">
-                      <div className="text-3xl font-black tracking-[0.25em]">
-                        LUCKY PENNY
+                    <div className="pointer-events-none absolute bottom-2 right-5 flex items-center gap-3 opacity-[0.07]">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white">
+                        <span className="font-serif text-2xl font-black tracking-[-0.08em]">
+                          LP
+                        </span>
                       </div>
-                      <div className="text-[7px] font-black tracking-[0.45em]">
-                        CRAPS
+                      <div className="text-right">
+                        <div className="text-xl font-black tracking-[0.18em]">
+                          LUCKY PENNY
+                        </div>
+                        <div className="text-[7px] font-black tracking-[0.42em]">
+                          CRAPS
+                        </div>
                       </div>
                     </div>
 
@@ -3053,7 +3130,8 @@ export default function TablePage() {
                           "Any Craps"
                         )
                       }
-                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-craps")}`}
+                      title="Any Craps: wins on 2, 3, or 12. Pays 7 to 1."
+                      className={`relative min-h-[70px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-craps")}`}
                     >
                       <div className="text-[10px] text-red-100">ANY CRAPS</div>
                       <div className="mt-0.5 text-[9px] font-black tracking-[0.08em]">
@@ -3074,7 +3152,8 @@ export default function TablePage() {
                           "Any Seven"
                         )
                       }
-                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-seven")}`}
+                      title="Any Seven: wins on any 7. Pays 4 to 1."
+                      className={`relative min-h-[70px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "any-seven")}`}
                     >
                       <div className="text-[10px] text-red-100">ANY SEVEN</div>
                       <div className="mt-2 text-[10px] font-black">4 TO 1</div>
@@ -3087,7 +3166,8 @@ export default function TablePage() {
                       onClick={(event) =>
                         handlePropBet(event, ceBet, setCeBet, "C & E")
                       }
-                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "ce")}`}
+                      title="C & E: half the wager on Any Craps and half on Yo 11. A winning side pays while the other half loses."
+                      className={`relative min-h-[70px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "ce")}`}
                     >
                       <div className="text-[11px] text-amber-100">C &amp; E</div>
                       <div className="mt-1 text-[8px] font-bold">
@@ -3105,7 +3185,8 @@ export default function TablePage() {
                       onClick={(event) =>
                         handlePropBet(event, worldBet, setWorldBet, "World")
                       }
-                      className={`relative min-h-[64px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "world")}`}
+                      title="World: five equal units on 2, 3, 7, 11, and 12. A 7 is an overall push with standard proposition payouts."
+                      className={`relative min-h-[70px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "world")}`}
                     >
                       <div className="text-[11px] text-amber-100">WORLD</div>
                       <div className="mt-1 text-[8px] font-bold">
@@ -3158,6 +3239,7 @@ export default function TablePage() {
                             item.label
                           )
                         }
+                        title={`${item.label}: five-unit Horn bet with two units on the named number and one unit on each other Horn number.`}
                         className={`relative min-h-[54px] border border-teal-300/35 bg-teal-950/25 px-1 py-1.5 text-center font-black hover:bg-teal-950/45 ${flashClass("prop", item.key)}`}
                       >
                         <div className="text-[8px] leading-tight text-teal-50">
@@ -3178,6 +3260,7 @@ export default function TablePage() {
                     onClick={(event) =>
                       handlePropBet(event, hornBet, setHornBet, "Horn")
                     }
+                    title="Horn: four equal units on 2, 3, 11, and 12."
                     className={`relative mt-[3px] min-h-[42px] w-full border border-white/45 bg-black/[0.02] px-2 py-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "horn")}`}
                   >
                     <span className="text-[10px]">HORN</span>
@@ -3193,7 +3276,7 @@ export default function TablePage() {
                   </button>
 
                   <p className="mt-1 text-center text-[7px] font-bold uppercase tracking-[0.06em] text-emerald-100/50">
-                    Winners stay up • losers come down
+                    Winners stay up • losers come down • hover a combo bet for details
                   </p>
                 </div>
               </div>
@@ -3334,25 +3417,70 @@ export default function TablePage() {
               <span className="ml-2 text-[8px] text-emerald-600">
                 proper 6/8 amounts • second row = 2× base
               </span>
+              <div className="mt-1 min-h-[15px] text-[8px] font-bold">
+                {quickBetPreview ? (
+                  <>
+                    <span
+                      className={
+                        quickBetPreview.tone === "amber"
+                          ? "text-amber-300"
+                          : quickBetPreview.tone === "cyan"
+                            ? "text-cyan-300"
+                            : "text-emerald-300"
+                      }
+                    >
+                      PREVIEW {quickBetPreview.label}:
+                    </span>{" "}
+                    <span className="text-white/70">
+                      {quickPreviewSummary()}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-emerald-700">
+                    Hover or focus a Quick Bet to preview its table positions
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="mx-auto grid max-w-[1040px] gap-2">
+            <div className="mx-auto grid max-w-[1040px] gap-1.5">
               {/* Base / $5-min row */}
-              <div className="grid gap-2 sm:grid-cols-[90px_repeat(3,minmax(0,1fr))] sm:items-stretch">
+              <div className="grid gap-1.5 sm:grid-cols-[90px_repeat(3,minmax(0,1fr))] sm:items-stretch">
                 <div className="flex items-center justify-center rounded-lg border border-emerald-700/60 bg-emerald-950/30 px-2 py-2 text-center">
                   <span className="text-[10px] font-black text-emerald-200">
+                    <span className="block text-[7px] font-black uppercase tracking-[0.12em] text-emerald-500">
+                      1×
+                    </span>
                     {quickPrimaryLabel}
                   </span>
                 </div>
 
                 <button
+                  onMouseEnter={() =>
+                    startQuickPreview(
+                      `$${money(quickInsideTotal)} Inside`,
+                      quickInsideTarget,
+                      0,
+                      "emerald"
+                    )
+                  }
+                  onMouseLeave={() => setQuickBetPreview(null)}
+                  onFocus={() =>
+                    startQuickPreview(
+                      `$${money(quickInsideTotal)} Inside`,
+                      quickInsideTarget,
+                      0,
+                      "emerald"
+                    )
+                  }
+                  onBlur={() => setQuickBetPreview(null)}
                   onClick={() =>
                     applyQuickBet(
                       `$${money(quickInsideTotal)} Inside`,
                       quickInsideTarget
                     )
                   }
-                  className="rounded-lg border border-emerald-500/70 bg-emerald-950/25 px-3 py-2 text-left transition hover:bg-emerald-950/55"
+                  className="rounded-lg border border-emerald-500/70 bg-emerald-950/25 px-3 py-1.5 text-left transition hover:bg-emerald-950/55 focus:outline-none focus:ring-2 focus:ring-emerald-300/70"
                 >
                   <span className="block text-[12px] font-black text-white">
                     ${money(quickInsideTotal)} INSIDE
@@ -3363,13 +3491,31 @@ export default function TablePage() {
                 </button>
 
                 <button
+                  onMouseEnter={() =>
+                    startQuickPreview(
+                      `$${money(quickAcrossTotal)} Across`,
+                      quickAcrossTarget,
+                      0,
+                      "emerald"
+                    )
+                  }
+                  onMouseLeave={() => setQuickBetPreview(null)}
+                  onFocus={() =>
+                    startQuickPreview(
+                      `$${money(quickAcrossTotal)} Across`,
+                      quickAcrossTarget,
+                      0,
+                      "emerald"
+                    )
+                  }
+                  onBlur={() => setQuickBetPreview(null)}
                   onClick={() =>
                     applyQuickBet(
                       `$${money(quickAcrossTotal)} Across`,
                       quickAcrossTarget
                     )
                   }
-                  className="rounded-lg border border-emerald-500/70 bg-emerald-950/25 px-3 py-2 text-left transition hover:bg-emerald-950/55"
+                  className="rounded-lg border border-emerald-500/70 bg-emerald-950/25 px-3 py-1.5 text-left transition hover:bg-emerald-950/55 focus:outline-none focus:ring-2 focus:ring-emerald-300/70"
                 >
                   <span className="block text-[12px] font-black text-white">
                     ${money(quickAcrossTotal)} ACROSS
@@ -3380,6 +3526,24 @@ export default function TablePage() {
                 </button>
 
                 <button
+                  onMouseEnter={() =>
+                    startQuickPreview(
+                      `$${money(quickIronCrossTotal)} Iron Cross`,
+                      quickIronCrossTarget,
+                      quickBetBase,
+                      "amber"
+                    )
+                  }
+                  onMouseLeave={() => setQuickBetPreview(null)}
+                  onFocus={() =>
+                    startQuickPreview(
+                      `$${money(quickIronCrossTotal)} Iron Cross`,
+                      quickIronCrossTarget,
+                      quickBetBase,
+                      "amber"
+                    )
+                  }
+                  onBlur={() => setQuickBetPreview(null)}
                   onClick={() =>
                     applyQuickBet(
                       `$${money(quickIronCrossTotal)} Iron Cross`,
@@ -3387,7 +3551,7 @@ export default function TablePage() {
                       quickBetBase
                     )
                   }
-                  className="rounded-lg border border-amber-500/70 bg-amber-950/20 px-3 py-2 text-left transition hover:bg-amber-950/40"
+                  className="rounded-lg border border-amber-500/70 bg-amber-950/20 px-3 py-1.5 text-left transition hover:bg-amber-950/40 focus:outline-none focus:ring-2 focus:ring-amber-300/70"
                 >
                   <span className="block text-[12px] font-black text-amber-100">
                     ${money(quickIronCrossTotal)} IRON CROSS
@@ -3399,21 +3563,42 @@ export default function TablePage() {
               </div>
 
               {/* Double / $10-min row */}
-              <div className="grid gap-2 sm:grid-cols-[90px_repeat(3,minmax(0,1fr))] sm:items-stretch">
+              <div className="grid gap-1.5 sm:grid-cols-[90px_repeat(3,minmax(0,1fr))] sm:items-stretch">
                 <div className="flex items-center justify-center rounded-lg border border-cyan-700/60 bg-cyan-950/25 px-2 py-2 text-center">
                   <span className="text-[10px] font-black text-cyan-200">
+                    <span className="block text-[7px] font-black uppercase tracking-[0.12em] text-cyan-500">
+                      2×
+                    </span>
                     {quickDoubleLabel}
                   </span>
                 </div>
 
                 <button
+                  onMouseEnter={() =>
+                    startQuickPreview(
+                      `$${money(quickDoubleInsideTotal)} Inside`,
+                      quickDoubleInsideTarget,
+                      0,
+                      "cyan"
+                    )
+                  }
+                  onMouseLeave={() => setQuickBetPreview(null)}
+                  onFocus={() =>
+                    startQuickPreview(
+                      `$${money(quickDoubleInsideTotal)} Inside`,
+                      quickDoubleInsideTarget,
+                      0,
+                      "cyan"
+                    )
+                  }
+                  onBlur={() => setQuickBetPreview(null)}
                   onClick={() =>
                     applyQuickBet(
                       `$${money(quickDoubleInsideTotal)} Inside`,
                       quickDoubleInsideTarget
                     )
                   }
-                  className="rounded-lg border border-cyan-500/55 bg-cyan-950/15 px-3 py-2 text-left transition hover:bg-cyan-950/35"
+                  className="rounded-lg border border-cyan-500/55 bg-cyan-950/15 px-3 py-1.5 text-left transition hover:bg-cyan-950/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/70"
                 >
                   <span className="block text-[12px] font-black text-white">
                     ${money(quickDoubleInsideTotal)} INSIDE
@@ -3424,13 +3609,31 @@ export default function TablePage() {
                 </button>
 
                 <button
+                  onMouseEnter={() =>
+                    startQuickPreview(
+                      `$${money(quickDoubleAcrossTotal)} Across`,
+                      quickDoubleAcrossTarget,
+                      0,
+                      "cyan"
+                    )
+                  }
+                  onMouseLeave={() => setQuickBetPreview(null)}
+                  onFocus={() =>
+                    startQuickPreview(
+                      `$${money(quickDoubleAcrossTotal)} Across`,
+                      quickDoubleAcrossTarget,
+                      0,
+                      "cyan"
+                    )
+                  }
+                  onBlur={() => setQuickBetPreview(null)}
                   onClick={() =>
                     applyQuickBet(
                       `$${money(quickDoubleAcrossTotal)} Across`,
                       quickDoubleAcrossTarget
                     )
                   }
-                  className="rounded-lg border border-cyan-500/55 bg-cyan-950/15 px-3 py-2 text-left transition hover:bg-cyan-950/35"
+                  className="rounded-lg border border-cyan-500/55 bg-cyan-950/15 px-3 py-1.5 text-left transition hover:bg-cyan-950/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/70"
                 >
                   <span className="block text-[12px] font-black text-white">
                     ${money(quickDoubleAcrossTotal)} ACROSS
@@ -3441,6 +3644,24 @@ export default function TablePage() {
                 </button>
 
                 <button
+                  onMouseEnter={() =>
+                    startQuickPreview(
+                      `$${money(quickDoubleIronCrossTotal)} Iron Cross`,
+                      quickDoubleIronCrossTarget,
+                      quickBetDoubleBase,
+                      "amber"
+                    )
+                  }
+                  onMouseLeave={() => setQuickBetPreview(null)}
+                  onFocus={() =>
+                    startQuickPreview(
+                      `$${money(quickDoubleIronCrossTotal)} Iron Cross`,
+                      quickDoubleIronCrossTarget,
+                      quickBetDoubleBase,
+                      "amber"
+                    )
+                  }
+                  onBlur={() => setQuickBetPreview(null)}
                   onClick={() =>
                     applyQuickBet(
                       `$${money(quickDoubleIronCrossTotal)} Iron Cross`,
@@ -3448,7 +3669,7 @@ export default function TablePage() {
                       quickBetDoubleBase
                     )
                   }
-                  className="rounded-lg border border-amber-400/60 bg-amber-950/25 px-3 py-2 text-left transition hover:bg-amber-950/45"
+                  className="rounded-lg border border-amber-400/60 bg-amber-950/25 px-3 py-1.5 text-left transition hover:bg-amber-950/45 focus:outline-none focus:ring-2 focus:ring-amber-300/70"
                 >
                   <span className="block text-[12px] font-black text-amber-100">
                     ${money(quickDoubleIronCrossTotal)} IRON CROSS
@@ -3462,8 +3683,8 @@ export default function TablePage() {
           </div>
         </div>
 
-        {/* TEST MODE — SUBORDINATE */}
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-[10px] text-purple-200">
+        {/* DEVELOPMENT TEST UTILITY */}
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-[9px] text-purple-300/80">
           <button
             onClick={() => setTestingMode((current) => !current)}
             className={`rounded border px-3 py-1.5 font-black ${
@@ -3472,7 +3693,7 @@ export default function TablePage() {
                 : "border-purple-700/70 bg-purple-950/20"
             }`}
           >
-            TEST {testingMode ? "ON" : "OFF"}
+            DEV TEST {testingMode ? "ON" : "OFF"}
           </button>
 
           {testingMode && (
