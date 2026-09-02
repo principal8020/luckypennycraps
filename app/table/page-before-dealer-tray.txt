@@ -30,8 +30,10 @@ import {
   resolveWorldNetProfit,
 } from "./crapsRules";
 import { BetChip, MiniDie } from "./components/TablePieces";
-import type { RollHistoryItem } from "./components/RollHistory";
-import { DealerTray } from "./components/DealerTray";
+import {
+  RollHistory,
+  type RollHistoryItem,
+} from "./components/RollHistory";
 import { TableHeader } from "./components/TableHeader";
 
 const STARTING_BANKROLL = 5000;
@@ -2817,24 +2819,187 @@ export default function TablePage() {
                     )}
                   </div>
 
-                  <DealerTray
-                    dieOne={dieOne}
-                    dieTwo={dieTwo}
-                    rollTotal={rollTotal}
-                    isRolling={isRolling}
-                    onRollDice={rollDice}
-                    message={message}
-                    removeMode={removeMode}
-                    onSetRemoveMode={setRemoveMode}
-                    selectedChip={selectedChip}
-                    onSelectChip={setSelectedChip}
-                    placeBetsWorking={placeBetsWorking}
-                    onTogglePlaceBetsWorking={() =>
-                      setPlaceBetsWorking((current) => !current)
-                    }
-                    rollHistory={rollHistory}
-                    rollCount={rollCount}
-                  />
+                  {/* INTEGRATED DEALER / ROLL / CHIP TRAY */}
+                  <div className="relative mt-1 min-h-[205px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-3 py-2.5">
+                    <div className="pointer-events-none absolute bottom-2 right-5 flex items-center gap-3 opacity-[0.07]">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white">
+                        <span className="font-serif text-2xl font-black tracking-[-0.08em]">
+                          LP
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-black tracking-[0.18em]">
+                          LUCKY PENNY
+                        </div>
+                        <div className="text-[7px] font-black tracking-[0.42em]">
+                          CRAPS
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 grid gap-3 lg:grid-cols-[auto_auto_1fr] lg:items-center">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex items-center justify-center gap-2 ${
+                            isRolling ? "animate-pulse" : ""
+                          }`}
+                          aria-live="polite"
+                          aria-label={
+                            isRolling ? "Dice rolling" : `Rolled ${rollTotal}`
+                          }
+                        >
+                          <span
+                            className={
+                              isRolling
+                                ? "animate-[spin_0.18s_linear_infinite]"
+                                : ""
+                            }
+                          >
+                            <MiniDie value={dieOne} large />
+                          </span>
+                          <span
+                            className={
+                              isRolling
+                                ? "animate-[spin_0.21s_linear_infinite]"
+                                : ""
+                            }
+                            style={
+                              isRolling
+                                ? { animationDirection: "reverse" }
+                                : undefined
+                            }
+                          >
+                            <MiniDie value={dieTwo} large />
+                          </span>
+                        </div>
+
+                        <div className="min-w-[70px] text-center">
+                          <p className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                            {isRolling ? "Rolling" : "Last Roll"}
+                          </p>
+                          <p className="text-3xl font-black">
+                            {isRolling ? "…" : rollTotal}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={rollDice}
+                        disabled={isRolling}
+                        className={`rounded-lg px-9 py-4 text-base font-black text-black shadow-lg transition ${
+                          isRolling
+                            ? "cursor-not-allowed bg-amber-200"
+                            : "bg-amber-400 hover:scale-105 hover:bg-amber-300"
+                        }`}
+                      >
+                        {isRolling ? "ROLLING…" : "ROLL DICE"}
+                      </button>
+
+                      <div className="min-w-0 border-t border-white/10 pt-3 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-emerald-950/70 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                            Dealer
+                          </span>
+                          <span className="text-[7px] font-bold uppercase tracking-[0.12em] text-emerald-100/45">
+                            table call
+                          </span>
+                        </div>
+                        <p className="mt-2 min-h-9 text-sm font-semibold text-amber-200">
+                          {message}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* PRIMARY BETTING CONTROLS + CHIPS */}
+                    <div className="relative z-10 mt-2 flex flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-2">
+                      <span className="mr-1 rounded border border-white/10 bg-black/20 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-200">
+                        Mode:{" "}
+                        <span
+                          className={
+                            removeMode ? "text-red-300" : "text-amber-300"
+                          }
+                        >
+                          {removeMode ? "REMOVE" : "ADD"}
+                        </span>
+                      </span>
+
+                      <button
+                        onClick={() => setRemoveMode(false)}
+                        className={`rounded px-3 py-2 text-[9px] font-black transition ${
+                          !removeMode
+                            ? "bg-amber-400 text-black"
+                            : "border border-white/25 bg-black/20"
+                        }`}
+                      >
+                        ADD
+                      </button>
+
+                      <button
+                        onClick={() => setRemoveMode(true)}
+                        className={`rounded px-3 py-2 text-[9px] font-black transition ${
+                          removeMode
+                            ? "bg-red-600 text-white"
+                            : "border border-white/25 bg-black/20"
+                        }`}
+                      >
+                        REMOVE
+                      </button>
+
+                      <span className="mx-1 hidden h-8 w-px bg-white/15 sm:block" />
+
+                      <span className="mr-1 text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">
+                        Chips
+                      </span>
+
+                      {chipValues.map((chip) => (
+                        <button
+                          key={chip}
+                          onClick={() => setSelectedChip(chip)}
+                          className="transition hover:scale-110"
+                          aria-label={`Select $${chip} chip`}
+                        >
+                          <div
+                            className={`relative flex h-11 w-11 items-center justify-center rounded-full border-[4px] border-dashed text-[10px] font-black shadow-lg ${rackChipStyle(
+                              chip
+                            )} ${
+                              selectedChip === chip
+                                ? "scale-105 ring-3 ring-yellow-300 ring-offset-1 ring-offset-[#03130e]"
+                                : ""
+                            }`}
+                          >
+                            ${chip}
+                          </div>
+                        </button>
+                      ))}
+
+                      <span className="rounded border border-emerald-800/60 bg-emerald-950/30 px-2 py-1 text-[8px] font-black text-emerald-200">
+                        SELECTED ${money(selectedChip)}
+                      </span>
+
+                      <button
+                        onClick={() =>
+                          setPlaceBetsWorking((current) => !current)
+                        }
+                        className={`ml-1 rounded px-3 py-2 text-[9px] font-black ${
+                          placeBetsWorking
+                            ? "bg-amber-400 text-black"
+                            : "border border-emerald-600 bg-black/15"
+                        }`}
+                      >
+                        PLACE BETS:{" "}
+                        {placeBetsWorking ? "WORKING" : "OFF COME-OUT"}
+                      </button>
+
+                      <span className="ml-1 text-[7px] font-bold text-emerald-500">
+                        Shift-click reduces a wager
+                      </span>
+                    </div>
+
+                    <RollHistory
+                      rollHistory={rollHistory}
+                      rollCount={rollCount}
+                    />
+                  </div>
                 </div>
               </div>
 
