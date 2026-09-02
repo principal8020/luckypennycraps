@@ -32,7 +32,6 @@ import {
 import { BetChip, MiniDie } from "./components/TablePieces";
 import type { RollHistoryItem } from "./components/RollHistory";
 import { DealerTray } from "./components/DealerTray";
-import { UtilityControls } from "./components/UtilityControls";
 import { TableHeader } from "./components/TableHeader";
 
 const STARTING_BANKROLL = 5000;
@@ -3301,18 +3300,72 @@ export default function TablePage() {
 
         {/* PLAYER CONTROLS */}
         <div className="mt-2 rounded-xl border border-emerald-900/80 bg-black/30 px-3 py-2">
-          <UtilityControls
-            totalLayBets={totalLayBets}
-            totalHopBets={totalHopBets}
-            removableBetsTotal={removableBetsTotal}
-            canUndo={Boolean(lastBetSnapshot)}
-            canRebet={Boolean(lastRollBets)}
-            isRolling={isRolling}
-            onUndo={undoLastBet}
-            onRebet={rebetLastRoll}
-            onClearBets={clearRemovableBets}
-            onReset={resetTable}
-          />
+          <div className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-white/10 pb-2 text-[8px] font-black uppercase tracking-[0.12em]">
+            <span className="text-emerald-500">
+              Utility Controls
+            </span>
+            <span className="text-red-200">
+              Lay action: ${money(totalLayBets)}
+            </span>
+            <span className="text-amber-200">
+              Hop action: ${money(totalHopBets)}
+            </span>
+            <span className="text-cyan-200">
+              Removable: ${money(removableBetsTotal)}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={undoLastBet}
+              disabled={!lastBetSnapshot || isRolling}
+              title="Restore the table to before your most recent bet change"
+              className={`rounded border px-2.5 py-1.5 text-[9px] font-black ${
+                lastBetSnapshot && !isRolling
+                  ? "border-blue-500/70 text-blue-200 hover:bg-blue-950/30"
+                  : "cursor-not-allowed border-zinc-800 text-zinc-700"
+              }`}
+            >
+              UNDO BET
+            </button>
+
+            <button
+              onClick={rebetLastRoll}
+              disabled={!lastRollBets || isRolling}
+              title="Restore eligible wagers that were up immediately before the previous roll"
+              className={`rounded border px-2.5 py-1.5 text-[9px] font-black ${
+                lastRollBets && !isRolling
+                  ? "border-amber-500/70 text-amber-200 hover:bg-amber-950/30"
+                  : "cursor-not-allowed border-zinc-800 text-zinc-700"
+              }`}
+            >
+              REBET
+            </button>
+
+            <button
+              onClick={clearRemovableBets}
+              disabled={removableBetsTotal <= 0 || isRolling}
+              title="Return all currently removable wagers to your bankroll"
+              className={`rounded border px-2.5 py-1.5 text-[9px] font-black ${
+                removableBetsTotal > 0 && !isRolling
+                  ? "border-cyan-600/70 text-cyan-200 hover:bg-cyan-950/30"
+                  : "cursor-not-allowed border-zinc-800 text-zinc-700"
+              }`}
+            >
+              CLEAR BETS
+            </button>
+
+            <button
+              onClick={resetTable}
+              className="rounded border border-red-800/70 px-2.5 py-1.5 text-[9px] font-black text-red-300/80"
+            >
+              RESET
+            </button>
+
+            <span className="ml-2 text-[8px] font-bold text-emerald-600">
+              Primary betting controls are in the dealer tray
+            </span>
+          </div>
 
           <div className="mt-2 border-t border-white/10 pt-2">
             <div className="mb-2 text-center">
