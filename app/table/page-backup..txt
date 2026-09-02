@@ -9,28 +9,6 @@ import {
   type MouseEvent,
   type SetStateAction,
 } from "react";
-import {
-  buildAcrossTarget,
-  buildInsideTarget,
-  buildIronCrossTarget,
-  calculateCappedAdd,
-  calculateFieldProfit,
-  calculateHardwayProfit,
-  calculateHopProfit,
-  calculateLayOddsProfit,
-  calculateNumberLayNetProfit,
-  calculatePassOddsProfit,
-  calculatePlaceProfit,
-  casinoPayout,
-  getPassOddsMultiplier,
-  getPlaceBetMax,
-  layOddsLabel,
-  passOddsLabel,
-  placeOddsLabel,
-  resolveCeNetProfit,
-  resolveHornHighNetProfit,
-  resolveWorldNetProfit,
-} from "./crapsRules";
 
 const STARTING_BANKROLL = 5000;
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
@@ -165,6 +143,10 @@ function emptyHopBets(): HopBets {
 
 function money(amount: number) {
   return Math.floor(amount).toLocaleString();
+}
+
+function casinoPayout(amount: number) {
+  return Math.floor(amount);
 }
 
 function chipRangeStyle(amount: number) {
@@ -574,6 +556,49 @@ export default function TablePage() {
   const quickBetBase = Math.max(5, selectedChip);
   const quickBetDoubleBase = quickBetBase * 2;
 
+  function properSixEightAmount(baseAmount: number) {
+    // $5 base -> $6 on 6/8; $10 -> $12; $25 -> $30; etc.
+    return casinoPayout((baseAmount * 6) / 5);
+  }
+
+  function buildInsideTarget(baseAmount: number): NumberBets {
+    const sixEight = properSixEightAmount(baseAmount);
+    return {
+      4: 0,
+      5: baseAmount,
+      6: sixEight,
+      8: sixEight,
+      9: baseAmount,
+      10: 0,
+    };
+  }
+
+  function buildAcrossTarget(baseAmount: number): NumberBets {
+    const sixEight = properSixEightAmount(baseAmount);
+    return {
+      4: baseAmount,
+      5: baseAmount,
+      6: sixEight,
+      8: sixEight,
+      9: baseAmount,
+      10: baseAmount,
+    };
+  }
+
+  function buildIronCrossTarget(baseAmount: number): NumberBets {
+    const fiveAmount = baseAmount * 2;
+    const sixEightAmount = properSixEightAmount(baseAmount * 2);
+
+    return {
+      4: 0,
+      5: fiveAmount,
+      6: sixEightAmount,
+      8: sixEightAmount,
+      9: 0,
+      10: 0,
+    };
+  }
+
   const quickInsideTarget = buildInsideTarget(quickBetBase);
   const quickAcrossTarget = buildAcrossTarget(quickBetBase);
   const quickIronCrossTarget = buildIronCrossTarget(quickBetBase);
@@ -663,6 +688,10 @@ export default function TablePage() {
     }
 
     return parts.join(" • ");
+  }
+
+  function getPlaceBetMax(number: number) {
+    return number === 6 || number === 8 ? 1200 : 1000;
   }
 
   function placeMaxLabel(number: number) {
@@ -1174,6 +1203,59 @@ export default function TablePage() {
     return combinations[Math.floor(Math.random() * combinations.length)];
   }
 
+  function getPassOddsMultiplier(number: number) {
+    if (number === 4 || number === 10) return 3;
+    if (number === 5 || number === 9) return 4;
+    return 5;
+  }
+
+  function calculatePassOddsProfit(number: number, bet: number) {
+    if (number === 4 || number === 10) return casinoPayout(bet * 2);
+    if (number === 5 || number === 9) return casinoPayout(bet * 1.5);
+    return casinoPayout(bet * 1.2);
+  }
+
+  function calculateLayOddsProfit(number: number, bet: number) {
+    if (number === 4 || number === 10) return casinoPayout(bet / 2);
+    if (number === 5 || number === 9) {
+      return casinoPayout((bet * 2) / 3);
+    }
+    return casinoPayout((bet * 5) / 6);
+  }
+
+  function calculateNumberLayNetProfit(number: number, bet: number) {
+    let trueOddsProfit: number;
+
+    if (number === 4 || number === 10) {
+      trueOddsProfit = bet / 2;
+    } else if (number === 5 || number === 9) {
+      trueOddsProfit = (bet * 2) / 3;
+    } else {
+      trueOddsProfit = (bet * 5) / 6;
+    }
+
+    // True odds less a 5% commission on the amount won, rounded down.
+    return casinoPayout(trueOddsProfit * 0.95);
+  }
+
+  function layOddsLabel(number: number) {
+    if (number === 4 || number === 10) return "1:2";
+    if (number === 5 || number === 9) return "2:3";
+    return "5:6";
+  }
+
+  function placeOddsLabel(number: number) {
+    if (number === 4 || number === 10) return "9:5";
+    if (number === 5 || number === 9) return "7:5";
+    return "7:6";
+  }
+
+  function passOddsLabel(number: number) {
+    if (number === 4 || number === 10) return "2:1";
+    if (number === 5 || number === 9) return "3:2";
+    return "6:5";
+  }
+
   function smartAddOdds(
     currentBet: number,
     maxBet: number,
@@ -1187,7 +1269,7 @@ export default function TablePage() {
       return;
     }
 
-    const amountToAdd = calculateCappedAdd(selectedChip, currentBet, maxBet, bankroll);
+    const amountToAdd = Math.min(selectedChip, remainingRoom, bankroll);
 
     if (amountToAdd <= 0) {
       setMessage("Not enough bankroll.");
@@ -1442,7 +1524,7 @@ export default function TablePage() {
       return;
     }
 
-    const amountToAdd = calculateCappedAdd(selectedChip, placeBets[number], maxBet, bankroll);
+    const amountToAdd = Math.min(selectedChip, remainingRoom, bankroll);
 
     if (amountToAdd <= 0) {
       setMessage("Not enough bankroll.");
@@ -1465,6 +1547,16 @@ export default function TablePage() {
             number
           )}. Table max $${money(maxBet)}.`
     );
+  }
+
+  function calculatePlaceProfit(number: number, bet: number) {
+    if (number === 4 || number === 10) {
+      return casinoPayout((bet * 9) / 5);
+    }
+    if (number === 5 || number === 9) {
+      return casinoPayout((bet * 7) / 5);
+    }
+    return casinoPayout((bet * 7) / 6);
   }
 
   function resolvePlaceBet(total: number) {
@@ -1519,7 +1611,10 @@ export default function TablePage() {
   function resolveField(total: number) {
     if (!fieldBet) return null;
 
-    const profit = calculateFieldProfit(total, fieldBet);
+    let profit = 0;
+    if (total === 2) profit = fieldBet * 2;
+    else if (total === 12) profit = fieldBet * 3;
+    else if ([3, 4, 9, 10, 11].includes(total)) profit = fieldBet;
 
     if (profit > 0) {
       flashOutcome("field", "field", "win");
@@ -1627,7 +1722,7 @@ export default function TablePage() {
       return;
     }
 
-    const amountToAdd = calculateCappedAdd(selectedChip, comeOdds[number], maxBet, bankroll);
+    const amountToAdd = Math.min(selectedChip, remainingRoom, bankroll);
 
     if (amountToAdd <= 0) {
       setMessage("Not enough bankroll.");
@@ -1695,7 +1790,7 @@ export default function TablePage() {
       return;
     }
 
-    const amountToAdd = calculateCappedAdd(selectedChip, dontComeOdds[number], maxBet, bankroll);
+    const amountToAdd = Math.min(selectedChip, remainingRoom, bankroll);
 
     if (amountToAdd <= 0) {
       setMessage("Not enough bankroll.");
@@ -1786,7 +1881,8 @@ export default function TablePage() {
     if (!bet) return messages;
 
     if (first === second) {
-      const profit = calculateHardwayProfit(total, bet);
+      const multiplier = total === 4 || total === 10 ? 7 : 9;
+      const profit = casinoPayout(bet * multiplier);
 
       flashOutcome("hardway", String(total), "win");
       setBankroll((current) => current + profit);
@@ -1888,7 +1984,8 @@ export default function TablePage() {
       if (bet <= 0) continue;
 
       if (key === rolledKey) {
-        const profit = calculateHopProfit(hopFirst, hopSecond, bet);
+        const multiplier = hopFirst === hopSecond ? 30 : 15;
+        const profit = casinoPayout(bet * multiplier);
 
         flashOutcome("prop", `hop-${key}`, "win");
         setBankroll((current) => current + profit);
@@ -1913,6 +2010,52 @@ export default function TablePage() {
     }
 
     return messages;
+  }
+
+  function resolveWorldNetProfit(total: number, bet: number) {
+    const unit = bet / 5;
+    if (total === 2 || total === 12) {
+      return casinoPayout(unit * 26);
+    }
+    if (total === 3 || total === 11) {
+      return casinoPayout(unit * 11);
+    }
+    if (total === 7) {
+      return 0;
+    }
+    return -1;
+  }
+
+  function resolveCeNetProfit(total: number, bet: number) {
+    const unit = bet / 2;
+    if ([2, 3, 12].includes(total)) {
+      return casinoPayout(unit * 6);
+    }
+    if (total === 11) {
+      return casinoPayout(unit * 14);
+    }
+    return -1;
+  }
+
+  function resolveHornHighNetProfit(
+    total: number,
+    bet: number,
+    highNumber: number
+  ) {
+    const hornNumbers = [2, 3, 11, 12];
+
+    if (!hornNumbers.includes(total)) {
+      return -1;
+    }
+
+    const unit = bet / 5;
+    const payoutMultiplier = total === 2 || total === 12 ? 30 : 15;
+
+    if (total === highNumber) {
+      return casinoPayout(unit * 2 * payoutMultiplier - unit * 3);
+    }
+
+    return casinoPayout(unit * payoutMultiplier - unit * 4);
   }
 
   function resolvePropBets(total: number) {
