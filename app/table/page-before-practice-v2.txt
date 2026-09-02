@@ -35,11 +35,7 @@ import {
   QuickBets,
   type QuickBetPreview,
 } from "./components/QuickBets";
-import {
-  PracticeControls,
-  type DicePair,
-  type PracticeScenarioId,
-} from "./components/PracticeControls";
+import { PracticeControls } from "./components/PracticeControls";
 import { TableHeader } from "./components/TableHeader";
 
 const STARTING_BANKROLL = 5000;
@@ -263,7 +259,7 @@ export default function TablePage() {
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
-  const [forcedDice, setForcedDice] = useState<DicePair | null>(null);
+  const [forceHardway, setForceHardway] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
 
   const [passLineBet, setPassLineBet] = useState(0);
@@ -961,8 +957,13 @@ export default function TablePage() {
     setQuickBetPreview(null);
   }
 
-  function makeDiceForTotal(total: number): DicePair {
-    const combinations: DicePair[] = [];
+  function makeDiceForTotal(total: number) {
+    if (forceHardway && hardwayNumbers.includes(total)) {
+      const die = total / 2;
+      return [die, die];
+    }
+
+    const combinations: number[][] = [];
     for (let first = 1; first <= 6; first++) {
       for (let second = 1; second <= 6; second++) {
         if (first + second === total) {
@@ -972,92 +973,6 @@ export default function TablePage() {
     }
 
     return combinations[Math.floor(Math.random() * combinations.length)];
-  }
-
-  function changePracticeTotal(total: number) {
-    setForcedTotal(total);
-    setForcedDice(null);
-  }
-
-  function changePracticePoint(nextPoint: number | null) {
-    setPoint(nextPoint);
-    setMessage(
-      nextPoint === null
-        ? "Practice setup: puck OFF for a come-out roll."
-        : `Practice setup: point ${nextPoint} is ON.`
-    );
-  }
-
-  function loadPracticeScenario(scenario: PracticeScenarioId) {
-    resetTable();
-    setTestingMode(true);
-    setForcedDice(null);
-
-    if (scenario === "come-out") {
-      setPoint(null);
-      setForcedTotal(7);
-      setForcedDice([3, 4]);
-      setMessage("Scenario loaded: Come-Out 7. Next roll is 3 + 4.");
-      return;
-    }
-
-    if (scenario === "point-6-pass") {
-      setPoint(6);
-      setPassLineBet(25);
-      setBankroll(STARTING_BANKROLL - 25);
-      setForcedTotal(6);
-      setMessage("Scenario loaded: Point 6 with $25 Pass Line. Next roll makes the point.");
-      return;
-    }
-
-    if (scenario === "place-68") {
-      const nextPlaceBets = emptyNumberBets();
-      nextPlaceBets[6] = 30;
-      nextPlaceBets[8] = 30;
-
-      setPoint(6);
-      setPlaceBets(nextPlaceBets);
-      setBankroll(STARTING_BANKROLL - 60);
-      setForcedTotal(8);
-      setMessage("Scenario loaded: $30 Place 6 and 8. Next roll is 8.");
-      return;
-    }
-
-    if (scenario === "come-travel") {
-      setPoint(6);
-      setActiveComeBet(25);
-      setBankroll(STARTING_BANKROLL - 25);
-      setForcedTotal(8);
-      setForcedDice([2, 6]);
-      setMessage("Scenario loaded: $25 Come bet with point 6. Next roll 2 + 6 travels to 8.");
-      return;
-    }
-
-    if (scenario === "hard-8") {
-      const nextHardways = emptyHardways();
-      nextHardways[8] = 25;
-
-      setPoint(6);
-      setHardways(nextHardways);
-      setHardwaysWorking(true);
-      setBankroll(STARTING_BANKROLL - 25);
-      setForcedTotal(8);
-      setForcedDice([4, 4]);
-      setMessage("Scenario loaded: $25 Hard 8. Next roll is 4 + 4.");
-      return;
-    }
-
-    const nextPlaceBets = emptyNumberBets();
-    nextPlaceBets[6] = 30;
-    nextPlaceBets[8] = 30;
-
-    setPoint(6);
-    setPassLineBet(25);
-    setPlaceBets(nextPlaceBets);
-    setBankroll(STARTING_BANKROLL - 85);
-    setForcedTotal(7);
-    setForcedDice([3, 4]);
-    setMessage("Scenario loaded: Point 6 with Pass and Place 6/8. Next roll is a seven-out.");
   }
 
   function smartAddOdds(
@@ -2140,10 +2055,7 @@ export default function TablePage() {
     let finalSecond: number;
 
     if (testingMode) {
-      [finalFirst, finalSecond] =
-        forcedDice && forcedDice[0] + forcedDice[1] === forcedTotal
-          ? forcedDice
-          : makeDiceForTotal(forcedTotal);
+      [finalFirst, finalSecond] = makeDiceForTotal(forcedTotal);
     } else {
       finalFirst = Math.floor(Math.random() * 6) + 1;
       finalSecond = Math.floor(Math.random() * 6) + 1;
@@ -2985,18 +2897,16 @@ export default function TablePage() {
           />
         </div>
 
+        {/* DEVELOPMENT TEST UTILITY */}
         <PracticeControls
           testingMode={testingMode}
           onToggleTestingMode={() =>
             setTestingMode((current) => !current)
           }
           forcedTotal={forcedTotal}
-          onForcedTotalChange={changePracticeTotal}
-          forcedDice={forcedDice}
-          onForcedDiceChange={setForcedDice}
-          point={point}
-          onPointChange={changePracticePoint}
-          onLoadScenario={loadPracticeScenario}
+          onForcedTotalChange={setForcedTotal}
+          forceHardway={forceHardway}
+          onForceHardwayChange={setForceHardway}
         />
 
         <p className="mt-2 text-center text-[9px] text-emerald-700">
