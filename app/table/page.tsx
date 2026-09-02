@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type MouseEvent,
@@ -15,7 +16,38 @@ const pointNumbers = [4, 5, 6, 8, 9, 10];
 const hardwayNumbers = [4, 6, 8, 10];
 const chipValues = [1, 5, 25, 100, 500];
 
+// 2, 3, Yo 11, and 12 already have dedicated One Roll boxes,
+ // so their exact combinations are intentionally omitted here.
+const hardHopPairs: Array<[number, number]> = [
+  [2, 2],
+  [3, 3],
+  [4, 4],
+  [5, 5],
+];
+
+const easyHopPairs: Array<[number, number]> = [
+  [1, 3],
+  [1, 4],
+  [1, 5],
+  [1, 6],
+  [2, 3],
+  [2, 4],
+  [2, 5],
+  [2, 6],
+  [3, 4],
+  [3, 5],
+  [3, 6],
+  [4, 5],
+  [4, 6],
+];
+
+const allHopPairs: Array<[number, number]> = [
+  ...hardHopPairs,
+  ...easyHopPairs,
+];
+
 type NumberBets = Record<number, number>;
+type HopBets = Record<string, number>;
 
 type RollHistoryItem = {
   first: number;
@@ -84,6 +116,7 @@ type BetSnapshot = {
   hornHigh3Bet: number;
   hornHigh11Bet: number;
   hornHigh12Bet: number;
+  hopBets: HopBets;
 };
 
 function emptyNumberBets(): NumberBets {
@@ -92,6 +125,20 @@ function emptyNumberBets(): NumberBets {
 
 function emptyHardways(): NumberBets {
   return { 4: 0, 6: 0, 8: 0, 10: 0 };
+}
+
+function hopKey(first: number, second: number) {
+  const low = Math.min(first, second);
+  const high = Math.max(first, second);
+  return `${low}-${high}`;
+}
+
+function emptyHopBets(): HopBets {
+  const bets: HopBets = {};
+  for (const [first, second] of allHopPairs) {
+    bets[hopKey(first, second)] = 0;
+  }
+  return bets;
 }
 
 function money(amount: number) {
@@ -352,11 +399,26 @@ export default function TablePage() {
   const [hornHigh11Bet, setHornHigh11Bet] = useState(0);
   const [hornHigh12Bet, setHornHigh12Bet] = useState(0);
 
+  const [hopBets, setHopBets] = useState<HopBets>(emptyHopBets());
+  const [hopBetsOpen, setHopBetsOpen] = useState(false);
+  const rollHistoryRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     // Hardways follow the puck by default. The player can override this
     // at any time; the default is re-applied only when the puck changes.
     setHardwaysWorking(point !== null);
   }, [point]);
+
+  useEffect(() => {
+    if (rollCount <= 0) return;
+
+    window.setTimeout(() => {
+      rollHistoryRef.current?.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      });
+    }, 0);
+  }, [rollCount]);
 
   function triggerTravel(
     kind: "come" | "dontCome",
@@ -451,6 +513,10 @@ export default function TablePage() {
     (sum, bet) => sum + bet,
     0
   );
+  const totalHopBets = Object.values(hopBets).reduce(
+    (sum, bet) => sum + bet,
+    0
+  );
 
   const totalOnTable =
     passLineBet +
@@ -479,7 +545,8 @@ export default function TablePage() {
     hornHigh2Bet +
     hornHigh3Bet +
     hornHigh11Bet +
-    hornHigh12Bet;
+    hornHigh12Bet +
+    totalHopBets;
 
   const sessionPL = bankroll + totalOnTable - STARTING_BANKROLL;
 
@@ -661,6 +728,7 @@ export default function TablePage() {
       hornHigh3Bet,
       hornHigh11Bet,
       hornHigh12Bet,
+      hopBets: { ...hopBets },
     };
   }
 
@@ -697,6 +765,7 @@ export default function TablePage() {
     setHornHigh3Bet(snapshot.hornHigh3Bet);
     setHornHigh11Bet(snapshot.hornHigh11Bet);
     setHornHigh12Bet(snapshot.hornHigh12Bet);
+    setHopBets({ ...snapshot.hopBets });
   }
 
   function undoLastBet() {
@@ -736,7 +805,8 @@ export default function TablePage() {
     hornHigh2Bet +
     hornHigh3Bet +
     hornHigh11Bet +
-    hornHigh12Bet;
+    hornHigh12Bet +
+    totalHopBets;
 
   function clearRemovableBets() {
     if (removableBetsTotal <= 0) {
@@ -772,6 +842,7 @@ export default function TablePage() {
     setHornHigh3Bet(0);
     setHornHigh11Bet(0);
     setHornHigh12Bet(0);
+    setHopBets(emptyHopBets());
     setBankroll((current) => current + removableBetsTotal);
 
     const contractsRemain =
@@ -860,6 +931,7 @@ export default function TablePage() {
     const addComeOdds = emptyNumberBets();
     const addDontCome = emptyNumberBets();
     const addDontComeOdds = emptyNumberBets();
+    const addHopBets = emptyHopBets();
 
     for (const number of pointNumbers) {
       addPlace[number] = Math.max(
@@ -891,6 +963,14 @@ export default function TablePage() {
       addHardways[number] = Math.max(
         0,
         lastRollBets.hardways[number] - hardways[number]
+      );
+    }
+
+    for (const [first, second] of allHopPairs) {
+      const key = hopKey(first, second);
+      addHopBets[key] = Math.max(
+        0,
+        (lastRollBets.hopBets[key] ?? 0) - (hopBets[key] ?? 0)
       );
     }
 
@@ -974,7 +1054,8 @@ export default function TablePage() {
       Object.values(addHardways).reduce((sum, value) => sum + value, 0) +
       Object.values(addComeOdds).reduce((sum, value) => sum + value, 0) +
       Object.values(addDontCome).reduce((sum, value) => sum + value, 0) +
-      Object.values(addDontComeOdds).reduce((sum, value) => sum + value, 0);
+      Object.values(addDontComeOdds).reduce((sum, value) => sum + value, 0) +
+      Object.values(addHopBets).reduce((sum, value) => sum + value, 0);
 
     if (required <= 0) {
       setMessage("All eligible wagers from the last roll are already up.");
@@ -1044,6 +1125,14 @@ export default function TablePage() {
       }
       return next;
     });
+    setHopBets((current) => {
+      const next = { ...current };
+      for (const [first, second] of allHopPairs) {
+        const key = hopKey(first, second);
+        next[key] = (next[key] ?? 0) + (addHopBets[key] ?? 0);
+      }
+      return next;
+    });
     setMessage(`Rebet restored $${money(required)} from the previous roll.`);
   }
 
@@ -1087,6 +1176,8 @@ export default function TablePage() {
     setHornHigh3Bet(0);
     setHornHigh11Bet(0);
     setHornHigh12Bet(0);
+    setHopBets(emptyHopBets());
+    setHopBetsOpen(false);
     setLastBetSnapshot(null);
     setLastRollBets(null);
     setTravelAnimation(null);
@@ -1837,6 +1928,90 @@ export default function TablePage() {
     setBankroll((current) => current - selectedChip);
   }
 
+  function handleHopBet(
+    event: MouseEvent<HTMLButtonElement>,
+    first: number,
+    second: number
+  ) {
+    const key = hopKey(first, second);
+    const currentBet = hopBets[key] ?? 0;
+    const isHardHop = first === second;
+    const pays = isHardHop ? 30 : 15;
+
+    if (wantsRemove(event)) {
+      if (currentBet <= 0) {
+        setMessage(`There is no Hop ${key} bet to remove.`);
+        return;
+      }
+
+      const amount = amountToRemove(currentBet);
+      setHopBets((current) => ({
+        ...current,
+        [key]: Math.max(0, (current[key] ?? 0) - amount),
+      }));
+      setBankroll((current) => current + amount);
+      setMessage(`Removed $${money(amount)} from Hop ${key}.`);
+      return;
+    }
+
+    if (selectedChip > bankroll) {
+      setMessage("Not enough bankroll.");
+      return;
+    }
+
+    setHopBets((current) => ({
+      ...current,
+      [key]: (current[key] ?? 0) + selectedChip,
+    }));
+    setBankroll((current) => current - selectedChip);
+    setMessage(
+      `Hop ${key} is now $${money(
+        currentBet + selectedChip
+      )}. Pays ${pays}:1.`
+    );
+  }
+
+  function resolveHopBets(first: number, second: number) {
+    const messages: string[] = [];
+    const rolledKey = hopKey(first, second);
+    const next = { ...hopBets };
+    let losingHopAction = 0;
+
+    for (const [hopFirst, hopSecond] of allHopPairs) {
+      const key = hopKey(hopFirst, hopSecond);
+      const bet = hopBets[key] ?? 0;
+
+      if (bet <= 0) continue;
+
+      if (key === rolledKey) {
+        const multiplier = hopFirst === hopSecond ? 30 : 15;
+        const profit = casinoPayout(bet * multiplier);
+
+        flashOutcome("prop", `hop-${key}`, "win");
+        setBankroll((current) => current + profit);
+        messages.push(
+          `Hop ${key} wins $${money(profit)}. Bet stays up.`
+        );
+      } else {
+        losingHopAction += bet;
+        next[key] = 0;
+        flashOutcome("prop", `hop-${key}`, "loss");
+      }
+    }
+
+    if (losingHopAction > 0) {
+      messages.push(
+        `Other Hop bets lose $${money(losingHopAction)}.`
+      );
+    }
+
+    if (totalHopBets > 0) {
+      setHopBets(next);
+    }
+
+    return messages;
+  }
+
   function resolveWorldNetProfit(total: number, bet: number) {
     const unit = bet / 5;
     if (total === 2 || total === 12) {
@@ -2272,6 +2447,7 @@ export default function TablePage() {
     if (fieldMessage) messages.push(fieldMessage);
 
     messages.push(...resolvePropBets(total));
+    messages.push(...resolveHopBets(first, second));
 
     if (hardwaysWorking) {
       messages.push(...resolveHardways(first, second, total));
@@ -2560,6 +2736,28 @@ export default function TablePage() {
             <Link href="/" className="text-xs text-emerald-300 underline">
               Home
             </Link>
+
+            <div className="hidden items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/30 px-2 py-1 lg:flex">
+              <span className="text-[6px] font-black uppercase tracking-[0.16em] text-emerald-500">
+                Table
+              </span>
+              <span className="text-[8px] font-black text-emerald-100">
+                $5 BASE
+              </span>
+              <span className="text-[7px] text-emerald-700">•</span>
+              <span className="text-[8px] font-black text-emerald-100">
+                PLACE MAX $1K
+              </span>
+              <span className="text-[7px] text-emerald-700">•</span>
+              <span className="text-[8px] font-black text-emerald-100">
+                6/8 $1.2K
+              </span>
+              <span className="text-[7px] text-emerald-700">•</span>
+              <span className="text-[8px] font-black text-amber-200">
+                3-4-5× ODDS
+              </span>
+            </div>
+
             <Stat label="Bankroll" value={`$${money(bankroll)}`} />
             <Stat label="On Table" value={`$${money(totalOnTable)}`} />
             <Stat
@@ -2584,11 +2782,11 @@ export default function TablePage() {
                 "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.035), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.12), transparent 30%)",
             }}
           >
-            <div className="relative z-10 grid gap-1 xl:grid-cols-[minmax(0,3.25fr)_minmax(305px,.92fr)]">
+            <div className="relative z-10 grid gap-1 lg:grid-cols-[minmax(0,3.2fr)_minmax(290px,.92fr)]">
               {/* MAIN PLAYER AREA */}
               <div className="min-w-0">
                 {/* BOX NUMBERS */}
-                <div className="relative grid grid-cols-3 gap-[3px] md:grid-cols-6">
+                <div className="relative grid grid-cols-2 gap-[3px] sm:grid-cols-3 lg:grid-cols-6">
                   {pointNumbers.map((number) => (
                     <div
                       key={number}
@@ -2599,7 +2797,10 @@ export default function TablePage() {
                       } ${quickPreviewNumberClass(number)}`}
                     >
                       {point === number && (
-                        <div className="absolute left-2 top-[130px] z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-white bg-zinc-950 text-[9px] font-black shadow-xl">
+                        <div
+                          className="absolute left-1/2 top-[122px] z-[70] flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[2px] border-white bg-zinc-950 text-[8px] font-black shadow-xl ring-1 ring-black/40"
+                          title={`Point is ${number}`}
+                        >
                           ON
                         </div>
                       )}
@@ -2622,15 +2823,21 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleDontComeOdds(event, number)
                                 }
-                                className="min-w-[60px] rounded border border-red-300/60 bg-red-950/90 px-1.5 py-1 text-[9px] font-black leading-tight text-red-50"
-                                title={`Don't Come odds pay ${layOddsLabel(
+                                className="flex min-w-[58px] items-center justify-center gap-1 rounded border border-red-300/60 bg-red-950/90 px-1 py-0.5 font-black leading-tight text-red-50"
+                                title={`Don't Come lay odds pay ${layOddsLabel(
                                   number
                                 )}`}
                               >
-                                ODDS ${money(dontComeOdds[number])}
-                                <span className="block text-[8px] text-red-200">
-                                  {layOddsLabel(number)}
+                                <span className="text-[6px] uppercase tracking-[0.06em] text-red-100">
+                                  {dontComeOdds[number] > 0 ? "LAY" : "+ ODDS"}
+                                  <span className="block text-[7px] text-red-200">
+                                    {layOddsLabel(number)}
+                                  </span>
                                 </span>
+                                <BetChip
+                                  amount={dontComeOdds[number]}
+                                  compact
+                                />
                               </button>
                             </div>
                           )}
@@ -2693,13 +2900,16 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleComeOdds(event, number)
                                 }
-                                className="min-w-[60px] rounded border border-blue-300/60 bg-blue-950/90 px-1.5 py-1 text-[9px] font-black leading-tight text-blue-50"
+                                className="flex min-w-[58px] items-center justify-center gap-1 rounded border border-blue-300/60 bg-blue-950/90 px-1 py-0.5 font-black leading-tight text-blue-50"
                                 title={`Come odds pay ${passOddsLabel(number)}`}
                               >
-                                ODDS ${money(comeOdds[number])}
-                                <span className="block text-[8px] text-blue-200">
-                                  {passOddsLabel(number)}
+                                <span className="text-[6px] uppercase tracking-[0.06em] text-blue-100">
+                                  {comeOdds[number] > 0 ? "ODDS" : "+ ODDS"}
+                                  <span className="block text-[7px] text-blue-200">
+                                    {passOddsLabel(number)}
+                                  </span>
                                 </span>
+                                <BetChip amount={comeOdds[number]} compact />
                               </button>
                             </div>
                           )}
@@ -2758,7 +2968,10 @@ export default function TablePage() {
                   ))}
 
                   {point === null && (
-                    <div className="absolute -left-2 -top-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-900 bg-white text-[9px] font-black text-black shadow-xl">
+                    <div
+                      className="absolute -left-1 -top-3 z-[70] flex h-8 w-8 items-center justify-center rounded-full border-[2px] border-zinc-900 bg-white text-[8px] font-black text-black shadow-xl"
+                      title="Come-out roll"
+                    >
                       OFF
                     </div>
                   )}
@@ -2767,7 +2980,7 @@ export default function TablePage() {
                 {/* CLASSIC COME / FIELD / DON'T PASS / PASS LAYOUT */}
                 <div className="mt-1">
                   {/* DON'T COME BAR + COME */}
-                  <div className="grid min-h-[92px] grid-cols-[150px_minmax(0,1fr)] gap-[3px] sm:grid-cols-[170px_minmax(0,1fr)]">
+                  <div className="grid min-h-[92px] grid-cols-[112px_minmax(0,1fr)] gap-[3px] sm:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[165px_minmax(0,1fr)]">
                     <button
                       onClick={handleDontComeBet}
                       className="relative flex flex-col items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04]"
@@ -2870,13 +3083,18 @@ export default function TablePage() {
                     {point !== null && dontPassBet > 0 && (
                       <button
                         onClick={handleDontPassOdds}
-                        className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded border border-red-300/60 bg-red-950/90 px-2 py-1 text-[8px] font-black text-red-50"
+                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-red-300/70 bg-red-950/90 px-2.5 py-1 text-[8px] font-black text-red-50 shadow-lg"
                         title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
                       >
-                        LAY ODDS ${money(dontPassOddsBet)}
-                        <span className="ml-1 text-red-200">
-                          {layOddsLabel(point)}
+                        <span className="leading-tight">
+                          <span className="block">
+                            {dontPassOddsBet > 0 ? "LAY ODDS" : "+ LAY ODDS"}
+                          </span>
+                          <span className="block text-[7px] text-red-200">
+                            {layOddsLabel(point)}
+                          </span>
                         </span>
+                        <BetChip amount={dontPassOddsBet} compact />
                       </button>
                     )}
                   </div>
@@ -2901,11 +3119,16 @@ export default function TablePage() {
                     {point !== null && passLineBet > 0 && (
                       <button
                         onClick={handlePassOdds}
-                        className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-yellow-200 bg-yellow-400 px-3 py-1 text-[8px] font-black text-black shadow-lg"
+                        className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/90 px-2.5 py-1 text-[8px] font-black text-amber-50 shadow-lg"
                         title={`Pass odds pay ${passOddsLabel(point)}`}
                       >
-                        <span>
-                          ODDS ${money(passOddsBet)} • {passOddsLabel(point)}
+                        <span className="leading-tight">
+                          <span className="block">
+                            {passOddsBet > 0 ? "PASS ODDS" : "+ PASS ODDS"}
+                          </span>
+                          <span className="block text-[7px] text-amber-200">
+                            {passOddsLabel(point)}
+                          </span>
                         </span>
                         <BetChip amount={passOddsBet} compact />
                       </button>
@@ -2913,7 +3136,7 @@ export default function TablePage() {
                   </div>
 
                   {/* INTEGRATED DEALER / ROLL / CHIP TRAY */}
-                  <div className="relative mt-1 min-h-[230px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-4 py-3">
+                  <div className="relative mt-1 min-h-[205px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-3 py-2.5">
                     <div className="pointer-events-none absolute bottom-2 right-5 flex items-center gap-3 opacity-[0.07]">
                       <div className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white">
                         <span className="font-serif text-2xl font-black tracking-[-0.08em]">
@@ -2930,7 +3153,7 @@ export default function TablePage() {
                       </div>
                     </div>
 
-                    <div className="relative z-10 grid gap-4 lg:grid-cols-[auto_auto_1fr] lg:items-center">
+                    <div className="relative z-10 grid gap-3 lg:grid-cols-[auto_auto_1fr] lg:items-center">
                       <div className="flex items-center gap-3">
                         <div
                           className={`flex items-center justify-center gap-2 ${
@@ -3003,8 +3226,43 @@ export default function TablePage() {
                       </div>
                     </div>
 
-                    {/* CHIPS + PLACE WORKING */}
-                    <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-3">
+                    {/* PRIMARY BETTING CONTROLS + CHIPS */}
+                    <div className="relative z-10 mt-2 flex flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-2">
+                      <span className="mr-1 rounded border border-white/10 bg-black/20 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-200">
+                        Mode:{" "}
+                        <span
+                          className={
+                            removeMode ? "text-red-300" : "text-amber-300"
+                          }
+                        >
+                          {removeMode ? "REMOVE" : "ADD"}
+                        </span>
+                      </span>
+
+                      <button
+                        onClick={() => setRemoveMode(false)}
+                        className={`rounded px-3 py-2 text-[9px] font-black transition ${
+                          !removeMode
+                            ? "bg-amber-400 text-black"
+                            : "border border-white/25 bg-black/20"
+                        }`}
+                      >
+                        ADD
+                      </button>
+
+                      <button
+                        onClick={() => setRemoveMode(true)}
+                        className={`rounded px-3 py-2 text-[9px] font-black transition ${
+                          removeMode
+                            ? "bg-red-600 text-white"
+                            : "border border-white/25 bg-black/20"
+                        }`}
+                      >
+                        REMOVE
+                      </button>
+
+                      <span className="mx-1 hidden h-8 w-px bg-white/15 sm:block" />
+
                       <span className="mr-1 text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">
                         Chips
                       </span>
@@ -3030,11 +3288,15 @@ export default function TablePage() {
                         </button>
                       ))}
 
+                      <span className="rounded border border-emerald-800/60 bg-emerald-950/30 px-2 py-1 text-[8px] font-black text-emerald-200">
+                        SELECTED ${money(selectedChip)}
+                      </span>
+
                       <button
                         onClick={() =>
                           setPlaceBetsWorking((current) => !current)
                         }
-                        className={`ml-2 rounded px-3 py-2 text-[9px] font-black ${
+                        className={`ml-1 rounded px-3 py-2 text-[9px] font-black ${
                           placeBetsWorking
                             ? "bg-amber-400 text-black"
                             : "border border-emerald-600 bg-black/15"
@@ -3043,20 +3305,54 @@ export default function TablePage() {
                         PLACE BETS:{" "}
                         {placeBetsWorking ? "WORKING" : "OFF COME-OUT"}
                       </button>
+
+                      <span className="ml-1 text-[7px] font-bold text-emerald-500">
+                        Shift-click reduces a wager
+                      </span>
                     </div>
 
                     {/* FULL SESSION ROLL HISTORY */}
-                    <div className="relative z-10 mt-3 border-t border-white/10 pt-2">
-                      <div className="mb-1 flex items-center justify-between gap-3">
+                    <div className="relative z-10 mt-2 border-t border-white/10 pt-2">
+                      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                         <span className="text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">
                           Roll History • {rollCount} rolls
                         </span>
-                        <span className="text-[7px] text-emerald-100/45">
-                          newest first • scroll for full session
-                        </span>
+
+                        <div className="flex items-center gap-1">
+                          <span className="mr-1 text-[7px] text-emerald-100/45">
+                            newest first
+                          </span>
+                          <button
+                            onClick={() =>
+                              rollHistoryRef.current?.scrollBy({
+                                left: -360,
+                                behavior: "smooth",
+                              })
+                            }
+                            className="rounded border border-emerald-700/60 bg-emerald-950/40 px-2 py-1 text-[9px] font-black text-emerald-200 hover:bg-emerald-900/50"
+                            title="Scroll toward newer rolls"
+                          >
+                            ←
+                          </button>
+                          <button
+                            onClick={() =>
+                              rollHistoryRef.current?.scrollBy({
+                                left: 360,
+                                behavior: "smooth",
+                              })
+                            }
+                            className="rounded border border-emerald-700/60 bg-emerald-950/40 px-2 py-1 text-[9px] font-black text-emerald-200 hover:bg-emerald-900/50"
+                            title="Scroll toward older rolls"
+                          >
+                            →
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex min-w-0 gap-2 overflow-x-auto pb-2">
+                      <div
+                        ref={rollHistoryRef}
+                        className="flex min-w-0 gap-2 overflow-x-auto scroll-smooth pb-2"
+                      >
                         {rollHistory.length === 0 ? (
                           <span className="py-2 text-[9px] text-emerald-300/70">
                             No rolls yet
@@ -3065,26 +3361,26 @@ export default function TablePage() {
                           rollHistory.map((roll, index) => {
                             const eventStyle =
                               roll.event === "pointMade"
-                                ? "border-amber-300 bg-amber-950/45 ring-1 ring-amber-300/50"
+                                ? "border-amber-200 bg-amber-500/25 ring-2 ring-amber-300/70 shadow-[0_0_14px_rgba(251,191,36,.18)]"
                                 : roll.event === "sevenOut"
-                                  ? "border-red-400 bg-red-950/55 ring-1 ring-red-400/40"
+                                  ? "border-red-300 bg-red-600/30 ring-2 ring-red-400/60 shadow-[0_0_14px_rgba(248,113,113,.16)]"
                                   : roll.event === "pointSet"
-                                    ? "border-cyan-400 bg-cyan-950/45"
+                                    ? "border-cyan-300 bg-cyan-500/20 ring-1 ring-cyan-300/60"
                                     : "border-emerald-700 bg-emerald-950/45";
 
                             const eventLabel =
                               roll.event === "pointMade"
-                                ? "POINT MADE"
+                                ? `POINT ${roll.total} MADE`
                                 : roll.event === "sevenOut"
                                   ? "SEVEN OUT"
                                   : roll.event === "pointSet"
-                                    ? "POINT ON"
+                                    ? `POINT ${roll.total} ON`
                                     : "";
 
                             return (
                               <div
                                 key={`${roll.first}-${roll.second}-${index}`}
-                                className={`min-w-[96px] shrink-0 rounded-lg border px-2 py-2 text-center ${eventStyle}`}
+                                className={`min-w-[108px] shrink-0 rounded-lg border px-2.5 py-2 text-center ${eventStyle}`}
                                 title={
                                   eventLabel ||
                                   `Roll ${roll.total}${
@@ -3101,7 +3397,7 @@ export default function TablePage() {
                                 <div className="mt-1 text-sm font-black">
                                   {roll.total}
                                 </div>
-                                <div className="min-h-[11px] text-[6px] font-black uppercase tracking-[0.08em] text-white/65">
+                                <div className="min-h-[13px] text-[7px] font-black uppercase tracking-[0.08em] text-white/80">
                                   {eventLabel}
                                 </div>
                               </div>
@@ -3420,6 +3716,155 @@ export default function TablePage() {
                     Winners stay up • losers come down • hover a combo bet for details
                   </p>
                 </div>
+
+                {/* HOP BETS */}
+                <div className="mt-1 border border-amber-200/30 bg-black/[0.06] p-1.5">
+                  <button
+                    onClick={() => setHopBetsOpen((current) => !current)}
+                    className="flex w-full items-center justify-between gap-2 border-b border-white/10 pb-1.5 text-left"
+                  >
+                    <span>
+                      <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-amber-100">
+                        Hop Bets
+                      </span>
+                      <span className="block text-[7px] text-amber-100/55">
+                        one-roll wagers • winners stay up
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="rounded border border-amber-700/50 bg-amber-950/25 px-2 py-1 text-[8px] font-black text-amber-200">
+                        ${money(totalHopBets)} UP
+                      </span>
+                      <span className="text-[10px] font-black text-amber-200">
+                        {hopBetsOpen ? "−" : "+"}
+                      </span>
+                    </span>
+                  </button>
+
+                  {hopBetsOpen && (
+                    <div className="mt-1.5 max-h-[340px] overflow-y-auto pr-1">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-[8px] font-black uppercase tracking-[0.16em] text-red-200">
+                          Hard Hops
+                        </span>
+                        <span className="text-[7px] font-black text-red-300/70">
+                          30 TO 1
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-[3px]">
+                        {hardHopPairs.map(([first, second]) => {
+                          const key = hopKey(first, second);
+                          const currentBet = hopBets[key] ?? 0;
+                          const previewBet =
+                            currentBet > 0 ? currentBet : selectedChip;
+
+                          return (
+                            <button
+                              key={key}
+                              onClick={(event) =>
+                                handleHopBet(event, first, second)
+                              }
+                              title={`Hop ${key}: pays 30 to 1. ${
+                                currentBet > 0
+                                  ? `Current bet $${money(
+                                      currentBet
+                                    )}; profit if hit $${money(
+                                      currentBet * 30
+                                    )}.`
+                                  : `A $${money(
+                                      selectedChip
+                                    )} bet would profit $${money(
+                                      previewBet * 30
+                                    )}.`
+                              } Winning Hop bets stay up.`}
+                              className={`relative min-h-[52px] border border-red-300/35 bg-red-950/15 p-1 text-center font-black transition hover:bg-red-950/35 ${flashClass(
+                                "prop",
+                                `hop-${key}`
+                              )}`}
+                            >
+                              <div className="flex items-center justify-center gap-1">
+                                <MiniDie value={first} />
+                                <MiniDie value={second} />
+                              </div>
+                              <div className="mt-1 text-[8px] text-red-100">
+                                {key}
+                              </div>
+                              <div className="text-[7px] text-red-200/70">
+                                30:1
+                              </div>
+                              <span className="absolute bottom-1 right-1">
+                                <BetChip amount={currentBet} compact />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mb-1 mt-2 flex items-center justify-between border-t border-white/10 pt-1.5">
+                        <span className="text-[8px] font-black uppercase tracking-[0.16em] text-amber-200">
+                          Easy Hops
+                        </span>
+                        <span className="text-[7px] font-black text-amber-300/70">
+                          15 TO 1
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-[3px]">
+                        {easyHopPairs.map(([first, second]) => {
+                          const key = hopKey(first, second);
+                          const currentBet = hopBets[key] ?? 0;
+                          const previewBet =
+                            currentBet > 0 ? currentBet : selectedChip;
+
+                          return (
+                            <button
+                              key={key}
+                              onClick={(event) =>
+                                handleHopBet(event, first, second)
+                              }
+                              title={`Hop ${key}: pays 15 to 1. ${
+                                currentBet > 0
+                                  ? `Current bet $${money(
+                                      currentBet
+                                    )}; profit if hit $${money(
+                                      currentBet * 15
+                                    )}.`
+                                  : `A $${money(
+                                      selectedChip
+                                    )} bet would profit $${money(
+                                      previewBet * 15
+                                    )}.`
+                              } Winning Hop bets stay up.`}
+                              className={`relative min-h-[52px] border border-amber-200/25 bg-amber-950/10 p-1 text-center font-black transition hover:bg-amber-950/30 ${flashClass(
+                                "prop",
+                                `hop-${key}`
+                              )}`}
+                            >
+                              <div className="flex items-center justify-center gap-1">
+                                <MiniDie value={first} />
+                                <MiniDie value={second} />
+                              </div>
+                              <div className="mt-1 text-[8px] text-amber-100">
+                                {key}
+                              </div>
+                              <div className="text-[7px] text-amber-200/70">
+                                15:1
+                              </div>
+                              <span className="absolute bottom-1 right-1">
+                                <BetChip amount={currentBet} compact />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <p className="mt-1.5 text-center text-[6px] font-bold uppercase tracking-[0.06em] text-amber-100/45">
+                        Exact dice combination • 2 / 3 / Yo 11 / 12 use the One Roll boxes above
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -3427,15 +3872,15 @@ export default function TablePage() {
 
         {/* PLAYER CONTROLS */}
         <div className="mt-2 rounded-xl border border-emerald-900/80 bg-black/30 px-3 py-2">
-          <div className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-white/10 pb-2 text-[9px] font-black uppercase tracking-[0.12em]">
-            <span className={removeMode ? "text-red-300" : "text-amber-300"}>
-              Mode: {removeMode ? "Remove" : "Add"}
-            </span>
-            <span className="text-emerald-300">
-              Selected: ${money(selectedChip)}
+          <div className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-white/10 pb-2 text-[8px] font-black uppercase tracking-[0.12em]">
+            <span className="text-emerald-500">
+              Utility Controls
             </span>
             <span className="text-red-200">
               Lay action: ${money(totalLayBets)}
+            </span>
+            <span className="text-amber-200">
+              Hop action: ${money(totalHopBets)}
             </span>
             <span className="text-cyan-200">
               Removable: ${money(removableBetsTotal)}
@@ -3443,28 +3888,6 @@ export default function TablePage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <button
-              onClick={() => setRemoveMode(false)}
-              className={`rounded-lg px-5 py-2 text-xs font-black shadow-sm transition ${
-                !removeMode
-                  ? "bg-amber-400 text-black shadow-amber-400/20"
-                  : "border border-white/30 bg-black/20"
-              }`}
-            >
-              ADD
-            </button>
-
-            <button
-              onClick={() => setRemoveMode(true)}
-              className={`rounded-lg px-5 py-2 text-xs font-black transition ${
-                removeMode
-                  ? "bg-red-600 text-white"
-                  : "border border-white/30 bg-black/20"
-              }`}
-            >
-              REMOVE
-            </button>
-
             <button
               onClick={undoLastBet}
               disabled={!lastBetSnapshot || isRolling}
@@ -3511,8 +3934,8 @@ export default function TablePage() {
               RESET
             </button>
 
-            <span className="ml-2 text-[8px] font-bold text-emerald-500">
-              Chips + Place Working are in the dealer tray • Shift-click reduces a wager
+            <span className="ml-2 text-[8px] font-bold text-emerald-600">
+              Primary betting controls are in the dealer tray
             </span>
           </div>
 
