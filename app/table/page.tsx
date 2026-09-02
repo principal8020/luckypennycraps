@@ -2298,13 +2298,14 @@ export default function TablePage() {
       }
 
       if (total === 7 || total === 11) {
-        messages.unshift(`${total} — Natural!`);
+        messages.unshift(`${total} — Natural! Contract bet remains for the next come-out.`);
 
         if (passLineBet > 0) {
           flashOutcome("pass", "pass", "win");
-          setBankroll((current) => current + passLineBet * 2);
-          messages.push(`Pass Line wins $${money(passLineBet)}.`);
-          setPassLineBet(0);
+          setBankroll((current) => current + passLineBet);
+          messages.push(
+            `Pass Line wins $${money(passLineBet)}. Bet stays up.`
+          );
           setPassOddsBet(0);
         }
 
@@ -2331,9 +2332,10 @@ export default function TablePage() {
 
         if (dontPassBet > 0) {
           flashOutcome("dontPass", "dont-pass", "win");
-          setBankroll((current) => current + dontPassBet * 2);
-          messages.push(`Don't Pass wins $${money(dontPassBet)}.`);
-          setDontPassBet(0);
+          setBankroll((current) => current + dontPassBet);
+          messages.push(
+            `Don't Pass wins $${money(dontPassBet)}. Bet stays up.`
+          );
         }
 
         setMessage(messages.join(" "));
@@ -2351,9 +2353,7 @@ export default function TablePage() {
         }
 
         if (dontPassBet > 0) {
-          setBankroll((current) => current + dontPassBet);
-          messages.push("Don't Pass bars 12.");
-          setDontPassBet(0);
+          messages.push("Don't Pass bars 12. Bet stays up.");
         }
 
         setMessage(messages.join(" "));
@@ -2718,10 +2718,14 @@ export default function TablePage() {
                       {/* NUMBER */}
                       <div className="absolute inset-x-0 bottom-[42px] top-[120px] flex items-center justify-center bg-emerald-950/[0.13]">
                         <span
-                          className="box-number text-5xl font-black leading-none text-white sm:text-6xl"
+                          className={`box-number font-black leading-none text-white ${
+                            number === 6 || number === 9
+                              ? "text-4xl sm:text-[42px]"
+                              : "text-[42px] sm:text-5xl"
+                          }`}
                           style={{
                             textShadow:
-                              "0 2px 0 rgba(0,0,0,.75), 0 0 12px rgba(255,255,255,.10)",
+                              "0 2px 0 rgba(0,0,0,.75), 0 0 10px rgba(255,255,255,.08)",
                           }}
                         >
                           {number === 6
