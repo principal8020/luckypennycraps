@@ -41,7 +41,6 @@ import {
   type PracticeScenarioId,
 } from "./components/PracticeControls";
 import { TableHeader } from "./components/TableHeader";
-import { StrategyMode } from "./components/StrategyMode";
 
 const STARTING_BANKROLL = 5000;
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
@@ -2998,26 +2997,6 @@ export default function TablePage() {
           point={point}
           onPointChange={changePracticePoint}
           onLoadScenario={loadPracticeScenario}
-        />
-
-        <StrategyMode
-          bankroll={bankroll}
-          totalOnTable={totalOnTable}
-          rollCount={rollCount}
-          point={point}
-          selectedChip={selectedChip}
-          passLineBet={passLineBet}
-          passOddsBet={passOddsBet}
-          dontPassBet={dontPassBet}
-          dontPassOddsBet={dontPassOddsBet}
-          activeComeBet={activeComeBet}
-          comeBets={comeBets}
-          comeOdds={comeOdds}
-          activeDontComeBet={activeDontComeBet}
-          dontComeBets={dontComeBets}
-          dontComeOdds={dontComeOdds}
-          placeBets={placeBets}
-          fieldBet={fieldBet}
         />
 
         <p className="mt-2 text-center text-[9px] text-emerald-700">
