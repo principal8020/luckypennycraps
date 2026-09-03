@@ -3,7 +3,7 @@ import Link from "next/link";
 const features = [
   {
     eyebrow: "PLAY",
-    title: "Practice on a full craps table",
+    title: "Play on a full craps table",
     body: "Place bets, take odds, roll the dice, and follow the action on a casino-style table built for learning.",
     href: "/table",
     cta: "Open the Table",
@@ -120,14 +120,25 @@ export default function Home() {
         </div>
 
         <div className="rounded-3xl border border-emerald-700/50 bg-[#087348] p-3 shadow-[0_24px_70px_rgba(0,0,0,.45)]">
-          <div className="rounded-2xl border-[7px] border-[#6c3b12] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.04),transparent_25%),#087348] p-5">
+          <div className="rounded-2xl border-[7px] border-[#6c3b12] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.04),transparent_25%),#087348] p-4 sm:p-5">
+            <div className="mb-4 overflow-hidden rounded-2xl border border-white/15 bg-black/20 px-4 py-3">
+              <img
+                src="/lucky-penny-dogs-logo.png"
+                alt="Lucky and Penny, the Lucky Penny Craps mascots"
+                className="mx-auto max-h-[170px] w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,.35)]"
+              />
+              <div className="mt-1 text-center text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200/70">
+                Lucky + Penny • the mascots behind the name
+              </div>
+            </div>
+
             <div className="grid grid-cols-6 gap-1">
               {[4, 5, 6, 8, 9, 10].map((number) => (
                 <div
                   key={number}
-                  className="rounded border border-white/50 bg-black/5 py-4 text-center"
+                  className="rounded border border-white/50 bg-black/5 py-3 text-center"
                 >
-                  <div className="text-2xl font-black">{number}</div>
+                  <div className="text-xl font-black sm:text-2xl">{number}</div>
                   <div className="mt-1 text-[6px] font-black uppercase tracking-[0.1em] text-emerald-100/70">
                     Place
                   </div>
@@ -135,15 +146,15 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="mt-1 rounded border border-white/60 py-5 text-center font-serif text-4xl text-red-300">
+            <div className="mt-1 rounded border border-white/60 py-4 text-center font-serif text-3xl text-red-300 sm:text-4xl">
               COME
             </div>
 
-            <div className="mt-1 rounded-[28px] border-2 border-white/70 py-4 text-center text-2xl font-black tracking-[0.12em]">
+            <div className="mt-1 rounded-[28px] border-2 border-white/70 py-3 text-center text-xl font-black tracking-[0.12em] sm:text-2xl">
               PASS LINE
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-black/20 px-3 py-3">
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-black/20 px-3 py-3">
               <div className="flex gap-2">
                 <span className="h-9 w-9 rounded-full border-4 border-dashed border-white bg-red-600" />
                 <span className="h-9 w-9 rounded-full border-4 border-dashed border-white bg-emerald-700" />
