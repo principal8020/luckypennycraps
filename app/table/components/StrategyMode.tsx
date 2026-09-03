@@ -8,15 +8,6 @@ import {
 
 type NumberBets = Record<number, number>;
 
-export type StrategyId =
-  | "three-point-molly"
-  | "three-point-dolly"
-  | "iron-cross"
-  | "place-6-8"
-  | "inside"
-  | "pass-max-odds"
-  | "dont-pass-lay-odds";
-
 type StrategyModeProps = {
   bankroll: number;
   totalOnTable: number;
@@ -44,7 +35,6 @@ type StrategyDefinition = {
   description: string;
   rules: string[];
 };
-
 
 const strategies: StrategyDefinition[] = [
   {
@@ -133,6 +123,8 @@ function money(amount: number) {
 export function StrategyMode(props: StrategyModeProps) {
   const [selectedStrategy, setSelectedStrategy] = useState<StrategyId | null>(null);
   const [tableMinimum, setTableMinimum] = useState(5);
+  const [showStrategyPicker, setShowStrategyPicker] = useState(true);
+  const [showSequence, setShowSequence] = useState(true);
   const [startEquity, setStartEquity] = useState(
     props.bankroll + props.totalOnTable
   );
@@ -155,8 +147,15 @@ export function StrategyMode(props: StrategyModeProps) {
 
   function selectStrategy(id: StrategyId) {
     setSelectedStrategy(id);
+    setShowStrategyPicker(false);
+    setShowSequence(true);
     setStartEquity(props.bankroll + props.totalOnTable);
     setStartRollCount(props.rollCount);
+  }
+
+  function exitStrategy() {
+    setSelectedStrategy(null);
+    setShowStrategyPicker(true);
   }
 
   function resetTracking() {
@@ -165,18 +164,18 @@ export function StrategyMode(props: StrategyModeProps) {
   }
 
   return (
-    <section className="mt-2 rounded-xl border border-cyan-900/70 bg-black/25 px-3 py-2.5">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyan-950/80 pb-3">
+    <section className="mt-2 rounded-xl border border-cyan-900/70 bg-black/25 px-3 py-3 sm:px-4">
+      <div className="flex flex-col gap-3 border-b border-cyan-950/80 pb-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <span className="rounded-lg border border-cyan-700/70 bg-cyan-950/30 px-4 py-2.5 text-[12px] font-black uppercase tracking-[0.14em] text-cyan-100">
             Strategy Mode
           </span>
-          <span className="text-[11px] font-bold text-cyan-200/75">
+          <span className="text-[11px] font-bold leading-relaxed text-cyan-200/75">
             Learn the sequence while you play • Practice Mode can be used at the same time
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-cyan-900/70 bg-black/20 px-3 py-2">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-cyan-900/70 bg-black/20 px-3 py-2.5">
           <span className="mr-1 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-300">
             Table Minimum
           </span>
@@ -185,101 +184,155 @@ export function StrategyMode(props: StrategyModeProps) {
               key={minimum}
               onClick={() => setTableMinimum(minimum)}
               aria-pressed={tableMinimum === minimum}
-              className={`min-w-12 rounded-md border px-3 py-1.5 text-[11px] font-black transition ${
+              className={`min-h-10 min-w-14 rounded-md border px-3 py-2 text-[12px] font-black transition sm:min-h-0 sm:py-1.5 ${
                 tableMinimum === minimum
-                  ? "border-cyan-200 bg-cyan-600 text-black"
+                  ? "border-cyan-200 bg-cyan-500 text-black shadow-[0_0_14px_rgba(34,211,238,.16)]"
                   : "border-cyan-900/80 bg-cyan-950/20 text-cyan-200 hover:border-cyan-600"
               }`}
             >
               ${minimum}
             </button>
           ))}
-          <span className="ml-1 text-[9px] font-bold text-cyan-200/60">
+          <span className="hidden text-[9px] font-bold text-cyan-200/60 sm:inline">
             Strategy bet sizing
           </span>
         </div>
       </div>
 
-      <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
-        {strategies.map((strategy) => {
-          const active = strategy.id === selectedStrategy;
-
-          return (
-            <button
-              key={strategy.id}
-              onClick={() => selectStrategy(strategy.id)}
-              className={`rounded-lg border px-4 py-3 text-left transition ${
-                active
-                  ? "border-cyan-300 bg-cyan-900/45 shadow-[0_0_18px_rgba(34,211,238,.12)]"
-                  : "border-cyan-950/90 bg-cyan-950/10 hover:border-cyan-700 hover:bg-cyan-950/25"
-              }`}
-            >
-              <span className="flex items-center justify-between gap-2">
-                <span className="text-[13px] font-black uppercase tracking-[0.06em] text-white">
-                  {strategy.name}
-                </span>
-                <span className="rounded border border-cyan-900/80 px-2 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-cyan-200/80">
-                  {strategy.badge}
-                </span>
+      {currentStrategy && !showStrategyPicker && (
+        <div className="mt-3 flex flex-col gap-2 rounded-lg border border-cyan-800/70 bg-cyan-950/20 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-cyan-400">
+              Active Strategy
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <span className="text-[14px] font-black uppercase tracking-[0.04em] text-white">
+                {currentStrategy.name}
               </span>
-              <span className="mt-1.5 block text-[10px] font-semibold leading-relaxed text-cyan-100/70">
-                {strategy.description}
+              <span className="rounded border border-cyan-800/80 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-cyan-200/80">
+                {currentStrategy.badge}
               </span>
-            </button>
-          );
-        })}
-      </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowStrategyPicker(true)}
+            className="min-h-10 rounded-md border border-cyan-800/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-cyan-200 hover:border-cyan-500 hover:bg-cyan-950/35 sm:min-h-0"
+          >
+            Change Strategy
+          </button>
+        </div>
+      )}
 
-      {currentStrategy && recommendation && (
-        <div className="mt-2 grid gap-2 lg:grid-cols-[1.15fr_.85fr]">
-          <div className="rounded-lg border border-cyan-700/55 bg-cyan-950/15 p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
+      {showStrategyPicker && (
+        <div className="mt-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-cyan-400">
+              Choose a strategy
+            </p>
+            {currentStrategy && (
+              <button
+                onClick={() => setShowStrategyPicker(false)}
+                className="rounded border border-zinc-700 px-2.5 py-1.5 text-[9px] font-black uppercase text-zinc-300 hover:border-zinc-500"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+
+          <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2 sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-4">
+            {strategies.map((strategy) => {
+              const active = strategy.id === selectedStrategy;
+
+              return (
+                <button
+                  key={strategy.id}
+                  onClick={() => selectStrategy(strategy.id)}
+                  className={`min-w-[245px] snap-start rounded-lg border px-4 py-3 text-left transition sm:min-w-0 ${
+                    active
+                      ? "border-cyan-300 bg-cyan-900/45 shadow-[0_0_18px_rgba(34,211,238,.12)]"
+                      : "border-cyan-950/90 bg-cyan-950/10 hover:border-cyan-700 hover:bg-cyan-950/25"
+                  }`}
+                >
+                  <span className="flex items-start justify-between gap-2">
+                    <span className="text-[13px] font-black uppercase tracking-[0.05em] text-white">
+                      {strategy.name}
+                    </span>
+                    <span className="shrink-0 rounded border border-cyan-900/80 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-cyan-200/80">
+                      {strategy.badge}
+                    </span>
+                  </span>
+                  <span className="mt-1.5 block text-[10px] font-semibold leading-relaxed text-cyan-100/70">
+                    {strategy.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {currentStrategy && recommendation && !showStrategyPicker && (
+        <div className="mt-3 grid gap-3 xl:grid-cols-[1.2fr_.8fr]">
+          <div className="rounded-lg border-2 border-cyan-600/65 bg-cyan-950/20 p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">
-                  Next Move
+                  1 • Next Move
                 </p>
-                <p className="mt-1.5 text-lg font-black leading-snug text-cyan-50">
+                <p className="mt-1.5 text-xl font-black leading-tight text-cyan-50 sm:text-2xl">
                   {recommendation.action}
                 </p>
               </div>
 
               <button
-                onClick={() => setSelectedStrategy(null)}
-                className="rounded border border-zinc-700 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.08em] text-zinc-300 hover:border-zinc-500 hover:text-white"
+                onClick={exitStrategy}
+                className="min-h-10 shrink-0 rounded border border-zinc-700 px-3 py-2 text-[9px] font-black uppercase tracking-[0.08em] text-zinc-300 hover:border-zinc-500 hover:text-white sm:min-h-0 sm:py-1.5"
               >
                 Exit Strategy
               </button>
             </div>
 
-            <p className="mt-2 text-[12px] font-semibold leading-relaxed text-cyan-100/80">
-              {recommendation.why}
-            </p>
+            <div className="mt-4 grid gap-2 md:grid-cols-2">
+              <div className="rounded-md border border-cyan-900/80 bg-black/20 px-3 py-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.13em] text-cyan-400">
+                  2 • Why
+                </p>
+                <p className="mt-1.5 text-[12px] font-semibold leading-relaxed text-cyan-100/85">
+                  {recommendation.why}
+                </p>
+              </div>
 
-            <div className="mt-3 rounded-md border border-cyan-950/90 bg-black/20 px-3 py-2.5 text-[11px] font-bold text-cyan-200/75">
-              {recommendation.status}
+              <div className="rounded-md border border-cyan-900/80 bg-black/20 px-3 py-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.13em] text-cyan-400">
+                  3 • Current Status
+                </p>
+                <p className="mt-1.5 text-[12px] font-bold leading-relaxed text-cyan-200/85">
+                  {recommendation.status}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-cyan-950/90 bg-black/15 p-3">
-            <div className="flex items-center justify-between gap-2">
+          <div className="rounded-lg border border-cyan-950/90 bg-black/15 p-3 sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">
-                {currentStrategy.name} Tracker
+                Session Tracker
               </p>
               <button
                 onClick={resetTracking}
-                className="rounded border border-cyan-900/80 px-3 py-1.5 text-[9px] font-black uppercase text-cyan-200/80 hover:border-cyan-600"
+                className="min-h-9 rounded border border-cyan-900/80 px-3 py-1.5 text-[9px] font-black uppercase text-cyan-200/80 hover:border-cyan-600"
               >
                 Restart Tracking
               </button>
             </div>
 
-            <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
-              <div className="rounded-md border border-white/10 bg-black/20 px-2 py-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
+              <div className="rounded-md border border-white/10 bg-black/20 px-2 py-2.5 text-center">
                 <p className="text-[9px] font-black uppercase tracking-[0.12em] text-cyan-400">
                   Strategy P/L
                 </p>
                 <p
-                  className={`mt-1 text-sm font-black ${
+                  className={`mt-1 text-lg font-black ${
                     strategyPL > 0
                       ? "text-emerald-300"
                       : strategyPL < 0
@@ -291,7 +344,7 @@ export function StrategyMode(props: StrategyModeProps) {
                 </p>
               </div>
 
-              <div className="rounded-md border border-white/10 bg-black/20 px-2 py-2">
+              <div className="rounded-md border border-white/10 bg-black/20 px-2 py-2.5 text-center">
                 <p className="text-[9px] font-black uppercase tracking-[0.12em] text-cyan-400">
                   Rolls
                 </p>
@@ -300,7 +353,7 @@ export function StrategyMode(props: StrategyModeProps) {
                 </p>
               </div>
 
-              <div className="rounded-md border border-white/10 bg-black/20 px-2 py-2">
+              <div className="rounded-md border border-white/10 bg-black/20 px-2 py-2.5 text-center">
                 <p className="text-[9px] font-black uppercase tracking-[0.12em] text-cyan-400">
                   Table Minimum
                 </p>
@@ -310,32 +363,44 @@ export function StrategyMode(props: StrategyModeProps) {
               </div>
             </div>
 
-            <div className="mt-2 border-t border-white/10 pt-2">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-400">
-                Strategy sequence
-              </p>
-              <ol className="space-y-1.5 text-[11px] font-semibold leading-relaxed text-cyan-100/75">
-                {currentStrategy.rules.map((rule, index) => (
-                  <li key={rule}>
-                    <span className="mr-1.5 font-black text-cyan-400">
-                      {index + 1}.
-                    </span>
-                    {rule}
-                  </li>
-                ))}
-              </ol>
+            <div className="mt-3 border-t border-white/10 pt-3">
+              <button
+                onClick={() => setShowSequence((current) => !current)}
+                className="flex min-h-10 w-full items-center justify-between rounded-md border border-cyan-950/90 bg-cyan-950/10 px-3 py-2 text-left hover:border-cyan-800/80"
+                aria-expanded={showSequence}
+              >
+                <span className="text-[10px] font-black uppercase tracking-[0.12em] text-cyan-400">
+                  How this strategy works
+                </span>
+                <span className="text-[14px] font-black text-cyan-300">
+                  {showSequence ? "−" : "+"}
+                </span>
+              </button>
+
+              {showSequence && (
+                <ol className="mt-2 space-y-2 text-[11px] font-semibold leading-relaxed text-cyan-100/75">
+                  {currentStrategy.rules.map((rule, index) => (
+                    <li key={rule} className="flex gap-2">
+                      <span className="font-black text-cyan-400">
+                        {index + 1}.
+                      </span>
+                      <span>{rule}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </div>
           </div>
         </div>
       )}
 
       {!selectedStrategy && (
-        <p className="mt-3 text-center text-[11px] font-bold text-cyan-200/65">
+        <p className="mt-3 text-center text-[11px] font-bold leading-relaxed text-cyan-200/65">
           Choose a strategy above. Lucky Penny will watch the table and tell you the next step; you still place every wager yourself.
         </p>
       )}
 
-      <p className="mt-3 text-center text-[9px] text-zinc-500">
+      <p className="mt-3 text-center text-[9px] leading-relaxed text-zinc-500">
         Strategy systems organize betting decisions; they do not guarantee a profit or remove the casino advantage.
       </p>
     </section>
