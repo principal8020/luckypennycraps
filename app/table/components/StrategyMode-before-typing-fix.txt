@@ -22,16 +22,16 @@ export type StrategyGuideTarget =
 
 function guideTargetForAction(action: string): StrategyGuideTarget | null {
   const dontComeOdds = action.match(/DON'T COME LAY ODDS behind (\d+)/);
-  if (dontComeOdds) return `dont-come-odds-${Number(dontComeOdds[1])}`;
+  if (dontComeOdds) return `dont-come-odds-${dontComeOdds[1]}`;
 
   const comeOdds = action.match(/COME ODDS on (\d+)/);
-  if (comeOdds) return `come-odds-${Number(comeOdds[1])}`;
+  if (comeOdds) return `come-odds-${comeOdds[1]}`;
 
   if (action.includes("DON'T PASS LAY ODDS")) return "dont-pass-odds";
   if (action.includes("PASS ODDS")) return "pass-odds";
 
   const place = action.match(/PLACE (\d+)/);
-  if (place) return `place-${Number(place[1])}`;
+  if (place) return `place-${place[1]}`;
 
   if (action.includes("the FIELD")) return "field";
   if (action.includes("in DON'T COME")) return "dont-come";
