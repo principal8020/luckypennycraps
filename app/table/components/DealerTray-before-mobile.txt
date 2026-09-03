@@ -54,7 +54,7 @@ export function DealerTray({
   rollCount,
 }: DealerTrayProps) {
   return (
-    <div className="relative mt-1 min-h-[132px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-2 py-2 xl:min-h-[205px] xl:px-3 xl:py-2.5">
+    <div className="relative mt-1 min-h-[205px] overflow-hidden border border-emerald-100/25 bg-black/[0.11] px-3 py-2.5">
       <div className="pointer-events-none absolute bottom-2 right-5 flex items-center gap-3 opacity-[0.07]">
         <div className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white">
           <span className="font-serif text-2xl font-black tracking-[-0.08em]">
@@ -72,29 +72,7 @@ export function DealerTray({
         </div>
       </div>
 
-      <div className="relative z-10 flex items-center gap-3 lg:hidden">
-        <div className="flex shrink-0 items-center gap-1.5">
-          <MiniDie value={dieOne} />
-          <MiniDie value={dieTwo} />
-          <div className="ml-1 text-center">
-            <p className="text-[7px] font-black uppercase tracking-[0.12em] text-emerald-400">
-              Last
-            </p>
-            <p className="text-xl font-black">{rollTotal}</p>
-          </div>
-        </div>
-
-        <div className="min-w-0 flex-1 border-l border-white/10 pl-3">
-          <p className="text-[7px] font-black uppercase tracking-[0.12em] text-emerald-400">
-            Dealer
-          </p>
-          <p className="truncate text-[10px] font-semibold text-amber-200">
-            {message}
-          </p>
-        </div>
-      </div>
-
-      <div className="relative z-10 hidden grid-cols-[auto_auto_1fr] items-center gap-3 lg:grid">
+      <div className="relative z-10 grid gap-3 lg:grid-cols-[auto_auto_1fr] lg:items-center">
         <div className="flex items-center gap-3">
           <div
             className={`flex items-center justify-center gap-2 ${
@@ -138,7 +116,7 @@ export function DealerTray({
         <button
           onClick={onRollDice}
           disabled={isRolling}
-          className={`rounded-lg px-6 py-3 text-sm font-black text-black shadow-lg transition xl:px-9 xl:py-4 xl:text-base ${
+          className={`rounded-lg px-9 py-4 text-base font-black text-black shadow-lg transition ${
             isRolling
               ? "cursor-not-allowed bg-amber-200"
               : "bg-amber-400 hover:scale-105 hover:bg-amber-300"
@@ -147,7 +125,7 @@ export function DealerTray({
           {isRolling ? "ROLLING…" : "ROLL DICE"}
         </button>
 
-        <div className="min-w-0 border-l border-white/10 pl-4">
+        <div className="min-w-0 border-t border-white/10 pt-3 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
           <div className="flex items-center gap-2">
             <span className="rounded bg-emerald-950/70 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300">
               Dealer
@@ -163,7 +141,7 @@ export function DealerTray({
         </div>
       </div>
 
-      <div className="relative z-10 mt-2 hidden flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-2 lg:flex">
+      <div className="relative z-10 mt-2 flex flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-2">
         <span className="mr-1 rounded border border-white/10 bg-black/20 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-200">
           Mode:{" "}
           <span className={removeMode ? "text-red-300" : "text-amber-300"}>

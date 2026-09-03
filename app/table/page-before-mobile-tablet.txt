@@ -31,8 +31,6 @@ import {
 import { BetChip, MiniDie } from "./components/TablePieces";
 import type { RollHistoryItem } from "./components/RollHistory";
 import { DealerTray } from "./components/DealerTray";
-import { MobileActionBar } from "./components/MobileActionBar";
-import { MobileCenterActionDrawer } from "./components/MobileCenterActionDrawer";
 import { UtilityControls } from "./components/UtilityControls";
 import { CenterAction } from "./components/CenterAction";
 import {
@@ -279,7 +277,6 @@ export default function TablePage() {
     useState<QuickBetPreview | null>(null);
   const [strategyGuideTarget, setStrategyGuideTarget] =
     useState<StrategyGuideTarget | null>(null);
-  const [mobileCenterOpen, setMobileCenterOpen] = useState(false);
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
@@ -2423,7 +2420,7 @@ export default function TablePage() {
 
 
   return (
-    <main className="min-h-screen bg-[#03130e] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-24 sm:pt-3 lg:pb-3">
+    <main className="min-h-screen bg-[#03130e] px-2 py-2 text-white sm:px-4 sm:py-3">
       <style>{`
         @keyframes comeChipTravel {
           0% {
@@ -2485,16 +2482,6 @@ export default function TablePage() {
           animation: luckyLossPulse 820ms ease-out both;
         }
 
-        .lucky-rotate-hint {
-          display: none;
-        }
-
-        @media (max-width: 639px) and (orientation: portrait) {
-          .lucky-rotate-hint {
-            display: flex;
-          }
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .lucky-travel,
           .lucky-win-flash,
@@ -2512,20 +2499,11 @@ export default function TablePage() {
           rollCount={rollCount}
         />
 
-        <div className="lucky-rotate-hint mb-1 items-center justify-center gap-2 rounded-lg border border-amber-600/50 bg-amber-950/25 px-3 py-2 text-[10px] font-bold text-amber-200">
-          <span aria-hidden="true">↻</span>
-          <span>Rotate your phone to landscape for the best table view.</span>
-        </div>
-
-        {/* Phones keep the core table intact. Portrait can pan; landscape fits.
-            Tablets show the full table including Center Action. */}
-        <div className="-mx-2 overflow-x-auto overscroll-x-contain px-2 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 lg:pb-0">
-          <div className="min-w-[760px] sm:min-w-0">
-            {/* FELT */}
-            <div
-              onPointerDownCapture={rememberUndo}
-              className="overflow-hidden rounded-[28px] border-[8px] border-[#6c3b12] bg-[#087348] shadow-2xl"
-            >
+        {/* FELT */}
+        <div
+          onPointerDownCapture={rememberUndo}
+          className="overflow-hidden rounded-[28px] border-[8px] border-[#6c3b12] bg-[#087348] shadow-2xl"
+        >
           <div
             className="relative border-[3px] border-[#2f1b0a] p-2 sm:p-3"
             style={{
@@ -2533,11 +2511,11 @@ export default function TablePage() {
                 "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.035), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.12), transparent 30%)",
             }}
           >
-            <div className="relative z-10 grid gap-1 lg:grid-cols-[minmax(0,3.2fr)_minmax(240px,.84fr)] xl:grid-cols-[minmax(0,3.2fr)_minmax(290px,.92fr)]">
+            <div className="relative z-10 grid gap-1 lg:grid-cols-[minmax(0,3.2fr)_minmax(290px,.92fr)]">
               {/* MAIN PLAYER AREA */}
               <div className="min-w-0">
                 {/* BOX NUMBERS */}
-                <div className="relative grid grid-cols-6 gap-[3px]">
+                <div className="relative grid grid-cols-2 gap-[3px] sm:grid-cols-3 lg:grid-cols-6">
                   {pointNumbers.map((number) => (
                     <div
                       key={number}
@@ -2937,8 +2915,7 @@ export default function TablePage() {
                 </div>
               </div>
 
-              {/* RIGHT RAIL: CENTER ACTION — full table on tablet/desktop */}
-              <div className="hidden lg:block">
+              {/* RIGHT RAIL: CENTER ACTION */}
               <CenterAction
                 hardwaysWorking={hardwaysWorking}
                 onToggleHardways={() => {
@@ -3046,125 +3023,9 @@ export default function TablePage() {
                 selectedChip={selectedChip}
                 onHopBet={handleHopBet}
               />
-              </div>
-            </div>
-          </div>
             </div>
           </div>
         </div>
-
-        <MobileCenterActionDrawer
-          open={mobileCenterOpen}
-          onClose={() => setMobileCenterOpen(false)}
-        >
-          <CenterAction
-            hardwaysWorking={hardwaysWorking}
-            onToggleHardways={() => {
-              setHardwaysWorking((current) => {
-                const next = !current;
-                setMessage(
-                  next
-                    ? "Hardways are ON and working."
-                    : "Hardways are OFF and not working."
-                );
-                return next;
-              });
-            }}
-            hardways={hardways}
-            onHardway={handleHardway}
-            flashClass={flashClass}
-            twoBet={twoBet}
-            threeBet={threeBet}
-            yoBet={yoBet}
-            twelveBet={twelveBet}
-            anyCrapsBet={anyCrapsBet}
-            anySevenBet={anySevenBet}
-            ceBet={ceBet}
-            worldBet={worldBet}
-            hornHigh2Bet={hornHigh2Bet}
-            hornHigh3Bet={hornHigh3Bet}
-            hornHigh11Bet={hornHigh11Bet}
-            hornHigh12Bet={hornHigh12Bet}
-            hornBet={hornBet}
-            onTwoBet={(event) =>
-              handlePropBet(event, twoBet, setTwoBet, "2")
-            }
-            onThreeBet={(event) =>
-              handlePropBet(event, threeBet, setThreeBet, "3")
-            }
-            onYoBet={(event) =>
-              handlePropBet(event, yoBet, setYoBet, "Yo 11")
-            }
-            onTwelveBet={(event) =>
-              handlePropBet(event, twelveBet, setTwelveBet, "12")
-            }
-            onAnyCrapsBet={(event) =>
-              handlePropBet(
-                event,
-                anyCrapsBet,
-                setAnyCrapsBet,
-                "Any Craps"
-              )
-            }
-            onAnySevenBet={(event) =>
-              handlePropBet(
-                event,
-                anySevenBet,
-                setAnySevenBet,
-                "Any Seven"
-              )
-            }
-            onCeBet={(event) =>
-              handlePropBet(event, ceBet, setCeBet, "C & E")
-            }
-            onWorldBet={(event) =>
-              handlePropBet(event, worldBet, setWorldBet, "World")
-            }
-            onHornHigh2Bet={(event) =>
-              handlePropBet(
-                event,
-                hornHigh2Bet,
-                setHornHigh2Bet,
-                "HORN HIGH 2"
-              )
-            }
-            onHornHigh3Bet={(event) =>
-              handlePropBet(
-                event,
-                hornHigh3Bet,
-                setHornHigh3Bet,
-                "HORN HIGH 3"
-              )
-            }
-            onHornHigh11Bet={(event) =>
-              handlePropBet(
-                event,
-                hornHigh11Bet,
-                setHornHigh11Bet,
-                "HORN HIGH 11"
-              )
-            }
-            onHornHigh12Bet={(event) =>
-              handlePropBet(
-                event,
-                hornHigh12Bet,
-                setHornHigh12Bet,
-                "HORN HIGH 12"
-              )
-            }
-            onHornBet={(event) =>
-              handlePropBet(event, hornBet, setHornBet, "Horn")
-            }
-            hopBetsOpen={hopBetsOpen}
-            onToggleHopBets={() =>
-              setHopBetsOpen((current) => !current)
-            }
-            totalHopBets={totalHopBets}
-            hopBets={hopBets}
-            selectedChip={selectedChip}
-            onHopBet={handleHopBet}
-          />
-        </MobileCenterActionDrawer>
 
         {/* PLAYER CONTROLS */}
         <div className="mt-2 rounded-xl border border-emerald-900/80 bg-black/30 px-3 py-2">
@@ -3222,17 +3083,6 @@ export default function TablePage() {
           placeBets={placeBets}
           fieldBet={fieldBet}
           onGuideTargetChange={setStrategyGuideTarget}
-        />
-
-        <MobileActionBar
-          isRolling={isRolling}
-          onRollDice={rollDice}
-          selectedChip={selectedChip}
-          onSelectChip={setSelectedChip}
-          removeMode={removeMode}
-          onSetRemoveMode={setRemoveMode}
-          onOpenCenterBets={() => setMobileCenterOpen(true)}
-          strategyGuideTarget={strategyGuideTarget}
         />
 
         <p className="mt-2 text-center text-[9px] text-emerald-700">

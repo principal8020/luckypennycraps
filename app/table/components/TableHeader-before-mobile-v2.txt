@@ -19,56 +19,35 @@ export function TableHeader({
   rollCount,
 }: TableHeaderProps) {
   return (
-    <header className="mb-2 rounded-xl border border-emerald-900/80 bg-black/30 px-2.5 py-2 sm:px-3 lg:px-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/60 bg-amber-300/10 sm:h-10 sm:w-10">
-            <span className="font-serif text-[12px] font-black tracking-[-0.08em] text-amber-200">
+    <header className="mb-2 rounded-xl border border-emerald-900/80 bg-black/30 px-3 py-2 sm:px-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/60 bg-amber-300/10 shadow-[inset_0_0_0_3px_rgba(251,191,36,.06)]">
+            <span className="font-serif text-[13px] font-black tracking-[-0.08em] text-amber-200">
               LP
             </span>
-            <span className="absolute bottom-[3px] text-[4px] font-black uppercase tracking-[0.16em] text-emerald-400">
+            <span className="absolute bottom-[4px] text-[5px] font-black uppercase tracking-[0.18em] text-emerald-400">
               craps
             </span>
           </div>
 
           <div className="min-w-0">
-            <h1 className="truncate text-[15px] font-black tracking-tight sm:text-lg lg:text-xl">
+            <h1 className="truncate text-base font-black tracking-tight sm:text-xl">
               Lucky Penny Craps
             </h1>
-            <p className="text-[7px] font-bold uppercase tracking-[0.16em] text-emerald-400 sm:text-[8px]">
+            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-emerald-400 sm:text-[9px] sm:tracking-[0.22em]">
               Practice • Play • Learn
             </p>
           </div>
         </div>
 
-        {/* Phone landscape / medium screens: keep stats in the same row. */}
-        <div className="hidden min-w-0 flex-1 items-center justify-end gap-3 sm:flex lg:hidden">
-          <Stat label="Bankroll" value={`$${money(bankroll)}`} />
-          <Stat label="On Table" value={`$${money(totalOnTable)}`} />
-          <Stat
-            label="Session P/L"
-            value={`${sessionPL > 0 ? "+" : ""}$${money(sessionPL)}`}
-            positive={sessionPL > 0}
-            negative={sessionPL < 0}
-          />
-          <Stat label="Rolls" value={`${rollCount}`} />
-          <Link
-            href="/"
-            className="shrink-0 rounded-md border border-emerald-800/70 px-2 py-1.5 text-[9px] font-bold text-emerald-300"
-          >
-            Home
-          </Link>
-        </div>
-
-        {/* Portrait phone */}
         <Link
           href="/"
-          className="shrink-0 rounded-md border border-emerald-800/70 px-2 py-1.5 text-[9px] font-bold text-emerald-300 sm:hidden"
+          className="shrink-0 rounded-md border border-emerald-800/70 px-2.5 py-1.5 text-[10px] font-bold text-emerald-300 lg:hidden"
         >
           Home
         </Link>
 
-        {/* Desktop */}
         <div className="hidden items-center gap-4 text-right lg:flex">
           <Link href="/" className="text-xs text-emerald-300 underline">
             Home
@@ -107,8 +86,7 @@ export function TableHeader({
         </div>
       </div>
 
-      {/* Only portrait-sized phones need a separate stats row. */}
-      <div className="mt-2 grid grid-cols-4 gap-1 border-t border-white/10 pt-2 text-center sm:hidden">
+      <div className="mt-2 grid grid-cols-4 gap-1.5 border-t border-white/10 pt-2 text-center lg:hidden">
         <div className="rounded-md bg-black/15 px-1 py-1">
           <Stat label="Bankroll" value={`$${money(bankroll)}`} />
         </div>
@@ -126,6 +104,10 @@ export function TableHeader({
         <div className="rounded-md bg-black/15 px-1 py-1">
           <Stat label="Rolls" value={`${rollCount}`} />
         </div>
+      </div>
+
+      <div className="mt-1.5 text-center text-[8px] font-bold text-emerald-600 lg:hidden">
+        $5 BASE • PLACE MAX $1K • 6/8 $1.2K • 3-4-5× ODDS
       </div>
     </header>
   );
