@@ -364,8 +364,8 @@ export function recommendationFor(
     };
   }
 
-  const ironFive = unit;
-  const ironSixEight = properSixEightAmount(unit);
+  const ironFive = unit * 2;
+  const ironSixEight = properSixEightAmount(unit) * 2;
   const ironTargets: Record<number, number> = {
     5: ironFive,
     6: ironSixEight,

@@ -62,17 +62,29 @@ test("Inside Numbers uses table minimum on 5/9 and proper 6/8 sizing", () => {
   assert.match(rec.status, /5: \$10, 6: \$12, 8: \$12, 9: \$10/);
 });
 
-test("Iron Cross uses $10/$12/$12 plus a $10 Field on a $10 table", () => {
-  const rec = strategy.recommendationFor("iron-cross", state({ point: 6 }), 10);
+test("Iron Cross uses $10/$12/$12 plus a $5 Field on a $5 table", () => {
+  const rec = strategy.recommendationFor("iron-cross", state({ point: 6 }), 5);
   assert.equal(rec.action, "Add $10 to PLACE 5.");
-  assert.match(rec.status, /5: \$10, 6\/8: \$12, Field: \$10/);
+  assert.match(rec.status, /5: \$10, 6\/8: \$12, Field: \$5/);
+});
+
+test("Iron Cross uses $20/$24/$24 plus a $10 Field on a $10 table", () => {
+  const rec = strategy.recommendationFor("iron-cross", state({ point: 6 }), 10);
+  assert.equal(rec.action, "Add $20 to PLACE 5.");
+  assert.match(rec.status, /5: \$20, 6\/8: \$24, Field: \$10/);
+});
+
+test("Iron Cross uses $50/$60/$60 plus a $25 Field on a $25 table", () => {
+  const rec = strategy.recommendationFor("iron-cross", state({ point: 6 }), 25);
+  assert.equal(rec.action, "Add $50 to PLACE 5.");
+  assert.match(rec.status, /5: \$50, 6\/8: \$60, Field: \$25/);
 });
 
 test("Iron Cross asks for the Field after Place 5/6/8 are complete", () => {
   const bets = emptyNumberBets();
-  bets[5] = 10;
-  bets[6] = 12;
-  bets[8] = 12;
+  bets[5] = 20;
+  bets[6] = 24;
+  bets[8] = 24;
   const rec = strategy.recommendationFor("iron-cross", state({ point: 6, placeBets: bets }), 10);
   assert.equal(rec.action, "Add $10 to the FIELD.");
 });

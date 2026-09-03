@@ -285,6 +285,8 @@ export default function TablePage() {
     useState<QuickBetPreview | null>(null);
   const [strategyGuideTarget, setStrategyGuideTarget] =
     useState<StrategyGuideTarget | null>(null);
+  const [strategyGuideAmount, setStrategyGuideAmount] =
+    useState<number | null>(null);
   const [mobileCenterOpen, setMobileCenterOpen] = useState(false);
 
   const [testingMode, setTestingMode] = useState(false);
@@ -3409,6 +3411,7 @@ export default function TablePage() {
           placeBets={placeBets}
           fieldBet={fieldBet}
           onGuideTargetChange={setStrategyGuideTarget}
+          onGuideAmountChange={setStrategyGuideAmount}
         />
 
         <MobileActionBar
@@ -3434,6 +3437,7 @@ export default function TablePage() {
           bankroll={bankroll}
           totalOnTable={totalOnTable}
           strategyGuideTarget={strategyGuideTarget}
+          strategyGuideAmount={strategyGuideAmount}
         />
 
         <p className="mt-2 text-center text-[9px] text-emerald-700">

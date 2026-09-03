@@ -42,6 +42,13 @@ function guideTargetForAction(action: string): StrategyGuideTarget | null {
   return null;
 }
 
+function guideAmountForAction(action: string) {
+  const match = action.match(/\$([\d,]+)/);
+  if (!match) return null;
+
+  return Number(match[1].replace(/,/g, ""));
+}
+
 type StrategyModeProps = {
   bankroll: number;
   totalOnTable: number;
@@ -61,6 +68,7 @@ type StrategyModeProps = {
   placeBets: NumberBets;
   fieldBet: number;
   onGuideTargetChange?: (target: StrategyGuideTarget | null) => void;
+  onGuideAmountChange?: (amount: number | null) => void;
 };
 
 type StrategyDefinition = {
@@ -98,11 +106,11 @@ const strategies: StrategyDefinition[] = [
     id: "iron-cross",
     name: "Iron Cross",
     badge: "FIELD + 5/6/8",
-    description: "Cover the Field together with Place 5, 6 and 8.",
+    description: "Cover the Field with 2× Place bets on 5, 6 and 8.",
     rules: [
       "Wait until a point is established.",
-      "Use the table minimum on 5 and the Field; size 6 and 8 to the proper multiple of $6.",
-      "Keep a Field wager up; replace it after a non-Field result removes it.",
+      "Place 2× the table minimum on 5; use 2× the proper 6/8 amount on 6 and 8.",
+      "Keep 1× the table minimum in the Field; replace it after a non-Field result removes it.",
     ],
   },
   {
@@ -181,21 +189,30 @@ export function StrategyMode(props: StrategyModeProps) {
   const strategyRolls = Math.max(0, props.rollCount - startRollCount);
 
   useEffect(() => {
+    const guideActive =
+      selectedStrategy && recommendation && !showStrategyPicker;
+
     props.onGuideTargetChange?.(
-      selectedStrategy && recommendation && !showStrategyPicker
-        ? guideTargetForAction(recommendation.action)
-        : null
+      guideActive ? guideTargetForAction(recommendation.action) : null
+    );
+
+    props.onGuideAmountChange?.(
+      guideActive ? guideAmountForAction(recommendation.action) : null
     );
   }, [
     selectedStrategy,
     recommendation?.action,
     showStrategyPicker,
     props.onGuideTargetChange,
+    props.onGuideAmountChange,
   ]);
 
   useEffect(() => {
-    return () => props.onGuideTargetChange?.(null);
-  }, [props.onGuideTargetChange]);
+    return () => {
+      props.onGuideTargetChange?.(null);
+      props.onGuideAmountChange?.(null);
+    };
+  }, [props.onGuideTargetChange, props.onGuideAmountChange]);
 
   function selectStrategy(id: StrategyId) {
     setSelectedStrategy(id);
@@ -269,6 +286,7 @@ export function StrategyMode(props: StrategyModeProps) {
           <button
             onClick={() => {
               props.onGuideTargetChange?.(null);
+              props.onGuideAmountChange?.(null);
               setShowStrategyPicker(true);
             }}
             className="min-h-10 rounded-md border border-cyan-800/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-cyan-200 hover:border-cyan-500 hover:bg-cyan-950/35 sm:min-h-0"

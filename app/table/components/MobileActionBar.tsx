@@ -24,6 +24,7 @@ type MobileActionBarProps = {
   bankroll: number;
   totalOnTable: number;
   strategyGuideTarget: StrategyGuideTarget | null;
+  strategyGuideAmount: number | null;
 };
 
 function money(amount: number) {
@@ -163,6 +164,7 @@ export function MobileActionBar({
   bankroll,
   totalOnTable,
   strategyGuideTarget,
+  strategyGuideAmount,
 }: MobileActionBarProps) {
   const nextBet = guideLabel(strategyGuideTarget);
 
@@ -171,6 +173,11 @@ export function MobileActionBar({
       {nextBet && (
         <div className="mx-auto mb-1 max-w-[980px] rounded-md border-2 border-cyan-100 bg-cyan-400 px-2 py-1 text-center text-[10px] font-black uppercase tracking-[0.1em] text-slate-950 shadow-[0_0_18px_rgba(34,211,238,.65)] lg:hidden">
           Strategy next bet → {nextBet}
+          {strategyGuideAmount !== null && (
+            <span className="ml-2 rounded bg-slate-950/85 px-1.5 py-0.5 text-white">
+              ${money(strategyGuideAmount)}
+            </span>
+          )}
         </div>
       )}
 
@@ -219,9 +226,16 @@ export function MobileActionBar({
             <span className="block text-[7px] font-black uppercase tracking-[0.14em]">
               Next Bet
             </span>
-            <span className="block text-[12px] font-black">
-              {nextBet}
-            </span>
+            <div className="flex items-end gap-2">
+              <span className="block text-[12px] font-black">
+                {nextBet}
+              </span>
+              {strategyGuideAmount !== null && (
+                <span className="rounded-md bg-slate-950 px-2 py-0.5 text-[12px] font-black text-white shadow-sm">
+                  ${money(strategyGuideAmount)}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
