@@ -2423,7 +2423,7 @@ export default function TablePage() {
 
 
   return (
-    <main className="min-h-screen bg-[#03130e] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-24 sm:pt-3 lg:pb-3">
+    <main className="min-h-screen bg-[#03130e] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-24 sm:pt-3 lg:pb-24">
       <style>{`
         @keyframes comeChipTravel {
           0% {
@@ -3232,6 +3232,10 @@ export default function TablePage() {
           removeMode={removeMode}
           onSetRemoveMode={setRemoveMode}
           onOpenCenterBets={() => setMobileCenterOpen(true)}
+          placeBetsWorking={placeBetsWorking}
+          onTogglePlaceBetsWorking={() =>
+            setPlaceBetsWorking((current) => !current)
+          }
           strategyGuideTarget={strategyGuideTarget}
         />
 
