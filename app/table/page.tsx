@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type MouseEvent,
@@ -16,6 +17,7 @@ import {
   calculateNumberLayNetProfit,
   calculatePassOddsProfit,
   calculatePlaceProfit,
+  calculateRollNet,
   casinoPayout,
   getPassOddsMultiplier,
   getPlaceBetMax,
@@ -261,6 +263,8 @@ export default function TablePage() {
   const [rollTotal, setRollTotal] = useState(2);
   const [rollHistory, setRollHistory] = useState<RollHistoryItem[]>([]);
   const [rollCount, setRollCount] = useState(0);
+  const rollStartEquityRef = useRef(STARTING_BANKROLL);
+  const pendingRollNumberRef = useRef<number | null>(null);
 
   const [point, setPoint] = useState<number | null>(null);
   const [message, setMessage] = useState(
@@ -467,6 +471,48 @@ export default function TablePage() {
     totalHopBets;
 
   const sessionPL = bankroll + totalOnTable - STARTING_BANKROLL;
+  const lastRollNet =
+    typeof rollHistory[0]?.net === "number"
+      ? rollHistory[0].net
+      : null;
+
+  useEffect(() => {
+    const pendingRoll = pendingRollNumberRef.current;
+
+    if (
+      isRolling ||
+      pendingRoll === null ||
+      pendingRoll !== rollCount
+    ) {
+      return;
+    }
+
+    const rollNet = calculateRollNet(
+      rollStartEquityRef.current,
+      bankroll + totalOnTable
+    );
+
+    pendingRollNumberRef.current = null;
+
+    setRollHistory((current) => {
+      if (current.length === 0 || typeof current[0].net === "number") {
+        return current;
+      }
+
+      return [
+        {
+          ...current[0],
+          net: rollNet,
+        },
+        ...current.slice(1),
+      ];
+    });
+  }, [
+    bankroll,
+    isRolling,
+    rollCount,
+    totalOnTable,
+  ]);
 
   function toggleBetsWorking() {
     setBetsWorking((current) => {
@@ -952,6 +998,8 @@ export default function TablePage() {
     setRollTotal(2);
     setRollHistory([]);
     setRollCount(0);
+    rollStartEquityRef.current = STARTING_BANKROLL;
+    pendingRollNumberRef.current = null;
     setPoint(null);
     setMessage("Table reset. Place your bets for the come-out roll.");
     setBankroll(STARTING_BANKROLL);
@@ -2184,6 +2232,9 @@ export default function TablePage() {
   async function rollDice() {
     if (isRolling) return;
 
+    rollStartEquityRef.current = bankroll + totalOnTable;
+    pendingRollNumberRef.current = rollCount + 1;
+
     setIsRolling(true);
     setTravelAnimation(null);
     setLastRollBets(captureBetSnapshot());
@@ -3328,6 +3379,7 @@ export default function TablePage() {
           dieOne={dieOne}
           dieTwo={dieTwo}
           rollTotal={rollTotal}
+          lastRollNet={lastRollNet}
           isRolling={isRolling}
           onRollDice={rollDice}
           selectedChip={selectedChip}

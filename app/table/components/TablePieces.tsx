@@ -7,23 +7,65 @@ function money(amount: number) {
   return Math.floor(amount).toLocaleString();
 }
 
-function chipRangeStyle(amount: number) {
+type ChipPalette = {
+  shell: string;
+  center: string;
+  text: string;
+  edge: string;
+};
+
+function chipPalette(amount: number): ChipPalette {
   if (amount < 5) {
-    return "bg-white text-black border-slate-400";
+    return {
+      shell: "bg-slate-100",
+      center: "bg-white",
+      text: "text-slate-950",
+      edge: "bg-slate-500",
+    };
   }
+
   if (amount < 25) {
-    return "bg-red-600 text-white border-white";
+    return {
+      shell: "bg-red-600",
+      center: "bg-red-700",
+      text: "text-white",
+      edge: "bg-white",
+    };
   }
+
   if (amount < 100) {
-    return "bg-green-700 text-white border-white";
+    return {
+      shell: "bg-emerald-700",
+      center: "bg-emerald-800",
+      text: "text-white",
+      edge: "bg-white",
+    };
   }
+
   if (amount < 500) {
-    return "bg-zinc-950 text-white border-white";
+    return {
+      shell: "bg-zinc-950",
+      center: "bg-zinc-900",
+      text: "text-white",
+      edge: "bg-white",
+    };
   }
+
   if (amount < 1000) {
-    return "bg-purple-700 text-white border-white";
+    return {
+      shell: "bg-purple-700",
+      center: "bg-purple-800",
+      text: "text-white",
+      edge: "bg-white",
+    };
   }
-  return "bg-yellow-400 text-black border-yellow-100";
+
+  return {
+    shell: "bg-yellow-400",
+    center: "bg-yellow-300",
+    text: "text-black",
+    edge: "bg-black",
+  };
 }
 
 export function BetChip({
@@ -32,21 +74,45 @@ export function BetChip({
 }: BetChipProps) {
   if (amount <= 0) return null;
 
+  const palette = chipPalette(amount);
+  const edgePositions = [
+    "left-1/2 top-[-2px] h-[8px] w-[3px] -translate-x-1/2",
+    "bottom-[-2px] left-1/2 h-[8px] w-[3px] -translate-x-1/2",
+    "left-[-2px] top-1/2 h-[3px] w-[8px] -translate-y-1/2",
+    "right-[-2px] top-1/2 h-[3px] w-[8px] -translate-y-1/2",
+  ];
+
   return (
     <span
-      className={`relative inline-flex items-center justify-center rounded-full border-dashed font-black shadow-xl ${
+      className={`relative inline-flex items-center justify-center rounded-full border-2 border-black/45 font-black shadow-[0_4px_0_rgba(0,0,0,.38),0_7px_14px_rgba(0,0,0,.42)] ${
         compact
-          ? "h-8 min-w-8 border-[3px] px-1.5 text-[8px] ring-1 ring-white/35"
-          : "h-12 min-w-12 border-[4px] px-2 text-[10px]"
-      } ${chipRangeStyle(amount)}`}
+          ? "h-8 min-w-8 px-1 text-[7px]"
+          : "h-12 min-w-12 px-1.5 text-[9px]"
+      } ${palette.shell} ${palette.text}`}
       title={`Total wager: $${money(amount)}`}
     >
+      {edgePositions.map((position) => (
+        <span
+          key={position}
+          className={`absolute rounded-sm ${palette.edge} ${position}`}
+        />
+      ))}
+
       <span
-        className={`absolute rounded-full border border-current opacity-40 ${
-          compact ? "inset-[3px]" : "inset-[5px]"
+        className={`absolute rounded-full border-2 border-white/55 shadow-[inset_0_0_0_2px_rgba(0,0,0,.18)] ${palette.center} ${
+          compact ? "inset-[4px]" : "inset-[6px]"
         }`}
       />
-      <span className="relative z-10">${money(amount)}</span>
+
+      <span
+        className={`absolute rounded-full border border-white/30 ${
+          compact ? "inset-[7px]" : "inset-[10px]"
+        }`}
+      />
+
+      <span className="relative z-10 whitespace-nowrap drop-shadow-[0_1px_1px_rgba(0,0,0,.6)]">
+        ${money(amount)}
+      </span>
     </span>
   );
 }

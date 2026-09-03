@@ -55,24 +55,67 @@ function currentHandRolls(history: RollHistoryItem[]) {
   return sevenOutIndex < 0 ? history : history.slice(0, sevenOutIndex);
 }
 
-function buildHandLengths(history: RollHistoryItem[]) {
+type HandSummary = {
+  shooter: number;
+  rolls: number;
+  points: number;
+  boxHits: number;
+  hardways: number;
+  net: number;
+  completed: boolean;
+};
+
+function buildHands(history: RollHistoryItem[]) {
   const chronological = [...history].reverse();
-  const completed: number[] = [];
-  let current = 0;
+  const hands: HandSummary[] = [];
+  let shooter = 1;
+  let current: HandSummary = {
+    shooter,
+    rolls: 0,
+    points: 0,
+    boxHits: 0,
+    hardways: 0,
+    net: 0,
+    completed: false,
+  };
 
   for (const roll of chronological) {
-    current += 1;
+    current.rolls += 1;
+    current.net += roll.net ?? 0;
+
+    if (roll.event === "pointMade") {
+      current.points += 1;
+    }
+
+    if (isBoxNumber(roll.total)) {
+      current.boxHits += 1;
+    }
+
+    if (isHardway(roll)) {
+      current.hardways += 1;
+    }
 
     if (roll.event === "sevenOut") {
-      completed.push(current);
-      current = 0;
+      current.completed = true;
+      hands.push(current);
+      shooter += 1;
+      current = {
+        shooter,
+        rolls: 0,
+        points: 0,
+        boxHits: 0,
+        hardways: 0,
+        net: 0,
+        completed: false,
+      };
     }
   }
 
-  return {
-    completed,
-    current,
-  };
+  if (current.rolls > 0 || hands.length === 0) {
+    hands.push(current);
+  }
+
+  return hands;
 }
 
 export function TableAnalytics({
@@ -128,12 +171,10 @@ export function TableAnalytics({
   }, [filteredRolls]);
 
   const handStats = useMemo(() => {
-    const current = currentHandRolls(rollHistory);
-    const handLengths = buildHandLengths(rollHistory);
-    const allHandLengths = [
-      ...handLengths.completed,
-      ...(handLengths.current > 0 ? [handLengths.current] : []),
-    ];
+    const hands = buildHands(rollHistory);
+    const current = hands[hands.length - 1];
+    const completed = hands.filter((hand) => hand.completed);
+    const handsWithRolls = hands.filter((hand) => hand.rolls > 0);
 
     const sevenTotals = rollHistory.filter(
       (roll) => roll.total === 7
@@ -149,31 +190,21 @@ export function TableAnalytics({
     ).length;
     const hardways = rollHistory.filter(isHardway).length;
 
-    const currentPoints = current.filter(
-      (roll) => roll.event === "pointMade"
-    ).length;
-    const currentBoxHits = current.filter((roll) =>
-      isBoxNumber(roll.total)
-    ).length;
-    const currentHardways = current.filter(isHardway).length;
-
     const completedAverage =
-      handLengths.completed.length > 0
-        ? handLengths.completed.reduce((sum, length) => sum + length, 0) /
-          handLengths.completed.length
+      completed.length > 0
+        ? completed.reduce((sum, hand) => sum + hand.rolls, 0) /
+          completed.length
         : 0;
 
     return {
-      currentRolls: current.length,
-      currentPoints,
-      currentBoxHits,
-      currentHardways,
-      hands:
-        handLengths.completed.length +
-        (handLengths.current > 0 ? 1 : 0),
-      completedHands: handLengths.completed.length,
+      hands,
+      current,
+      completed,
+      handsWithRolls,
       longestHand:
-        allHandLengths.length > 0 ? Math.max(...allHandLengths) : 0,
+        handsWithRolls.length > 0
+          ? Math.max(...handsWithRolls.map((hand) => hand.rolls))
+          : 0,
       averageHand: completedAverage,
       sevenTotals,
       sevenOuts,
@@ -346,87 +377,163 @@ export function TableAnalytics({
       )}
 
       {tab === "shooter" && (
-        <div className="mt-3 grid gap-2 lg:grid-cols-2">
-          <div className="rounded-lg border border-amber-700/55 bg-amber-950/10 p-3">
-            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-amber-300">
-              Current Shooter
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {[
-                ["Rolls", handStats.currentRolls],
-                ["Box Hits", handStats.currentBoxHits],
-                ["Points Made", handStats.currentPoints],
-                ["Hardways", handStats.currentHardways],
-              ].map(([label, value]) => (
+        <div className="mt-3 space-y-2">
+          <div className="grid gap-2 lg:grid-cols-2">
+            <div className="rounded-lg border border-amber-700/55 bg-amber-950/10 p-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-300">
+                  Current Shooter #{handStats.current.shooter}
+                </p>
                 <div
-                  key={label}
-                  className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center"
+                  className={`rounded-md border px-3 py-1.5 text-[11px] font-black ${
+                    handStats.current.net > 0
+                      ? "border-emerald-500/60 bg-emerald-950/30 text-emerald-300"
+                      : handStats.current.net < 0
+                        ? "border-red-500/60 bg-red-950/30 text-red-300"
+                        : "border-white/10 bg-black/20 text-white/55"
+                  }`}
                 >
-                  <p className="text-[7px] font-black uppercase tracking-[0.1em] text-amber-500">
-                    {label}
+                  SHOOTER TOTAL{" "}
+                  {handStats.current.net > 0 ? "+" : handStats.current.net < 0 ? "-" : ""}
+                  ${money(Math.abs(handStats.current.net))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {[
+                  ["Rolls", handStats.current.rolls],
+                  ["Box Hits", handStats.current.boxHits],
+                  ["Points Made", handStats.current.points],
+                  ["Hardways", handStats.current.hardways],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center"
+                  >
+                    <p className="text-[7px] font-black uppercase tracking-[0.1em] text-amber-500">
+                      {label}
+                    </p>
+                    <p className="mt-1 text-lg font-black text-white">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-2 text-[8px] font-bold text-amber-100/45">
+                A shooter ends only on a puck-ON 7 (seven-out). Come-out 7s remain part of the same shooter.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-cyan-800/55 bg-cyan-950/10 p-3">
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-300">
+                Session Hands
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
+                  <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
+                    Shooters
                   </p>
                   <p className="mt-1 text-lg font-black text-white">
-                    {value}
+                    {handStats.handsWithRolls.length}
                   </p>
                 </div>
-              ))}
+
+                <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
+                  <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
+                    Longest
+                  </p>
+                  <p className="mt-1 text-lg font-black text-white">
+                    {handStats.longestHand}
+                  </p>
+                </div>
+
+                <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
+                  <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
+                    Avg Hand
+                  </p>
+                  <p className="mt-1 text-lg font-black text-white">
+                    {handStats.completed.length > 0
+                      ? handStats.averageHand.toFixed(1)
+                      : "—"}
+                  </p>
+                </div>
+
+                <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
+                  <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
+                    Rolls / 7
+                  </p>
+                  <p className="mt-1 text-lg font-black text-white">
+                    {handStats.rollsPerSeven
+                      ? handStats.rollsPerSeven.toFixed(1)
+                      : "—"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[8px] font-bold text-cyan-100/55">
+                <span>Seven-outs: {handStats.sevenOuts}</span>
+                <span>Points made: {handStats.pointsMade}</span>
+                <span>Box hits: {handStats.boxHits}</span>
+                <span>Hardways: {handStats.hardways}</span>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-cyan-800/55 bg-cyan-950/10 p-3">
-            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-300">
-              Session Hands
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
-                <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
-                  Hands
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  {handStats.hands}
-                </p>
-              </div>
-
-              <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
-                <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
-                  Longest
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  {handStats.longestHand}
-                </p>
-              </div>
-
-              <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
-                <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
-                  Avg Hand
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  {handStats.completedHands > 0
-                    ? handStats.averageHand.toFixed(1)
-                    : "—"}
-                </p>
-              </div>
-
-              <div className="rounded-md border border-white/10 bg-black/25 px-2 py-2 text-center">
-                <p className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-500">
-                  Rolls / 7
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  {handStats.rollsPerSeven
-                    ? handStats.rollsPerSeven.toFixed(1)
-                    : "—"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[8px] font-bold text-cyan-100/55">
-              <span>Seven-outs: {handStats.sevenOuts}</span>
-              <span>Points made: {handStats.pointsMade}</span>
-              <span>Box hits: {handStats.boxHits}</span>
-              <span>Hardways: {handStats.hardways}</span>
-            </div>
+          <div className="overflow-x-auto rounded-lg border border-white/10 bg-black/20">
+            <table className="w-full min-w-[620px] border-collapse text-left">
+              <thead className="border-b border-white/10 bg-black/25 text-[8px] font-black uppercase tracking-[0.1em] text-cyan-400">
+                <tr>
+                  <th className="px-3 py-2">Shooter</th>
+                  <th className="px-3 py-2 text-right">Rolls</th>
+                  <th className="px-3 py-2 text-right">Points</th>
+                  <th className="px-3 py-2 text-right">Box Hits</th>
+                  <th className="px-3 py-2 text-right">Hardways</th>
+                  <th className="px-3 py-2 text-right">Net</th>
+                  <th className="px-3 py-2 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...handStats.hands].reverse().map((hand) => (
+                  <tr
+                    key={hand.shooter}
+                    className="border-b border-white/5 text-[10px] font-semibold text-white/80 last:border-b-0"
+                  >
+                    <td className="px-3 py-2.5 font-black text-white">
+                      Shooter {hand.shooter}
+                    </td>
+                    <td className="px-3 py-2.5 text-right">{hand.rolls}</td>
+                    <td className="px-3 py-2.5 text-right">{hand.points}</td>
+                    <td className="px-3 py-2.5 text-right">{hand.boxHits}</td>
+                    <td className="px-3 py-2.5 text-right">{hand.hardways}</td>
+                    <td
+                      className={`px-3 py-2.5 text-right font-black ${
+                        hand.net > 0
+                          ? "text-emerald-300"
+                          : hand.net < 0
+                            ? "text-red-300"
+                            : "text-white/50"
+                      }`}
+                    >
+                      {hand.net > 0 ? "+" : hand.net < 0 ? "-" : ""}
+                      ${money(Math.abs(hand.net))}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-[8px] font-black uppercase tracking-[0.08em]">
+                      <span
+                        className={
+                          hand.completed
+                            ? "text-zinc-500"
+                            : "text-amber-300"
+                        }
+                      >
+                        {hand.completed ? "Complete" : "Current"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

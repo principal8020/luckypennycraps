@@ -9,6 +9,7 @@ type MobileActionBarProps = {
   dieOne: number;
   dieTwo: number;
   rollTotal: number;
+  lastRollNet: number | null;
   isRolling: boolean;
   onRollDice: () => void;
   selectedChip: number;
@@ -147,6 +148,7 @@ export function MobileActionBar({
   dieOne,
   dieTwo,
   rollTotal,
+  lastRollNet,
   isRolling,
   onRollDice,
   selectedChip,
@@ -167,31 +169,57 @@ export function MobileActionBar({
   return (
     <div className="fixed inset-x-0 bottom-0 z-[120] px-2 pb-[max(.45rem,env(safe-area-inset-bottom))] pt-1.5 lg:bottom-2 lg:px-4 lg:pb-0">
       {nextBet && (
-        <div className="mx-auto mb-1 max-w-[980px] rounded-md border border-cyan-400/60 bg-cyan-950/95 px-2 py-1 text-center text-[10px] font-black uppercase tracking-[0.1em] text-cyan-100 shadow-lg backdrop-blur lg:hidden">
+        <div className="mx-auto mb-1 max-w-[980px] rounded-md border-2 border-cyan-100 bg-cyan-400 px-2 py-1 text-center text-[10px] font-black uppercase tracking-[0.1em] text-slate-950 shadow-[0_0_18px_rgba(34,211,238,.65)] lg:hidden">
           Strategy next bet → {nextBet}
         </div>
       )}
 
-      <div className="mx-auto flex max-w-[1420px] items-center gap-2 overflow-x-auto border-t border-emerald-600/80 bg-[#03130e]/97 px-2 py-1.5 shadow-[0_-12px_35px_rgba(0,0,0,.5)] backdrop-blur lg:rounded-2xl lg:border lg:px-4 lg:py-2.5 lg:shadow-[0_10px_40px_rgba(0,0,0,.55)]">
+      <div className="mx-auto flex max-w-[1460px] items-center gap-2 overflow-x-auto border-t border-emerald-600/80 bg-[#03130e]/97 px-2 py-1.5 shadow-[0_-12px_35px_rgba(0,0,0,.5)] backdrop-blur lg:rounded-2xl lg:border lg:px-4 lg:py-2.5 lg:shadow-[0_10px_40px_rgba(0,0,0,.55)]">
         <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-black/25 px-2 py-1.5">
           <MiniDie value={dieOne} large />
           <MiniDie value={dieTwo} large />
-          <div className="ml-1 min-w-8 text-center">
-            <p className="text-[6px] font-black uppercase tracking-[0.1em] text-emerald-500">
-              Roll
-            </p>
-            <p className="text-lg font-black text-white lg:text-xl">
-              {isRolling ? "…" : rollTotal}
-            </p>
+
+          <div className="ml-1 grid min-w-[72px] grid-cols-2 gap-x-2 text-center">
+            <div>
+              <p className="text-[6px] font-black uppercase tracking-[0.1em] text-emerald-500">
+                Roll
+              </p>
+              <p className="text-lg font-black text-white lg:text-xl">
+                {isRolling ? "…" : rollTotal}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[6px] font-black uppercase tracking-[0.1em] text-emerald-500">
+                Net
+              </p>
+              <p
+                className={`text-[12px] font-black lg:text-[14px] ${
+                  lastRollNet === null
+                    ? "text-white/45"
+                    : lastRollNet > 0
+                      ? "text-emerald-300"
+                      : lastRollNet < 0
+                        ? "text-red-300"
+                        : "text-white/60"
+                }`}
+              >
+                {lastRollNet === null
+                  ? "—"
+                  : `${lastRollNet > 0 ? "+" : lastRollNet < 0 ? "-" : ""}$${money(
+                      Math.abs(lastRollNet)
+                    )}`}
+              </p>
+            </div>
           </div>
         </div>
 
         {nextBet && (
-          <div className="hidden shrink-0 rounded-lg border border-cyan-500/60 bg-cyan-950/70 px-3 py-2 lg:block">
-            <span className="block text-[7px] font-black uppercase tracking-[0.12em] text-cyan-400">
+          <div className="hidden shrink-0 rounded-xl border-2 border-cyan-100 bg-cyan-400 px-3 py-2 text-slate-950 shadow-[0_0_22px_rgba(34,211,238,.7)] lg:block">
+            <span className="block text-[7px] font-black uppercase tracking-[0.14em]">
               Next Bet
             </span>
-            <span className="block text-[11px] font-black text-cyan-100">
+            <span className="block text-[12px] font-black">
               {nextBet}
             </span>
           </div>

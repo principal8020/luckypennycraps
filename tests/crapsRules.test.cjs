@@ -226,3 +226,12 @@ test("BETS ON enables Lay bets and odds", () => {
   assert.equal(rules.isBetWorking("odds", true, true, false), true);
 });
 
+test("roll net measures equity change rather than gross bankroll movement", () => {
+  assert.equal(rules.calculateRollNet(5000, 5035), 35);
+  assert.equal(rules.calculateRollNet(5000, 4975), -25);
+});
+
+test("roll net is zero when a wager only moves between bankroll and table", () => {
+  assert.equal(rules.calculateRollNet(5000, 5000), 0);
+});
+

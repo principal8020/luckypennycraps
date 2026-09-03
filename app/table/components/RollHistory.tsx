@@ -9,6 +9,7 @@ export type RollHistoryItem = {
   total: number;
   event: "normal" | "pointSet" | "pointMade" | "sevenOut";
   pointBefore: number | null;
+  net?: number;
 };
 
 type RollHistoryProps = {
@@ -126,6 +127,21 @@ export function RollHistory({
                 <div className="min-h-[13px] text-[7px] font-black uppercase tracking-[0.08em] text-white/80">
                   {eventLabel}
                 </div>
+
+                {typeof roll.net === "number" && (
+                  <div
+                    className={`mt-1 border-t border-white/10 pt-1 text-[8px] font-black ${
+                      roll.net > 0
+                        ? "text-emerald-300"
+                        : roll.net < 0
+                          ? "text-red-300"
+                          : "text-white/45"
+                    }`}
+                  >
+                    {roll.net > 0 ? "+" : ""}
+                    ${Math.abs(roll.net).toLocaleString()}
+                  </div>
+                )}
               </div>
             );
           })

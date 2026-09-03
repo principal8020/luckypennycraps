@@ -182,11 +182,16 @@ export function StrategyMode(props: StrategyModeProps) {
 
   useEffect(() => {
     props.onGuideTargetChange?.(
-      selectedStrategy && recommendation
+      selectedStrategy && recommendation && !showStrategyPicker
         ? guideTargetForAction(recommendation.action)
         : null
     );
-  }, [selectedStrategy, recommendation?.action, props.onGuideTargetChange]);
+  }, [
+    selectedStrategy,
+    recommendation?.action,
+    showStrategyPicker,
+    props.onGuideTargetChange,
+  ]);
 
   useEffect(() => {
     return () => props.onGuideTargetChange?.(null);
@@ -262,7 +267,10 @@ export function StrategyMode(props: StrategyModeProps) {
             </div>
           </div>
           <button
-            onClick={() => setShowStrategyPicker(true)}
+            onClick={() => {
+              props.onGuideTargetChange?.(null);
+              setShowStrategyPicker(true);
+            }}
             className="min-h-10 rounded-md border border-cyan-800/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-cyan-200 hover:border-cyan-500 hover:bg-cyan-950/35 sm:min-h-0"
           >
             Change Strategy

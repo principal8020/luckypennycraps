@@ -361,3 +361,10 @@ export function isBetWorking(
   return betsWorking;
 }
 
+export function calculateRollNet(
+  equityBeforeRoll: number,
+  equityAfterRoll: number
+) {
+  return casinoPayout(equityAfterRoll - equityBeforeRoll);
+}
+
