@@ -82,36 +82,51 @@ export function BetChip({
     "right-[-2px] top-1/2 h-[3px] w-[8px] -translate-y-1/2",
   ];
 
+  const sizeClass = compact
+    ? "h-9 min-w-9 px-1 text-[7px]"
+    : "h-13 min-w-13 px-1.5 text-[9px]";
+
   return (
     <span
-      className={`relative inline-flex items-center justify-center rounded-full border-2 border-black/45 font-black shadow-[0_4px_0_rgba(0,0,0,.38),0_7px_14px_rgba(0,0,0,.42)] ${
-        compact
-          ? "h-8 min-w-8 px-1 text-[7px]"
-          : "h-12 min-w-12 px-1.5 text-[9px]"
-      } ${palette.shell} ${palette.text}`}
+      className={`relative inline-flex items-center justify-center ${sizeClass}`}
       title={`Total wager: $${money(amount)}`}
     >
-      {edgePositions.map((position) => (
+      {/* Two subtle offset layers create the look of a small chip stack
+          without changing the wager footprint or representing chip count. */}
+      <span
+        className={`absolute translate-x-[3px] translate-y-[4px] rounded-full border-2 border-black/40 opacity-70 shadow-md ${sizeClass} ${palette.shell}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`absolute translate-x-[1px] translate-y-[2px] rounded-full border-2 border-black/40 opacity-85 shadow-md ${sizeClass} ${palette.shell}`}
+        aria-hidden="true"
+      />
+
+      <span
+        className={`relative z-10 inline-flex items-center justify-center rounded-full border-2 border-black/50 font-black shadow-[0_4px_0_rgba(0,0,0,.4),0_8px_15px_rgba(0,0,0,.5)] ${sizeClass} ${palette.shell} ${palette.text}`}
+      >
+        {edgePositions.map((position) => (
+          <span
+            key={position}
+            className={`absolute rounded-sm ${palette.edge} ${position}`}
+          />
+        ))}
+
         <span
-          key={position}
-          className={`absolute rounded-sm ${palette.edge} ${position}`}
+          className={`absolute rounded-full border-2 border-white/60 shadow-[inset_0_0_0_2px_rgba(0,0,0,.2)] ${palette.center} ${
+            compact ? "inset-[4px]" : "inset-[6px]"
+          }`}
         />
-      ))}
 
-      <span
-        className={`absolute rounded-full border-2 border-white/55 shadow-[inset_0_0_0_2px_rgba(0,0,0,.18)] ${palette.center} ${
-          compact ? "inset-[4px]" : "inset-[6px]"
-        }`}
-      />
+        <span
+          className={`absolute rounded-full border border-white/35 ${
+            compact ? "inset-[7px]" : "inset-[10px]"
+          }`}
+        />
 
-      <span
-        className={`absolute rounded-full border border-white/30 ${
-          compact ? "inset-[7px]" : "inset-[10px]"
-        }`}
-      />
-
-      <span className="relative z-10 whitespace-nowrap drop-shadow-[0_1px_1px_rgba(0,0,0,.6)]">
-        ${money(amount)}
+        <span className="relative z-10 whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,.7)]">
+          ${money(amount)}
+        </span>
       </span>
     </span>
   );

@@ -2641,11 +2641,47 @@ export default function TablePage() {
         }
 
         .lucky-win-flash {
-          animation: luckyWinPulse 820ms ease-out both;
+          animation: luckyWinPulse 980ms ease-out both;
+          position: relative;
+          z-index: 35;
         }
 
         .lucky-loss-flash {
-          animation: luckyLossPulse 820ms ease-out both;
+          animation: luckyLossPulse 980ms ease-out both;
+          position: relative;
+          z-index: 35;
+        }
+
+        .lucky-win-flash::after,
+        .lucky-loss-flash::after {
+          content: "";
+          pointer-events: none;
+          position: absolute;
+          inset: 2px;
+          border-radius: inherit;
+          opacity: 0;
+        }
+
+        .lucky-win-flash::after {
+          animation: luckyWinOverlay 980ms ease-out both;
+          background: radial-gradient(circle at center, rgba(74,222,128,.22), transparent 70%);
+        }
+
+        .lucky-loss-flash::after {
+          animation: luckyLossOverlay 980ms ease-out both;
+          background: radial-gradient(circle at center, rgba(248,113,113,.22), transparent 70%);
+        }
+
+        @keyframes luckyWinOverlay {
+          0% { opacity: 0; }
+          25% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+
+        @keyframes luckyLossOverlay {
+          0% { opacity: 0; }
+          25% { opacity: 1; }
+          100% { opacity: 0; }
         }
 
         .lucky-rotate-hint {
@@ -2687,13 +2723,13 @@ export default function TablePage() {
             {/* FELT */}
             <div
               onPointerDownCapture={rememberUndo}
-              className="overflow-hidden rounded-[28px] border-[8px] border-[#6c3b12] bg-[#087348] shadow-2xl"
+              className="overflow-hidden rounded-[30px] border-[9px] border-[#6c3b12] bg-[#087348] shadow-[0_18px_45px_rgba(0,0,0,.5),inset_0_0_0_2px_rgba(255,188,90,.08),inset_0_0_24px_rgba(0,0,0,.2)]"
             >
           <div
             className="relative border-[3px] border-[#2f1b0a] p-2 sm:p-3"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.035), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.12), transparent 30%)",
+                "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.04), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.13), transparent 30%), repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, rgba(0,0,0,0.012) 1px, rgba(0,0,0,0.012) 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.008) 0px, rgba(255,255,255,0.008) 1px, transparent 1px, transparent 4px)",
             }}
           >
             <div className="relative z-10 grid gap-1 lg:grid-cols-[minmax(0,3.2fr)_minmax(240px,.84fr)] xl:grid-cols-[minmax(0,3.2fr)_minmax(290px,.92fr)]">
@@ -2712,7 +2748,7 @@ export default function TablePage() {
                     >
                       {point === number && (
                         <div
-                          className="absolute left-1/2 top-[122px] z-[70] flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[2px] border-white bg-zinc-950 text-[8px] font-black shadow-xl ring-1 ring-black/40"
+                          className="absolute left-1/2 top-[122px] z-[70] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white bg-[radial-gradient(circle_at_35%_30%,#3f3f46_0%,#18181b_36%,#09090b_72%)] text-[9px] font-black tracking-[0.04em] shadow-[0_6px_12px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.08)] ring-2 ring-black/50"
                           title={`Point is ${number}`}
                         >
                           ON
@@ -2892,7 +2928,7 @@ export default function TablePage() {
 
                   {point === null && (
                     <div
-                      className="absolute -left-1 -top-3 z-[70] flex h-8 w-8 items-center justify-center rounded-full border-[2px] border-zinc-900 bg-white text-[8px] font-black text-black shadow-xl"
+                      className="absolute -left-1 -top-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-800 bg-[radial-gradient(circle_at_35%_30%,#ffffff_0%,#f4f4f5_45%,#d4d4d8_100%)] text-[8px] font-black tracking-[0.03em] text-black shadow-[0_5px_12px_rgba(0,0,0,.45),inset_0_0_0_2px_rgba(255,255,255,.8)]"
                       title="Come-out roll"
                     >
                       OFF
