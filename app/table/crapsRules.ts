@@ -336,3 +336,28 @@ export function resolveTraveledDontComeBet(
   };
 }
 
+export type WorkingBetKind =
+  | "place"
+  | "lay"
+  | "odds"
+  | "contractFlat"
+  | "oneRoll"
+  | "hardway";
+
+export function isBetWorking(
+  kind: WorkingBetKind,
+  betsWorking: boolean,
+  pointOn: boolean,
+  placeBetsWorkingOnComeOut: boolean
+) {
+  if (kind === "contractFlat" || kind === "oneRoll" || kind === "hardway") {
+    return true;
+  }
+
+  if (kind === "place") {
+    return betsWorking && (pointOn || placeBetsWorkingOnComeOut);
+  }
+
+  return betsWorking;
+}
+

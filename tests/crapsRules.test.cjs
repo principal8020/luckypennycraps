@@ -197,3 +197,32 @@ test("traveled Don't Come flat bet loses if its number repeats on the come-out w
   assert.equal(result.bankrollReturn, 150);
 });
 
+test("BETS OFF disables Place bets while a point is on", () => {
+  assert.equal(rules.isBetWorking("place", false, true, false), false);
+});
+
+test("BETS ON keeps Place bets working while a point is on", () => {
+  assert.equal(rules.isBetWorking("place", true, true, false), true);
+});
+
+test("Place bets on the come-out still respect the separate Place Working toggle", () => {
+  assert.equal(rules.isBetWorking("place", true, false, false), false);
+  assert.equal(rules.isBetWorking("place", true, false, true), true);
+});
+
+test("BETS OFF disables Lay bets and odds", () => {
+  assert.equal(rules.isBetWorking("lay", false, true, false), false);
+  assert.equal(rules.isBetWorking("odds", false, true, false), false);
+});
+
+test("contract flat bets, one-roll bets and hardways ignore the global BETS toggle", () => {
+  assert.equal(rules.isBetWorking("contractFlat", false, true, false), true);
+  assert.equal(rules.isBetWorking("oneRoll", false, false, false), true);
+  assert.equal(rules.isBetWorking("hardway", false, true, false), true);
+});
+
+test("BETS ON enables Lay bets and odds", () => {
+  assert.equal(rules.isBetWorking("lay", true, true, false), true);
+  assert.equal(rules.isBetWorking("odds", true, true, false), true);
+});
+

@@ -19,6 +19,7 @@ import {
   casinoPayout,
   getPassOddsMultiplier,
   getPlaceBetMax,
+  isBetWorking,
   layOddsLabel,
   passOddsLabel,
   placeOddsLabel,
@@ -30,9 +31,9 @@ import {
 } from "./crapsRules";
 import { BetChip, MiniDie } from "./components/TablePieces";
 import type { RollHistoryItem } from "./components/RollHistory";
-import { DealerTray } from "./components/DealerTray";
 import { MobileActionBar } from "./components/MobileActionBar";
 import { MobileCenterActionDrawer } from "./components/MobileCenterActionDrawer";
+import { TableAnalytics } from "./components/TableAnalytics";
 import { UtilityControls } from "./components/UtilityControls";
 import { CenterAction } from "./components/CenterAction";
 import {
@@ -269,6 +270,7 @@ export default function TablePage() {
   const [bankroll, setBankroll] = useState(STARTING_BANKROLL);
   const [selectedChip, setSelectedChip] = useState(25);
   const [removeMode, setRemoveMode] = useState(false);
+  const [betsWorking, setBetsWorking] = useState(true);
   const [placeBetsWorking, setPlaceBetsWorking] = useState(false);
   const [hardwaysWorking, setHardwaysWorking] = useState(false);
   const [travelAnimation, setTravelAnimation] =
@@ -465,6 +467,18 @@ export default function TablePage() {
     totalHopBets;
 
   const sessionPL = bankroll + totalOnTable - STARTING_BANKROLL;
+
+  function toggleBetsWorking() {
+    setBetsWorking((current) => {
+      const next = !current;
+      setMessage(
+        next
+          ? "Eligible multi-roll bets are ON."
+          : "Eligible multi-roll bets are OFF. Contract flat bets, one-roll bets and hardways keep their normal working rules."
+      );
+      return next;
+    });
+  }
 
   function quickPreviewNumberClass(number: number) {
     if (!quickBetPreview || quickBetPreview.target[number] <= 0) {
@@ -943,6 +957,7 @@ export default function TablePage() {
     setBankroll(STARTING_BANKROLL);
     setSelectedChip(25);
     setRemoveMode(false);
+    setBetsWorking(true);
     setPlaceBetsWorking(false);
     setHardwaysWorking(false);
     setPassLineBet(0);
@@ -2225,8 +2240,17 @@ export default function TablePage() {
   function resolveRoll(first: number, second: number, total: number) {
     const messages: string[] = [];
 
-    const layMessage = resolveNumberLayBets(total);
-    if (layMessage) messages.push(layMessage);
+    if (
+      isBetWorking(
+        "lay",
+        betsWorking,
+        point !== null,
+        placeBetsWorking
+      )
+    ) {
+      const layMessage = resolveNumberLayBets(total);
+      if (layMessage) messages.push(layMessage);
+    }
 
     const fieldMessage = resolveField(total);
     if (fieldMessage) messages.push(fieldMessage);
@@ -2238,12 +2262,26 @@ export default function TablePage() {
       messages.push(...resolveHardways(first, second, total));
     }
 
-    const traveledOddsWorking = point !== null;
+    const traveledOddsWorking =
+      point !== null &&
+      isBetWorking(
+        "odds",
+        betsWorking,
+        true,
+        placeBetsWorking
+      );
     messages.push(...resolveComeBets(total, traveledOddsWorking));
     messages.push(...resolveDontComeBets(total, traveledOddsWorking));
 
     if (point === null) {
-      if (placeBetsWorking) {
+      if (
+        isBetWorking(
+          "place",
+          betsWorking,
+          false,
+          placeBetsWorking
+        )
+      ) {
         if (total === 7) {
           const placeLoss = clearPlaceBets();
           if (placeLoss) {
@@ -2331,16 +2369,44 @@ export default function TablePage() {
     if (total === 7) {
       messages.unshift("7 — Seven out!");
 
-      const placeLoss = clearPlaceBets();
-      if (placeLoss > 0) {
-        messages.push(`Place bets lose $${money(placeLoss)}.`);
+      const multiRollBetsWorking = isBetWorking(
+        "odds",
+        betsWorking,
+        true,
+        placeBetsWorking
+      );
+
+      if (
+        isBetWorking(
+          "place",
+          betsWorking,
+          true,
+          placeBetsWorking
+        )
+      ) {
+        const placeLoss = clearPlaceBets();
+        if (placeLoss > 0) {
+          messages.push(`Place bets lose $${money(placeLoss)}.`);
+        }
       }
 
       if (passLineBet + passOddsBet > 0) {
         flashOutcome("pass", "pass", "loss");
-        messages.push(
-          `Pass Line/odds lose $${money(passLineBet + passOddsBet)}.`
-        );
+
+        if (passLineBet > 0) {
+          messages.push(`Pass Line loses $${money(passLineBet)}.`);
+        }
+
+        if (passOddsBet > 0) {
+          if (multiRollBetsWorking) {
+            messages.push(`Pass odds lose $${money(passOddsBet)}.`);
+          } else {
+            setBankroll((current) => current + passOddsBet);
+            messages.push(
+              `Pass odds are OFF. $${money(passOddsBet)} returned.`
+            );
+          }
+        }
       }
 
       if (dontPassBet > 0) {
@@ -2349,8 +2415,12 @@ export default function TablePage() {
         let profit = 0;
 
         if (dontPassOddsBet > 0) {
-          profit = calculateLayOddsProfit(point!, dontPassOddsBet);
-          returned += dontPassOddsBet + profit;
+          if (multiRollBetsWorking) {
+            profit = calculateLayOddsProfit(point!, dontPassOddsBet);
+            returned += dontPassOddsBet + profit;
+          } else {
+            returned += dontPassOddsBet;
+          }
         }
 
         setBankroll((current) => current + returned);
@@ -2358,6 +2428,10 @@ export default function TablePage() {
 
         if (profit > 0) {
           messages.push(`Lay odds win $${money(profit)}.`);
+        } else if (dontPassOddsBet > 0 && !multiRollBetsWorking) {
+          messages.push(
+            `Lay odds are OFF. $${money(dontPassOddsBet)} returned.`
+          );
         }
       }
 
@@ -2370,11 +2444,27 @@ export default function TablePage() {
       return;
     }
 
-    const placeMessage = resolvePlaceBet(total);
-    if (placeMessage) messages.push(placeMessage);
+    if (
+      isBetWorking(
+        "place",
+        betsWorking,
+        true,
+        placeBetsWorking
+      )
+    ) {
+      const placeMessage = resolvePlaceBet(total);
+      if (placeMessage) messages.push(placeMessage);
+    }
 
     if (total === point) {
       messages.unshift(`${total} — Point made!`);
+
+      const contractOddsWorking = isBetWorking(
+        "odds",
+        betsWorking,
+        true,
+        placeBetsWorking
+      );
 
       if (passLineBet > 0) {
         flashOutcome("pass", "pass", "win");
@@ -2382,8 +2472,12 @@ export default function TablePage() {
         let oddsProfit = 0;
 
         if (passOddsBet > 0) {
-          oddsProfit = calculatePassOddsProfit(point, passOddsBet);
-          returned += passOddsBet + oddsProfit;
+          if (contractOddsWorking) {
+            oddsProfit = calculatePassOddsProfit(point, passOddsBet);
+            returned += passOddsBet + oddsProfit;
+          } else {
+            returned += passOddsBet;
+          }
         }
 
         setBankroll((current) => current + returned);
@@ -2391,16 +2485,34 @@ export default function TablePage() {
 
         if (oddsProfit) {
           messages.push(`Pass odds win $${money(oddsProfit)}.`);
+        } else if (passOddsBet > 0 && !contractOddsWorking) {
+          messages.push(
+            `Pass odds are OFF. $${money(passOddsBet)} returned.`
+          );
         }
       }
 
       if (dontPassBet + dontPassOddsBet > 0) {
         flashOutcome("dontPass", "dont-pass", "loss");
-        messages.push(
-          `Don't Pass/lay odds lose $${money(
-            dontPassBet + dontPassOddsBet
-          )}.`
-        );
+
+        if (dontPassBet > 0) {
+          messages.push(
+            `Don't Pass loses $${money(dontPassBet)}.`
+          );
+        }
+
+        if (dontPassOddsBet > 0) {
+          if (contractOddsWorking) {
+            messages.push(
+              `Lay odds lose $${money(dontPassOddsBet)}.`
+            );
+          } else {
+            setBankroll((current) => current + dontPassOddsBet);
+            messages.push(
+              `Lay odds are OFF. $${money(dontPassOddsBet)} returned.`
+            );
+          }
+        }
       }
 
       setPassLineBet(0);
@@ -2916,23 +3028,11 @@ export default function TablePage() {
                     )}
                   </div>
 
-                  <DealerTray
-                    dieOne={dieOne}
-                    dieTwo={dieTwo}
-                    rollTotal={rollTotal}
-                    isRolling={isRolling}
-                    onRollDice={rollDice}
+                  <TableAnalytics
                     message={message}
-                    removeMode={removeMode}
-                    onSetRemoveMode={setRemoveMode}
-                    selectedChip={selectedChip}
-                    onSelectChip={setSelectedChip}
-                    placeBetsWorking={placeBetsWorking}
-                    onTogglePlaceBetsWorking={() =>
-                      setPlaceBetsWorking((current) => !current)
-                    }
                     rollHistory={rollHistory}
                     rollCount={rollCount}
+                    sessionPL={sessionPL}
                   />
                 </div>
               </div>
@@ -3225,17 +3325,26 @@ export default function TablePage() {
         />
 
         <MobileActionBar
+          dieOne={dieOne}
+          dieTwo={dieTwo}
+          rollTotal={rollTotal}
           isRolling={isRolling}
           onRollDice={rollDice}
           selectedChip={selectedChip}
           onSelectChip={setSelectedChip}
           removeMode={removeMode}
-          onSetRemoveMode={setRemoveMode}
+          onToggleRemoveMode={() =>
+            setRemoveMode((current) => !current)
+          }
           onOpenCenterBets={() => setMobileCenterOpen(true)}
+          betsWorking={betsWorking}
+          onToggleBetsWorking={toggleBetsWorking}
           placeBetsWorking={placeBetsWorking}
           onTogglePlaceBetsWorking={() =>
             setPlaceBetsWorking((current) => !current)
           }
+          bankroll={bankroll}
+          totalOnTable={totalOnTable}
           strategyGuideTarget={strategyGuideTarget}
         />
 
