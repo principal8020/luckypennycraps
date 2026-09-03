@@ -1,46 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   recommendationFor,
   type StrategyId,
 } from "../strategyRules";
 
 type NumberBets = Record<number, number>;
-
-export type StrategyGuideTarget =
-  | "pass-line"
-  | "pass-odds"
-  | "dont-pass"
-  | "dont-pass-odds"
-  | "come"
-  | "dont-come"
-  | "field"
-  | `place-${number}`
-  | `come-odds-${number}`
-  | `dont-come-odds-${number}`;
-
-function guideTargetForAction(action: string): StrategyGuideTarget | null {
-  const dontComeOdds = action.match(/DON'T COME LAY ODDS behind (\d+)/);
-  if (dontComeOdds) return `dont-come-odds-${dontComeOdds[1]}`;
-
-  const comeOdds = action.match(/COME ODDS on (\d+)/);
-  if (comeOdds) return `come-odds-${comeOdds[1]}`;
-
-  if (action.includes("DON'T PASS LAY ODDS")) return "dont-pass-odds";
-  if (action.includes("PASS ODDS")) return "pass-odds";
-
-  const place = action.match(/PLACE (\d+)/);
-  if (place) return `place-${place[1]}`;
-
-  if (action.includes("the FIELD")) return "field";
-  if (action.includes("in DON'T COME")) return "dont-come";
-  if (action.includes("in COME")) return "come";
-  if (action.includes("DON'T PASS")) return "dont-pass";
-  if (action.includes("PASS LINE")) return "pass-line";
-
-  return null;
-}
 
 type StrategyModeProps = {
   bankroll: number;
@@ -60,7 +26,6 @@ type StrategyModeProps = {
   dontComeOdds: NumberBets;
   placeBets: NumberBets;
   fieldBet: number;
-  onGuideTargetChange?: (target: StrategyGuideTarget | null) => void;
 };
 
 type StrategyDefinition = {
@@ -179,18 +144,6 @@ export function StrategyMode(props: StrategyModeProps) {
 
   const strategyPL = props.bankroll + props.totalOnTable - startEquity;
   const strategyRolls = Math.max(0, props.rollCount - startRollCount);
-
-  useEffect(() => {
-    props.onGuideTargetChange?.(
-      selectedStrategy && recommendation
-        ? guideTargetForAction(recommendation.action)
-        : null
-    );
-  }, [selectedStrategy, recommendation?.action, props.onGuideTargetChange]);
-
-  useEffect(() => {
-    return () => props.onGuideTargetChange?.(null);
-  }, [props.onGuideTargetChange]);
 
   function selectStrategy(id: StrategyId) {
     setSelectedStrategy(id);

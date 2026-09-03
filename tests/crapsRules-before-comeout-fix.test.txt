@@ -162,38 +162,3 @@ test("Don't Pass come-out outcomes", () => {
     assert.equal(rules.resolveDontPassComeOut(point), "point");
   }
 });
-
-test("traveled Come flat bet works on a come-out winner while Come odds are off", () => {
-  const result = rules.resolveTraveledComeBet(6, 6, 25, 50, false);
-  assert.equal(result.result, "win");
-  assert.equal(result.flatProfit, 25);
-  assert.equal(result.oddsProfit, 0);
-  assert.equal(result.oddsReturned, 50);
-  assert.equal(result.bankrollReturn, 100);
-});
-
-test("traveled Come flat bet loses on come-out 7 while Come odds are returned", () => {
-  const result = rules.resolveTraveledComeBet(7, 6, 25, 50, false);
-  assert.equal(result.result, "loss");
-  assert.equal(result.amountLost, 25);
-  assert.equal(result.oddsReturned, 50);
-  assert.equal(result.bankrollReturn, 50);
-});
-
-test("traveled Don't Come flat bet wins on come-out 7 while lay odds are off", () => {
-  const result = rules.resolveTraveledDontComeBet(7, 6, 25, 150, false);
-  assert.equal(result.result, "win");
-  assert.equal(result.flatProfit, 25);
-  assert.equal(result.oddsProfit, 0);
-  assert.equal(result.oddsReturned, 150);
-  assert.equal(result.bankrollReturn, 200);
-});
-
-test("traveled Don't Come flat bet loses if its number repeats on the come-out while lay odds are returned", () => {
-  const result = rules.resolveTraveledDontComeBet(6, 6, 25, 150, false);
-  assert.equal(result.result, "loss");
-  assert.equal(result.amountLost, 25);
-  assert.equal(result.oddsReturned, 150);
-  assert.equal(result.bankrollReturn, 150);
-});
-

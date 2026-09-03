@@ -24,8 +24,6 @@ import {
   placeOddsLabel,
   resolveCeNetProfit,
   resolveHornHighNetProfit,
-  resolveTraveledComeBet,
-  resolveTraveledDontComeBet,
   resolveWorldNetProfit,
 } from "./crapsRules";
 import { BetChip, MiniDie } from "./components/TablePieces";
@@ -43,10 +41,7 @@ import {
   type PracticeScenarioId,
 } from "./components/PracticeControls";
 import { TableHeader } from "./components/TableHeader";
-import {
-  StrategyMode,
-  type StrategyGuideTarget,
-} from "./components/StrategyMode";
+import { StrategyMode } from "./components/StrategyMode";
 
 const STARTING_BANKROLL = 5000;
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
@@ -243,15 +238,6 @@ function TravelChip({
   );
 }
 
-function strategyGuideClass(
-  current: StrategyGuideTarget | null,
-  target: StrategyGuideTarget
-) {
-  return current === target
-    ? "outline outline-[4px] outline-cyan-300 outline-offset-[-4px] shadow-[0_0_28px_rgba(34,211,238,.78)] animate-pulse"
-    : "";
-}
-
 export default function TablePage() {
   const [dieOne, setDieOne] = useState(1);
   const [dieTwo, setDieTwo] = useState(1);
@@ -275,8 +261,6 @@ export default function TablePage() {
     useState<ResolutionFlash[]>([]);
   const [quickBetPreview, setQuickBetPreview] =
     useState<QuickBetPreview | null>(null);
-  const [strategyGuideTarget, setStrategyGuideTarget] =
-    useState<StrategyGuideTarget | null>(null);
 
   const [testingMode, setTestingMode] = useState(false);
   const [forcedTotal, setForcedTotal] = useState(7);
@@ -2013,54 +1997,47 @@ export default function TablePage() {
     return messages;
   }
 
-  function resolveComeBets(total: number, oddsWorking: boolean) {
+  function resolveComeBets(total: number) {
     const messages: string[] = [];
     const nextCome = { ...comeBets };
     const nextOdds = { ...comeOdds };
 
-    for (const number of pointNumbers) {
-      const flat = nextCome[number];
-      const odds = nextOdds[number];
-      const result = resolveTraveledComeBet(
-        total,
-        number,
-        flat,
-        odds,
-        oddsWorking
-      );
+    if (total === 7) {
+      let lost = 0;
 
-      if (result.result === "none") continue;
-
-      flashOutcome(
-        "come",
-        String(number),
-        result.result === "win" ? "win" : "loss"
-      );
-
-      if (result.bankrollReturn > 0) {
-        setBankroll((current) => current + result.bankrollReturn);
+      for (const number of pointNumbers) {
+        if (nextCome[number] + nextOdds[number] > 0) {
+          flashOutcome("come", String(number), "loss");
+        }
+        lost += nextCome[number] + nextOdds[number];
+        nextCome[number] = 0;
+        nextOdds[number] = 0;
       }
 
-      if (result.result === "win") {
-        messages.push(
-          `Come ${number} wins $${money(result.flatProfit)}` +
-            (result.oddsProfit > 0
-              ? ` + $${money(result.oddsProfit)} odds.`
-              : result.oddsReturned > 0
-                ? `. $${money(result.oddsReturned)} Come odds were OFF and returned.`
-                : ".")
-        );
-      } else {
-        messages.push(
-          `Come ${number} loses $${money(result.amountLost)}` +
-            (result.oddsReturned > 0
-              ? `. $${money(result.oddsReturned)} Come odds were OFF and returned.`
-              : ".")
-        );
+      if (lost > 0) {
+        messages.push(`Come bets and odds lose $${money(lost)}.`);
+      }
+    } else if (pointNumbers.includes(total) && nextCome[total] > 0) {
+      flashOutcome("come", String(total), "win");
+      const flat = nextCome[total];
+      const odds = nextOdds[total];
+
+      let returned = flat * 2;
+      let oddsProfit = 0;
+
+      if (odds > 0) {
+        oddsProfit = calculatePassOddsProfit(total, odds);
+        returned += odds + oddsProfit;
       }
 
-      nextCome[number] = 0;
-      nextOdds[number] = 0;
+      setBankroll((current) => current + returned);
+      messages.push(
+        `Come ${total} wins $${money(flat)}` +
+          (odds ? ` + $${money(oddsProfit)} odds.` : ".")
+      );
+
+      nextCome[total] = 0;
+      nextOdds[total] = 0;
     }
 
     if (activeComeBet > 0) {
@@ -2086,54 +2063,42 @@ export default function TablePage() {
     return messages;
   }
 
-  function resolveDontComeBets(total: number, oddsWorking: boolean) {
+  function resolveDontComeBets(total: number) {
     const messages: string[] = [];
     const nextDC = { ...dontComeBets };
     const nextOdds = { ...dontComeOdds };
 
-    for (const number of pointNumbers) {
-      const flat = nextDC[number];
-      const lay = nextOdds[number];
-      const result = resolveTraveledDontComeBet(
-        total,
-        number,
-        flat,
-        lay,
-        oddsWorking
-      );
+    if (total === 7) {
+      for (const number of pointNumbers) {
+        const flat = nextDC[number];
+        const lay = nextOdds[number];
 
-      if (result.result === "none") continue;
+        if (flat > 0) {
+          flashOutcome("dontCome", String(number), "win");
+          let returned = flat * 2;
+          let layProfit = 0;
 
-      flashOutcome(
-        "dontCome",
-        String(number),
-        result.result === "win" ? "win" : "loss"
-      );
+          if (lay > 0) {
+            layProfit = calculateLayOddsProfit(number, lay);
+            returned += lay + layProfit;
+          }
 
-      if (result.bankrollReturn > 0) {
-        setBankroll((current) => current + result.bankrollReturn);
+          setBankroll((current) => current + returned);
+          messages.push(
+            `Don't Come ${number} wins $${money(flat)}` +
+              (lay ? ` + $${money(layProfit)} lay odds.` : ".")
+          );
+
+          nextDC[number] = 0;
+          nextOdds[number] = 0;
+        }
       }
-
-      if (result.result === "win") {
-        messages.push(
-          `Don't Come ${number} wins $${money(result.flatProfit)}` +
-            (result.oddsProfit > 0
-              ? ` + $${money(result.oddsProfit)} lay odds.`
-              : result.oddsReturned > 0
-                ? `. $${money(result.oddsReturned)} lay odds were OFF and returned.`
-                : ".")
-        );
-      } else {
-        messages.push(
-          `Don't Come ${number} loses $${money(result.amountLost)}` +
-            (result.oddsReturned > 0
-              ? `. $${money(result.oddsReturned)} lay odds were OFF and returned.`
-              : ".")
-        );
-      }
-
-      nextDC[number] = 0;
-      nextOdds[number] = 0;
+    } else if (pointNumbers.includes(total) && nextDC[total] > 0) {
+      flashOutcome("dontCome", String(total), "loss");
+      const lost = nextDC[total] + nextOdds[total];
+      messages.push(`Don't Come ${total} loses $${money(lost)}.`);
+      nextDC[total] = 0;
+      nextOdds[total] = 0;
     }
 
     if (activeDontComeBet > 0) {
@@ -2235,9 +2200,10 @@ export default function TablePage() {
       messages.push(...resolveHardways(first, second, total));
     }
 
-    const traveledOddsWorking = point !== null;
-    messages.push(...resolveComeBets(total, traveledOddsWorking));
-    messages.push(...resolveDontComeBets(total, traveledOddsWorking));
+    if (point !== null) {
+      messages.push(...resolveComeBets(total));
+      messages.push(...resolveDontComeBets(total));
+    }
 
     if (point === null) {
       if (placeBetsWorking) {
@@ -2552,10 +2518,7 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleDontComeOdds(event, number)
                                 }
-                                className={`flex min-w-[58px] items-center justify-center gap-1 rounded border border-red-300/60 bg-red-950/90 px-1 py-0.5 font-black leading-tight text-red-50 ${strategyGuideClass(
-                                  strategyGuideTarget,
-                                  `dont-come-odds-${number}`
-                                )}`}
+                                className="flex min-w-[58px] items-center justify-center gap-1 rounded border border-red-300/60 bg-red-950/90 px-1 py-0.5 font-black leading-tight text-red-50"
                                 title={`Don't Come lay odds pay ${layOddsLabel(
                                   number
                                 )}`}
@@ -2632,10 +2595,7 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleComeOdds(event, number)
                                 }
-                                className={`flex min-w-[58px] items-center justify-center gap-1 rounded border border-blue-300/60 bg-blue-950/90 px-1 py-0.5 font-black leading-tight text-blue-50 ${strategyGuideClass(
-                                  strategyGuideTarget,
-                                  `come-odds-${number}`
-                                )}`}
+                                className="flex min-w-[58px] items-center justify-center gap-1 rounded border border-blue-300/60 bg-blue-950/90 px-1 py-0.5 font-black leading-tight text-blue-50"
                                 title={`Come odds pay ${passOddsLabel(number)}`}
                               >
                                 <span className="text-[6px] uppercase tracking-[0.06em] text-blue-100">
@@ -2686,10 +2646,7 @@ export default function TablePage() {
                         onClick={(event) => handleNumberBet(event, number)}
                         className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-emerald-100/30 bg-emerald-950/[0.18] px-2 font-black transition hover:bg-white/[0.04] ${
                           placeBets[number] > 0 ? "bg-emerald-950/45" : ""
-                        } ${flashClass("place", String(number))} ${strategyGuideClass(
-                          strategyGuideTarget,
-                          `place-${number}`
-                        )}`}
+                        } ${flashClass("place", String(number))}`}
                         title={`Place ${number} pays ${placeOddsLabel(number)}`}
                       >
                         <span className="text-left leading-tight">
@@ -2721,10 +2678,7 @@ export default function TablePage() {
                   <div className="grid min-h-[92px] grid-cols-[112px_minmax(0,1fr)] gap-[3px] sm:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[165px_minmax(0,1fr)]">
                     <button
                       onClick={handleDontComeBet}
-                      className={`relative flex flex-col items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04] ${strategyGuideClass(
-                        strategyGuideTarget,
-                        "dont-come"
-                      )}`}
+                      className="relative flex flex-col items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04]"
                       title="New Don't Come bet. Bar 12."
                     >
                       <span className="text-[11px] uppercase tracking-[0.08em] text-red-100">
@@ -2747,10 +2701,7 @@ export default function TablePage() {
 
                     <button
                       onClick={handleComeBet}
-                      className={`relative flex items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.015] px-3 text-center transition hover:bg-white/[0.035] ${strategyGuideClass(
-                        strategyGuideTarget,
-                        "come"
-                      )}`}
+                      className="relative flex items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.015] px-3 text-center transition hover:bg-white/[0.035]"
                       title="Place a new Come bet"
                     >
                       <span
@@ -2774,10 +2725,7 @@ export default function TablePage() {
                     className={`relative mt-[3px] min-h-[102px] w-full overflow-hidden rounded-b-[54px] border-2 border-white/70 bg-black/[0.015] px-5 py-3 transition hover:bg-white/[0.035] ${flashClass(
                       "field",
                       "field"
-                    )} ${quickPreviewFieldClass()} ${strategyGuideClass(
-                      strategyGuideTarget,
-                      "field"
-                    )}`}
+                    )} ${quickPreviewFieldClass()}`}
                     title="Field: 3, 4, 9, 10, 11 pay even. 2 pays 2:1. 12 pays 3:1. Winning Field bets stay up."
                   >
                     <div className="flex h-full items-center justify-center gap-4 sm:gap-7">
@@ -2819,10 +2767,7 @@ export default function TablePage() {
                   >
                     <button
                       onClick={handleDontPassBet}
-                      className={`absolute inset-0 z-10 w-full text-base font-black tracking-[0.1em] hover:bg-white/[0.025] ${strategyGuideClass(
-                          strategyGuideTarget,
-                          "dont-pass"
-                        )}`}
+                      className="absolute inset-0 z-10 w-full text-base font-black tracking-[0.1em] hover:bg-white/[0.025]"
                     >
                       DON&apos;T PASS — BAR 12
                       <span className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -2833,10 +2778,7 @@ export default function TablePage() {
                     {point !== null && dontPassBet > 0 && (
                       <button
                         onClick={handleDontPassOdds}
-                        className={`absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-red-300/70 bg-red-950/90 px-2.5 py-1 text-[8px] font-black text-red-50 shadow-lg ${strategyGuideClass(
-                            strategyGuideTarget,
-                            "dont-pass-odds"
-                          )}`}
+                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-red-300/70 bg-red-950/90 px-2.5 py-1 text-[8px] font-black text-red-50 shadow-lg"
                         title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
                       >
                         <span className="leading-tight">
@@ -2861,10 +2803,7 @@ export default function TablePage() {
                   >
                     <button
                       onClick={handlePassLineBet}
-                      className={`absolute inset-0 z-10 w-full pb-2 text-2xl font-black tracking-[0.2em] hover:bg-white/[0.025] sm:text-3xl ${strategyGuideClass(
-                          strategyGuideTarget,
-                          "pass-line"
-                        )}`}
+                      className="absolute inset-0 z-10 w-full pb-2 text-2xl font-black tracking-[0.2em] hover:bg-white/[0.025] sm:text-3xl"
                     >
                       PASS LINE
                       <span className="absolute left-5 top-1/2 -translate-y-1/2">
@@ -2875,10 +2814,7 @@ export default function TablePage() {
                     {point !== null && passLineBet > 0 && (
                       <button
                         onClick={handlePassOdds}
-                        className={`absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/90 px-2.5 py-1 text-[8px] font-black text-amber-50 shadow-lg ${strategyGuideClass(
-                            strategyGuideTarget,
-                            "pass-odds"
-                          )}`}
+                        className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/90 px-2.5 py-1 text-[8px] font-black text-amber-50 shadow-lg"
                         title={`Pass odds pay ${passOddsLabel(point)}`}
                       >
                         <span className="leading-tight">
@@ -3082,7 +3018,6 @@ export default function TablePage() {
           dontComeOdds={dontComeOdds}
           placeBets={placeBets}
           fieldBet={fieldBet}
-          onGuideTargetChange={setStrategyGuideTarget}
         />
 
         <p className="mt-2 text-center text-[9px] text-emerald-700">
