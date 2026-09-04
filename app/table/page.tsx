@@ -52,6 +52,10 @@ import {
   StrategyMode,
   type StrategyGuideTarget,
 } from "./components/StrategyMode";
+import {
+  LearnMode,
+  type PassLineLessonStep,
+} from "./components/LearnMode";
 
 const STARTING_BANKROLL = 5000;
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
@@ -287,6 +291,9 @@ export default function TablePage() {
     useState<StrategyGuideTarget | null>(null);
   const [strategyGuideAmount, setStrategyGuideAmount] =
     useState<number | null>(null);
+  const [learnModeActive, setLearnModeActive] = useState(false);
+  const [learnStep, setLearnStep] =
+    useState<PassLineLessonStep>("place-pass");
   const [mobileCenterOpen, setMobileCenterOpen] = useState(false);
 
   const [testingMode, setTestingMode] = useState(false);
@@ -478,6 +485,29 @@ export default function TablePage() {
       ? rollHistory[0].net
       : null;
 
+  const learnGuideTarget: StrategyGuideTarget | null =
+    !learnModeActive
+      ? null
+      : learnStep === "place-pass"
+        ? "pass-line"
+        : learnStep === "add-odds"
+          ? "pass-odds"
+          : null;
+
+  const learnGuideAmount =
+    !learnModeActive
+      ? null
+      : learnStep === "place-pass" || learnStep === "add-odds"
+        ? 5
+        : null;
+
+  const effectiveGuideTarget = learnModeActive
+    ? learnGuideTarget
+    : strategyGuideTarget;
+  const effectiveGuideAmount = learnModeActive
+    ? learnGuideAmount
+    : strategyGuideAmount;
+
   useEffect(() => {
     const pendingRoll = pendingRollNumberRef.current;
 
@@ -515,6 +545,81 @@ export default function TablePage() {
     rollCount,
     totalOnTable,
   ]);
+
+  function startPassLineLesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setLearnModeActive(true);
+    setLearnStep("place-pass");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: place $5 on the Pass Line.");
+  }
+
+  function exitLearnMode() {
+    setLearnModeActive(false);
+    setLearnStep("place-pass");
+    setMessage("Learn Mode ended. The table is yours.");
+  }
+
+  function continuePassLineLesson() {
+    if (learnStep === "point-explainer") {
+      setLearnStep("add-odds");
+      setSelectedChip(5);
+      setMessage("Learn Mode: add $5 in Pass Line odds.");
+    }
+  }
+
+  useEffect(() => {
+    if (!learnModeActive) return;
+
+    if (learnStep === "place-pass" && passLineBet >= 5) {
+      setLearnStep("come-out");
+      setMessage("Good. Now make the come-out roll.");
+      return;
+    }
+
+    if (learnStep === "come-out" && rollCount > 0 && point !== null) {
+      setLearnStep("point-explainer");
+      return;
+    }
+
+    if (learnStep === "add-odds" && passOddsBet >= 5) {
+      setLearnStep("resolve");
+      setMessage("Odds are up. Now roll for the point.");
+      return;
+    }
+
+    if (
+      learnStep === "resolve" &&
+      rollCount >= 2 &&
+      point === null &&
+      passLineBet === 0 &&
+      passOddsBet === 0
+    ) {
+      setLearnStep("complete");
+    }
+  }, [
+    learnModeActive,
+    learnStep,
+    passLineBet,
+    passOddsBet,
+    point,
+    rollCount,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const lesson = new URLSearchParams(window.location.search).get("lesson");
+    if (lesson === "pass-line") {
+      window.setTimeout(() => startPassLineLesson(), 0);
+    }
+    // Run only once so the URL launches the lesson without restarting it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toggleBetsWorking() {
     setBetsWorking((current) => {
@@ -1178,6 +1283,15 @@ export default function TablePage() {
   }
 
   function handlePassLineBet(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      learnStep !== "place-pass" &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: complete the current step first.");
+      return;
+    }
+
     if (wantsRemove(event)) {
       if (passLineBet === 0) {
         setMessage("There is no Pass Line bet to remove.");
@@ -1216,6 +1330,15 @@ export default function TablePage() {
   }
 
   function handlePassOdds(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      learnStep !== "add-odds" &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: complete the current step first.");
+      return;
+    }
+
     if (point === null || passLineBet === 0) {
       setMessage("Pass odds require a Pass Line bet and a point.");
       return;
@@ -2234,6 +2357,15 @@ export default function TablePage() {
   async function rollDice() {
     if (isRolling) return;
 
+    if (
+      learnModeActive &&
+      learnStep !== "come-out" &&
+      learnStep !== "resolve"
+    ) {
+      setMessage("Learn Mode: complete the highlighted lesson step first.");
+      return;
+    }
+
     rollStartEquityRef.current = bankroll + totalOnTable;
     pendingRollNumberRef.current = rollCount + 1;
 
@@ -2246,7 +2378,14 @@ export default function TablePage() {
     let finalFirst: number;
     let finalSecond: number;
 
-    if (testingMode) {
+    if (
+      learnModeActive &&
+      (learnStep === "come-out" || learnStep === "resolve")
+    ) {
+      // Pass Line Basics deliberately demonstrates a complete 6 -> 6 point cycle.
+      finalFirst = 3;
+      finalSecond = 3;
+    } else if (testingMode) {
       [finalFirst, finalSecond] =
         forcedDice && forcedDice[0] + forcedDice[1] === forcedTotal
           ? forcedDice
@@ -2746,11 +2885,21 @@ export default function TablePage() {
                         point === number
                           ? "ring-2 ring-inset ring-amber-300/85"
                           : ""
+                      } ${
+                        learnModeActive &&
+                        learnStep === "point-explainer" &&
+                        point === number
+                          ? "outline outline-[5px] outline-cyan-300 outline-offset-[-5px] shadow-[0_0_34px_rgba(34,211,238,.82)]"
+                          : ""
                       } ${quickPreviewNumberClass(number)}`}
                     >
                       {point === number && (
                         <div
-                          className="absolute left-1/2 top-[122px] z-[70] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white bg-[radial-gradient(circle_at_35%_30%,#3f3f46_0%,#18181b_36%,#09090b_72%)] text-[9px] font-black tracking-[0.04em] shadow-[0_6px_12px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.08)] ring-2 ring-black/50"
+                          className={`absolute left-1/2 top-[122px] z-[70] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white bg-[radial-gradient(circle_at_35%_30%,#3f3f46_0%,#18181b_36%,#09090b_72%)] text-[9px] font-black tracking-[0.04em] shadow-[0_6px_12px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.08)] ring-2 ring-black/50 ${
+                            learnModeActive && learnStep === "point-explainer"
+                              ? "outline outline-[4px] outline-cyan-300 outline-offset-2 shadow-[0_0_25px_rgba(34,211,238,.9)]"
+                              : ""
+                          }`}
                           title={`Point is ${number}`}
                         >
                           ON
@@ -2776,7 +2925,7 @@ export default function TablePage() {
                                   handleDontComeOdds(event, number)
                                 }
                                 className={`flex min-w-[58px] items-center justify-center gap-1 rounded border border-red-300/60 bg-red-950/90 px-1 py-0.5 font-black leading-tight text-red-50 ${strategyGuideClass(
-                                  strategyGuideTarget,
+                                  effectiveGuideTarget,
                                   `dont-come-odds-${number}`
                                 )}`}
                                 title={`Don't Come lay odds pay ${layOddsLabel(
@@ -2856,7 +3005,7 @@ export default function TablePage() {
                                   handleComeOdds(event, number)
                                 }
                                 className={`flex min-w-[58px] items-center justify-center gap-1 rounded border border-blue-300/60 bg-blue-950/90 px-1 py-0.5 font-black leading-tight text-blue-50 ${strategyGuideClass(
-                                  strategyGuideTarget,
+                                  effectiveGuideTarget,
                                   `come-odds-${number}`
                                 )}`}
                                 title={`Come odds pay ${passOddsLabel(number)}`}
@@ -2910,7 +3059,7 @@ export default function TablePage() {
                         className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-emerald-100/30 bg-emerald-950/[0.18] px-2 font-black transition hover:bg-white/[0.04] ${
                           placeBets[number] > 0 ? "bg-emerald-950/45" : ""
                         } ${flashClass("place", String(number))} ${strategyGuideClass(
-                          strategyGuideTarget,
+                          effectiveGuideTarget,
                           `place-${number}`
                         )}`}
                         title={`Place ${number} pays ${placeOddsLabel(number)}`}
@@ -2945,7 +3094,7 @@ export default function TablePage() {
                     <button
                       onClick={handleDontComeBet}
                       className={`relative flex flex-col items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04] ${strategyGuideClass(
-                        strategyGuideTarget,
+                        effectiveGuideTarget,
                         "dont-come"
                       )}`}
                       title="New Don't Come bet. Bar 12."
@@ -2971,7 +3120,7 @@ export default function TablePage() {
                     <button
                       onClick={handleComeBet}
                       className={`relative flex items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.015] px-3 text-center transition hover:bg-white/[0.035] ${strategyGuideClass(
-                        strategyGuideTarget,
+                        effectiveGuideTarget,
                         "come"
                       )}`}
                       title="Place a new Come bet"
@@ -2998,7 +3147,7 @@ export default function TablePage() {
                       "field",
                       "field"
                     )} ${quickPreviewFieldClass()} ${strategyGuideClass(
-                      strategyGuideTarget,
+                      effectiveGuideTarget,
                       "field"
                     )}`}
                     title="Field: 3, 4, 9, 10, 11 pay even. 2 pays 2:1. 12 pays 3:1. Winning Field bets stay up."
@@ -3043,7 +3192,7 @@ export default function TablePage() {
                     <button
                       onClick={handleDontPassBet}
                       className={`absolute inset-0 z-10 w-full text-base font-black tracking-[0.1em] hover:bg-white/[0.025] ${strategyGuideClass(
-                          strategyGuideTarget,
+                          effectiveGuideTarget,
                           "dont-pass"
                         )}`}
                     >
@@ -3057,7 +3206,7 @@ export default function TablePage() {
                       <button
                         onClick={handleDontPassOdds}
                         className={`absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-red-300/70 bg-red-950/90 px-2.5 py-1 text-[8px] font-black text-red-50 shadow-lg ${strategyGuideClass(
-                            strategyGuideTarget,
+                            effectiveGuideTarget,
                             "dont-pass-odds"
                           )}`}
                         title={`Don't Pass lay odds pay ${layOddsLabel(point)}`}
@@ -3085,7 +3234,7 @@ export default function TablePage() {
                     <button
                       onClick={handlePassLineBet}
                       className={`absolute inset-0 z-10 w-full pb-2 text-2xl font-black tracking-[0.2em] hover:bg-white/[0.025] sm:text-3xl ${strategyGuideClass(
-                          strategyGuideTarget,
+                          effectiveGuideTarget,
                           "pass-line"
                         )}`}
                     >
@@ -3099,7 +3248,7 @@ export default function TablePage() {
                       <button
                         onClick={handlePassOdds}
                         className={`absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/90 px-2.5 py-1 text-[8px] font-black text-amber-50 shadow-lg ${strategyGuideClass(
-                            strategyGuideTarget,
+                            effectiveGuideTarget,
                             "pass-odds"
                           )}`}
                         title={`Pass odds pay ${passOddsLabel(point)}`}
@@ -3378,6 +3527,18 @@ export default function TablePage() {
           />
         </div>
 
+        <LearnMode
+          active={learnModeActive}
+          step={learnStep}
+          point={point}
+          onStart={startPassLineLesson}
+          onContinue={continuePassLineLesson}
+          onRestart={startPassLineLesson}
+          onExit={exitLearnMode}
+        />
+
+        {!learnModeActive && (
+          <>
         <PracticeControls
           testingMode={testingMode}
           onToggleTestingMode={() =>
@@ -3413,6 +3574,8 @@ export default function TablePage() {
           onGuideTargetChange={setStrategyGuideTarget}
           onGuideAmountChange={setStrategyGuideAmount}
         />
+          </>
+        )}
 
         <MobileActionBar
           dieOne={dieOne}
@@ -3436,8 +3599,8 @@ export default function TablePage() {
           }
           bankroll={bankroll}
           totalOnTable={totalOnTable}
-          strategyGuideTarget={strategyGuideTarget}
-          strategyGuideAmount={strategyGuideAmount}
+          strategyGuideTarget={effectiveGuideTarget}
+          strategyGuideAmount={effectiveGuideAmount}
         />
 
         <p className="mt-2 text-center text-[9px] text-emerald-700">
