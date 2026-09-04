@@ -499,12 +499,19 @@ export default function TablePage() {
             ? "place-6"
             : learnStep === "place-8"
               ? "place-8"
-              : null;
+              : learnStep === "come-place"
+                ? "come"
+                : learnStep === "come-odds"
+                  ? "come-odds-8"
+                  : null;
 
   const learnGuideAmount =
     !learnModeActive
       ? null
-      : learnStep === "pass-place" || learnStep === "pass-odds"
+      : learnStep === "pass-place" ||
+          learnStep === "pass-odds" ||
+          learnStep === "come-place" ||
+          learnStep === "come-odds"
         ? 5
         : learnStep === "place-6"
           ? Math.max(0, 6 - placeBets[6])
@@ -586,9 +593,27 @@ export default function TablePage() {
     setMessage("Learn Mode: build $6 on Place 6. Start with the $5 chip.");
   }
 
+  function startComeLesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setBetsWorking(true);
+    setPlaceBetsWorking(false);
+    setPoint(6);
+    setLearnModeActive(true);
+    setLearnLesson("come");
+    setLearnStep("come-place");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: place $5 in the Come.");
+  }
+
   function restartLearnLesson() {
     if (learnLesson === "place-68") {
       startPlace68Lesson();
+    } else if (learnLesson === "come") {
+      startComeLesson();
     } else {
       startPassLineLesson();
     }
@@ -613,6 +638,13 @@ export default function TablePage() {
       setLearnStep("place-roll-6");
       setSelectedChip(5);
       setMessage("Learn Mode: roll the dice to watch Place 6 pay.");
+      return;
+    }
+
+    if (learnStep === "come-travel") {
+      setLearnStep("come-odds");
+      setSelectedChip(5);
+      setMessage("Learn Mode: add $5 in Come odds on 8.");
     }
   }
 
@@ -645,6 +677,40 @@ export default function TablePage() {
         passOddsBet === 0
       ) {
         setLearnStep("pass-complete");
+      }
+      return;
+    }
+
+    if (learnLesson === "come") {
+      if (learnStep === "come-place" && activeComeBet >= 5) {
+        setLearnStep("come-roll-travel");
+        setMessage("Good. Roll the dice to give the Come bet its number.");
+        return;
+      }
+
+      if (
+        learnStep === "come-roll-travel" &&
+        rollCount >= 1 &&
+        comeBets[8] >= 5
+      ) {
+        setLearnStep("come-travel");
+        setMessage("Your Come bet traveled to 8. Read the explanation below.");
+        return;
+      }
+
+      if (learnStep === "come-odds" && comeOdds[8] >= 5) {
+        setLearnStep("come-resolve");
+        setMessage("Come odds are up. Roll again to resolve the Come 8.");
+        return;
+      }
+
+      if (
+        learnStep === "come-resolve" &&
+        rollCount >= 2 &&
+        comeBets[8] === 0 &&
+        comeOdds[8] === 0
+      ) {
+        setLearnStep("come-complete");
       }
       return;
     }
@@ -711,6 +777,9 @@ export default function TablePage() {
     learnStep,
     passLineBet,
     passOddsBet,
+    activeComeBet,
+    comeBets,
+    comeOdds,
     placeBets,
     point,
     rollCount,
@@ -725,6 +794,8 @@ export default function TablePage() {
       window.setTimeout(() => startPassLineLesson(), 0);
     } else if (lesson === "place-68") {
       window.setTimeout(() => startPlace68Lesson(), 0);
+    } else if (lesson === "come") {
+      window.setTimeout(() => startComeLesson(), 0);
     }
     // Run only once so the URL launches the lesson without restarting it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1764,6 +1835,15 @@ export default function TablePage() {
   }
 
   function handleComeBet(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "come" || learnStep !== "come-place") &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: complete the current step first.");
+      return;
+    }
+
     if (point === null) {
       setMessage("Come bets require the table point to be ON.");
       return;
@@ -1823,6 +1903,17 @@ export default function TablePage() {
     event: MouseEvent<HTMLButtonElement>,
     number: number
   ) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "come" ||
+        learnStep !== "come-odds" ||
+        number !== 8) &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: add odds to the highlighted Come 8.");
+      return;
+    }
+
     const flatBet = comeBets[number];
 
     if (!flatBet) {
@@ -2498,7 +2589,9 @@ export default function TablePage() {
       learnStep === "pass-resolve" ||
       learnStep === "place-roll-6" ||
       learnStep === "place-roll-8" ||
-      learnStep === "place-seven";
+      learnStep === "place-seven" ||
+      learnStep === "come-roll-travel" ||
+      learnStep === "come-resolve";
 
     if (learnModeActive && !learnRollStep) {
       setMessage("Learn Mode: complete the highlighted lesson step first.");
@@ -2517,7 +2610,12 @@ export default function TablePage() {
     let finalFirst: number;
     let finalSecond: number;
 
-    if (learnModeActive && learnStep === "place-roll-8") {
+    if (
+      learnModeActive &&
+      (learnStep === "place-roll-8" ||
+        learnStep === "come-roll-travel" ||
+        learnStep === "come-resolve")
+    ) {
       finalFirst = 4;
       finalSecond = 4;
     } else if (learnModeActive && learnStep === "place-seven") {
@@ -3684,6 +3782,7 @@ export default function TablePage() {
           point={point}
           onStartPassLine={startPassLineLesson}
           onStartPlace68={startPlace68Lesson}
+          onStartCome={startComeLesson}
           onContinue={continueLearnLesson}
           onRestart={restartLearnLesson}
           onExit={exitLearnMode}
