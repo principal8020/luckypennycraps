@@ -87,28 +87,28 @@ body {
     padding-bottom: 7px !important;
   }
 
-  /* Traveled Come / Don't Come wagers sit over their printed label.
-     The flat bet is first and the odds / lay odds sit immediately to its right.
-     Shift the whole pair left so both wagers stay comfortably inside the box. */
+  /* On phones, place the traveled flat Come / Don't Come chip directly over
+     the printed COME / DON'T COME label. Put its odds immediately to the right.
+     The labels may be covered; keeping both wagers inside the number box wins. */
   div:has(> button[title^="Come odds pay"]),
   div:has(> button[title^="Don't Come lay odds pay"]) {
     position: absolute !important;
-    left: 44% !important;
+    left: 30% !important;
     top: 50% !important;
-    width: 92px !important;
+    width: 86px !important;
     height: 42px !important;
     transform: translate(-50%, -50%) !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     gap: 0 !important;
   }
 
   button[title^="Come odds pay"],
   button[title^="Don't Come lay odds pay"] {
-    width: 44px !important;
-    min-width: 44px !important;
-    flex: 0 0 44px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    flex: 0 0 40px !important;
     gap: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
@@ -123,11 +123,11 @@ body {
   div:has(> button[title^="Don't Come lay odds pay"]) > span[title^="Total wager"],
   button[title^="Come odds pay"] > span[title^="Total wager"],
   button[title^="Don't Come lay odds pay"] > span[title^="Total wager"] {
-    width: 44px !important;
-    min-width: 44px !important;
-    height: 42px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
     margin: 0 !important;
-    transform: scale(0.68) !important;
+    transform: scale(0.62) !important;
     transform-origin: center !important;
   }
 }
