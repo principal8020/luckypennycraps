@@ -87,13 +87,13 @@ body {
     padding-bottom: 7px !important;
   }
 
-  /* Traveled Come / Don't Come wagers sit directly over their printed label.
-     The flat bet is first and the odds / lay odds sit immediately to its right,
-     keeping the entire pair centered inside the correct number cell. */
+  /* Traveled Come / Don't Come wagers sit over their printed label.
+     The flat bet is first and the odds / lay odds sit immediately to its right.
+     Shift the whole pair left so both wagers stay comfortably inside the box. */
   div:has(> button[title^="Come odds pay"]),
   div:has(> button[title^="Don't Come lay odds pay"]) {
     position: absolute !important;
-    left: 50% !important;
+    left: 44% !important;
     top: 50% !important;
     width: 92px !important;
     height: 42px !important;
