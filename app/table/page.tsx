@@ -3527,8 +3527,8 @@ export default function TablePage() {
 
                       {/* DON'T COME TRAVEL ZONE */}
                       <div
-                        className={`absolute inset-x-0 top-0 h-[44px] border-b border-red-100/25 bg-red-950/[0.13] px-1 ${
-                          dontComeBets[number] > 0 ? "bg-red-950/50" : ""
+                        className={`absolute inset-x-0 top-0 h-[44px] border-b border-red-100/25 bg-black/[0.035] px-1 ${
+                          dontComeBets[number] > 0 ? "bg-black/20" : ""
                         } ${flashClass("dontCome", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
@@ -3543,7 +3543,7 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleDontComeOdds(event, number)
                                 }
-                                className={`flex min-w-[58px] items-center justify-center gap-1 rounded border border-red-300/60 bg-red-950/90 px-1 py-0.5 font-black leading-tight text-red-50 ${strategyGuideClass(
+                                className={`flex min-w-[58px] items-center justify-center gap-0.5 rounded-md px-0.5 py-0 font-black leading-tight text-red-50 transition hover:bg-white/[0.04] ${strategyGuideClass(
                                   effectiveGuideTarget,
                                   `dont-come-odds-${number}`
                                 )}`}
@@ -3581,8 +3581,8 @@ export default function TablePage() {
                         onClick={(event) => handleLayBet(event, number)}
                         className={`absolute inset-x-0 top-[44px] flex h-[38px] items-center justify-between border-b px-2 text-left font-black uppercase transition ${
                           layBets[number] > 0
-                            ? "border-red-300/60 bg-red-950/48 text-red-50"
-                            : "border-red-100/20 bg-red-950/[0.09] text-red-100 hover:bg-red-950/25"
+                            ? "border-red-300/40 bg-black/[0.10] text-red-50"
+                            : "border-red-100/20 bg-black/[0.02] text-red-100 hover:bg-white/[0.035]"
                         } ${flashClass("lay", String(number))}`}
                         title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
                       >
@@ -3607,8 +3607,8 @@ export default function TablePage() {
 
                       {/* COME TRAVEL ZONE */}
                       <div
-                        className={`absolute inset-x-0 top-[82px] h-[42px] border-b border-blue-100/25 bg-blue-950/[0.12] px-1 ${
-                          comeBets[number] > 0 ? "bg-blue-950/45" : ""
+                        className={`absolute inset-x-0 top-[82px] h-[42px] border-b border-blue-100/25 bg-black/[0.025] px-1 ${
+                          comeBets[number] > 0 ? "bg-black/15" : ""
                         } ${flashClass("come", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
@@ -3623,7 +3623,7 @@ export default function TablePage() {
                                 onClick={(event) =>
                                   handleComeOdds(event, number)
                                 }
-                                className={`flex min-w-[58px] items-center justify-center gap-1 rounded border border-blue-300/60 bg-blue-950/90 px-1 py-0.5 font-black leading-tight text-blue-50 ${strategyGuideClass(
+                                className={`flex min-w-[58px] items-center justify-center gap-0.5 rounded-md px-0.5 py-0 font-black leading-tight text-cyan-50 transition hover:bg-white/[0.04] ${strategyGuideClass(
                                   effectiveGuideTarget,
                                   `come-odds-${number}`
                                 )}`}
