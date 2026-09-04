@@ -48,6 +48,13 @@ button[title^="Don't Come lay odds pay"] {
   gap: 0 !important;
 }
 
+/* Once a Don't Come wager has traveled into a number box, the wager itself
+   occupies the printed DON'T COME position. Hide that one label so it does
+   not get squeezed between the flat bet and lay odds. */
+div:has(button[title^="Don't Come lay odds pay"]) > div > span:first-child {
+  opacity: 0 !important;
+}
+
 /* Mobile table UX ------------------------------------------------------- */
 @media (max-width: 1023px) {
   /* Keep the roll result in the center of the visible screen, even when
