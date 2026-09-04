@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const flow = [
-  { step: "01", title: "Come-out roll", body: "A new round starts with the puck OFF. Pass Line and Don't Pass are the classic starting contract bets." },
+  { step: "01", title: "Come-out roll", body: "A new round starts with the puck OFF. Pass Line and Don't Pass are the two classic starting contract bets." },
   { step: "02", title: "A point is established", body: "If 4, 5, 6, 8, 9, or 10 rolls, that number becomes the point and the puck turns ON." },
   { step: "03", title: "The point cycle", body: "The shooter keeps rolling until the point repeats or a 7 appears. Then the round resets to a new come-out roll." },
 ];
@@ -11,7 +11,7 @@ const bets = [
   ["Pass Line Odds","LOW HOUSE EDGE","After a point is established, you can place odds behind your Pass Line bet. Odds pay true odds and add no additional house edge.","Practice Pass + Odds","/table?lesson=pass-line"],
   ["Don't Pass","DARK SIDE","Generally works opposite the Pass Line. It wins on 2 or 3 on the come-out, pushes on 12, and then wants a 7 before the point repeats.","Practice Don't Pass","/table"],
   ["Place 6 & 8","BEGINNER FRIENDLY","Place bets win when their number rolls before a 7. Six and eight are common starting place bets because of how often they roll.","Practice Place 6 & 8","/table?lesson=place-68"],
-  ["Come","CONTRACT BET","A Come bet acts like a new Pass Line bet after a point is already ON. If it travels to a number, that flat bet remains working on later come-out rolls.","Practice Come Bets","/table"],
+  ["Come","CONTRACT BET","A Come bet acts like a new Pass Line bet after a point is already ON. If it travels to a number, that flat bet remains working on later come-out rolls.","Practice Come Bets","/table?lesson=come"],
   ["Don't Come","CONTRACT BET","The dark-side counterpart to Come. Once it travels to a number, the flat bet remains working until it wins or loses.","Practice Don't Come","/table"],
   ["Field","ONE ROLL","A one-roll wager on 2, 3, 4, 9, 10, 11, or 12. It resolves immediately on the next roll.","Practice Field Bets","/table"],
   ["Hardways","CENTER ACTION","Hard 4, 6, 8, or 10 wins when the number is rolled as a pair before an easy version of that number or a 7.","Practice Hardways","/table"],
