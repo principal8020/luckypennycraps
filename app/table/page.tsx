@@ -54,7 +54,8 @@ import {
 } from "./components/StrategyMode";
 import {
   LearnMode,
-  type PassLineLessonStep,
+  type LearnLessonId,
+  type LearnLessonStep,
 } from "./components/LearnMode";
 
 const STARTING_BANKROLL = 5000;
@@ -292,8 +293,10 @@ export default function TablePage() {
   const [strategyGuideAmount, setStrategyGuideAmount] =
     useState<number | null>(null);
   const [learnModeActive, setLearnModeActive] = useState(false);
+  const [learnLesson, setLearnLesson] =
+    useState<LearnLessonId>("pass-line");
   const [learnStep, setLearnStep] =
-    useState<PassLineLessonStep>("place-pass");
+    useState<LearnLessonStep>("pass-place");
   const [mobileCenterOpen, setMobileCenterOpen] = useState(false);
 
   const [testingMode, setTestingMode] = useState(false);
@@ -488,18 +491,26 @@ export default function TablePage() {
   const learnGuideTarget: StrategyGuideTarget | null =
     !learnModeActive
       ? null
-      : learnStep === "place-pass"
+      : learnStep === "pass-place"
         ? "pass-line"
-        : learnStep === "add-odds"
+        : learnStep === "pass-odds"
           ? "pass-odds"
-          : null;
+          : learnStep === "place-6"
+            ? "place-6"
+            : learnStep === "place-8"
+              ? "place-8"
+              : null;
 
   const learnGuideAmount =
     !learnModeActive
       ? null
-      : learnStep === "place-pass" || learnStep === "add-odds"
+      : learnStep === "pass-place" || learnStep === "pass-odds"
         ? 5
-        : null;
+        : learnStep === "place-6"
+          ? Math.max(0, 6 - placeBets[6])
+          : learnStep === "place-8"
+            ? Math.max(0, 6 - placeBets[8])
+            : null;
 
   const effectiveGuideTarget = learnModeActive
     ? learnGuideTarget
@@ -552,62 +563,158 @@ export default function TablePage() {
     setSelectedChip(5);
     setRemoveMode(false);
     setLearnModeActive(true);
-    setLearnStep("place-pass");
+    setLearnLesson("pass-line");
+    setLearnStep("pass-place");
     setStrategyGuideTarget(null);
     setStrategyGuideAmount(null);
     setMessage("Learn Mode: place $5 on the Pass Line.");
   }
 
+  function startPlace68Lesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setBetsWorking(true);
+    setPlaceBetsWorking(false);
+    setPoint(5);
+    setLearnModeActive(true);
+    setLearnLesson("place-68");
+    setLearnStep("place-6");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: build $6 on Place 6. Start with the $5 chip.");
+  }
+
+  function restartLearnLesson() {
+    if (learnLesson === "place-68") {
+      startPlace68Lesson();
+    } else {
+      startPassLineLesson();
+    }
+  }
+
   function exitLearnMode() {
     setLearnModeActive(false);
-    setLearnStep("place-pass");
+    setLearnLesson("pass-line");
+    setLearnStep("pass-place");
     setMessage("Learn Mode ended. The table is yours.");
   }
 
-  function continuePassLineLesson() {
-    if (learnStep === "point-explainer") {
-      setLearnStep("add-odds");
+  function continueLearnLesson() {
+    if (learnStep === "pass-point") {
+      setLearnStep("pass-odds");
       setSelectedChip(5);
       setMessage("Learn Mode: add $5 in Pass Line odds.");
+      return;
+    }
+
+    if (learnStep === "place-explain") {
+      setLearnStep("place-roll-6");
+      setSelectedChip(5);
+      setMessage("Learn Mode: roll the dice to watch Place 6 pay.");
     }
   }
 
   useEffect(() => {
     if (!learnModeActive) return;
 
-    if (learnStep === "place-pass" && passLineBet >= 5) {
-      setLearnStep("come-out");
-      setMessage("Good. Now make the come-out roll.");
+    if (learnLesson === "pass-line") {
+      if (learnStep === "pass-place" && passLineBet >= 5) {
+        setLearnStep("pass-come-out");
+        setMessage("Good. Now make the come-out roll.");
+        return;
+      }
+
+      if (learnStep === "pass-come-out" && rollCount > 0 && point !== null) {
+        setLearnStep("pass-point");
+        return;
+      }
+
+      if (learnStep === "pass-odds" && passOddsBet >= 5) {
+        setLearnStep("pass-resolve");
+        setMessage("Odds are up. Now roll for the point.");
+        return;
+      }
+
+      if (
+        learnStep === "pass-resolve" &&
+        rollCount >= 2 &&
+        point === null &&
+        passLineBet === 0 &&
+        passOddsBet === 0
+      ) {
+        setLearnStep("pass-complete");
+      }
       return;
     }
 
-    if (learnStep === "come-out" && rollCount > 0 && point !== null) {
-      setLearnStep("point-explainer");
+    if (learnStep === "place-6") {
+      if (placeBets[6] >= 6) {
+        setLearnStep("place-8");
+        setSelectedChip(5);
+        setMessage("Great. Now build $6 on Place 8. Start with the $5 chip.");
+        return;
+      }
+      if (placeBets[6] >= 5) {
+        setSelectedChip(1);
+        setMessage("Good. Add $1 more to make Place 6 a proper $6 wager.");
+      }
       return;
     }
 
-    if (learnStep === "add-odds" && passOddsBet >= 5) {
-      setLearnStep("resolve");
-      setMessage("Odds are up. Now roll for the point.");
+    if (learnStep === "place-8") {
+      if (placeBets[8] >= 6) {
+        setLearnStep("place-explain");
+        setSelectedChip(5);
+        setMessage("Both Place bets are up. Read the lesson explanation below.");
+        return;
+      }
+      if (placeBets[8] >= 5) {
+        setSelectedChip(1);
+        setMessage("Good. Add $1 more to make Place 8 a proper $6 wager.");
+      }
       return;
     }
 
     if (
-      learnStep === "resolve" &&
-      rollCount >= 2 &&
-      point === null &&
-      passLineBet === 0 &&
-      passOddsBet === 0
+      learnStep === "place-roll-6" &&
+      rollCount >= 1 &&
+      rollHistory[0]?.total === 6
     ) {
-      setLearnStep("complete");
+      setLearnStep("place-roll-8");
+      setMessage("Place 6 paid and stayed up. Roll again to watch Place 8 pay.");
+      return;
+    }
+
+    if (
+      learnStep === "place-roll-8" &&
+      rollCount >= 2 &&
+      rollHistory[0]?.total === 8
+    ) {
+      setLearnStep("place-seven");
+      setMessage("Place 8 paid and stayed up. One more roll will show the seven-out risk.");
+      return;
+    }
+
+    if (
+      learnStep === "place-seven" &&
+      rollCount >= 3 &&
+      rollHistory[0]?.total === 7 &&
+      point === null
+    ) {
+      setLearnStep("place-complete");
     }
   }, [
     learnModeActive,
+    learnLesson,
     learnStep,
     passLineBet,
     passOddsBet,
+    placeBets,
     point,
     rollCount,
+    rollHistory,
   ]);
 
   useEffect(() => {
@@ -616,6 +723,8 @@ export default function TablePage() {
     const lesson = new URLSearchParams(window.location.search).get("lesson");
     if (lesson === "pass-line") {
       window.setTimeout(() => startPassLineLesson(), 0);
+    } else if (lesson === "place-68") {
+      window.setTimeout(() => startPlace68Lesson(), 0);
     }
     // Run only once so the URL launches the lesson without restarting it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1285,7 +1394,7 @@ export default function TablePage() {
   function handlePassLineBet(event?: MouseEvent<HTMLButtonElement>) {
     if (
       learnModeActive &&
-      learnStep !== "place-pass" &&
+      (learnLesson !== "pass-line" || learnStep !== "pass-place") &&
       !wantsRemove(event)
     ) {
       setMessage("Learn Mode: complete the current step first.");
@@ -1332,7 +1441,7 @@ export default function TablePage() {
   function handlePassOdds(event?: MouseEvent<HTMLButtonElement>) {
     if (
       learnModeActive &&
-      learnStep !== "add-odds" &&
+      (learnLesson !== "pass-line" || learnStep !== "pass-odds") &&
       !wantsRemove(event)
     ) {
       setMessage("Learn Mode: complete the current step first.");
@@ -1508,6 +1617,17 @@ export default function TablePage() {
     event: MouseEvent<HTMLButtonElement>,
     number: number
   ) {
+    if (learnModeActive && !wantsRemove(event)) {
+      const correctPlaceNumber =
+        (learnStep === "place-6" && number === 6) ||
+        (learnStep === "place-8" && number === 8);
+
+      if (learnLesson !== "place-68" || !correctPlaceNumber) {
+        setMessage("Learn Mode: complete the highlighted lesson step first.");
+        return;
+      }
+    }
+
     if (wantsRemove(event)) {
       const currentBet = placeBets[number];
 
@@ -1536,7 +1656,23 @@ export default function TablePage() {
       return;
     }
 
-    const amountToAdd = calculateCappedAdd(selectedChip, placeBets[number], maxBet, bankroll);
+    const lessonTarget =
+      learnModeActive &&
+      learnLesson === "place-68" &&
+      ((learnStep === "place-6" && number === 6) ||
+        (learnStep === "place-8" && number === 8))
+        ? 6
+        : null;
+    const chipForThisAdd =
+      lessonTarget === null
+        ? selectedChip
+        : Math.min(selectedChip, Math.max(0, lessonTarget - placeBets[number]));
+    const amountToAdd = calculateCappedAdd(
+      chipForThisAdd,
+      placeBets[number],
+      maxBet,
+      bankroll
+    );
 
     if (amountToAdd <= 0) {
       setMessage("Not enough bankroll.");
@@ -2357,11 +2493,14 @@ export default function TablePage() {
   async function rollDice() {
     if (isRolling) return;
 
-    if (
-      learnModeActive &&
-      learnStep !== "come-out" &&
-      learnStep !== "resolve"
-    ) {
+    const learnRollStep =
+      learnStep === "pass-come-out" ||
+      learnStep === "pass-resolve" ||
+      learnStep === "place-roll-6" ||
+      learnStep === "place-roll-8" ||
+      learnStep === "place-seven";
+
+    if (learnModeActive && !learnRollStep) {
       setMessage("Learn Mode: complete the highlighted lesson step first.");
       return;
     }
@@ -2378,11 +2517,19 @@ export default function TablePage() {
     let finalFirst: number;
     let finalSecond: number;
 
-    if (
+    if (learnModeActive && learnStep === "place-roll-8") {
+      finalFirst = 4;
+      finalSecond = 4;
+    } else if (learnModeActive && learnStep === "place-seven") {
+      finalFirst = 3;
+      finalSecond = 4;
+    } else if (
       learnModeActive &&
-      (learnStep === "come-out" || learnStep === "resolve")
+      (learnStep === "pass-come-out" ||
+        learnStep === "pass-resolve" ||
+        learnStep === "place-roll-6")
     ) {
-      // Pass Line Basics deliberately demonstrates a complete 6 -> 6 point cycle.
+      // Guided lessons use deterministic rolls so the teaching sequence is repeatable.
       finalFirst = 3;
       finalSecond = 3;
     } else if (testingMode) {
@@ -2887,8 +3034,9 @@ export default function TablePage() {
                           : ""
                       } ${
                         learnModeActive &&
-                        learnStep === "point-explainer" &&
-                        point === number
+                        ((learnStep === "pass-point" && point === number) ||
+                          (learnStep === "place-explain" &&
+                            (number === 6 || number === 8)))
                           ? "outline outline-[5px] outline-cyan-300 outline-offset-[-5px] shadow-[0_0_34px_rgba(34,211,238,.82)]"
                           : ""
                       } ${quickPreviewNumberClass(number)}`}
@@ -2896,7 +3044,9 @@ export default function TablePage() {
                       {point === number && (
                         <div
                           className={`absolute left-1/2 top-[122px] z-[70] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white bg-[radial-gradient(circle_at_35%_30%,#3f3f46_0%,#18181b_36%,#09090b_72%)] text-[9px] font-black tracking-[0.04em] shadow-[0_6px_12px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.08)] ring-2 ring-black/50 ${
-                            learnModeActive && learnStep === "point-explainer"
+                            learnModeActive &&
+                            (learnStep === "pass-point" ||
+                              learnStep === "place-explain")
                               ? "outline outline-[4px] outline-cyan-300 outline-offset-2 shadow-[0_0_25px_rgba(34,211,238,.9)]"
                               : ""
                           }`}
@@ -3529,11 +3679,13 @@ export default function TablePage() {
 
         <LearnMode
           active={learnModeActive}
+          lesson={learnLesson}
           step={learnStep}
           point={point}
-          onStart={startPassLineLesson}
-          onContinue={continuePassLineLesson}
-          onRestart={startPassLineLesson}
+          onStartPassLine={startPassLineLesson}
+          onStartPlace68={startPlace68Lesson}
+          onContinue={continueLearnLesson}
+          onRestart={restartLearnLesson}
           onExit={exitLearnMode}
         />
 

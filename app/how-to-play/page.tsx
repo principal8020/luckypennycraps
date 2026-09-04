@@ -7,14 +7,14 @@ const flow = [
 ];
 
 const bets = [
-  ["Pass Line","START HERE","Wins on 7 or 11 on the come-out. Loses on 2, 3, or 12. If a point is established, the bet wins if that point repeats before a 7.","Practice Pass Line"],
-  ["Pass Line Odds","LOW HOUSE EDGE","After a point is established, you can place odds behind your Pass Line bet. Odds pay true odds and add no additional house edge.","Practice Pass + Odds"],
-  ["Don't Pass","DARK SIDE","Generally works opposite the Pass Line. It wins on 2 or 3 on the come-out, pushes on 12, and then wants a 7 before the point repeats.","Practice Don't Pass"],
-  ["Place 6 & 8","BEGINNER FRIENDLY","Place bets win when their number rolls before a 7. Six and eight are common starting place bets because of how often they roll.","Practice Place 6 & 8"],
-  ["Come","CONTRACT BET","A Come bet acts like a new Pass Line bet after a point is already ON. If it travels to a number, that flat bet remains working on later come-out rolls.","Practice Come Bets"],
-  ["Don't Come","CONTRACT BET","The dark-side counterpart to Come. Once it travels to a number, the flat bet remains working until it wins or loses.","Practice Don't Come"],
-  ["Field","ONE ROLL","A one-roll wager on 2, 3, 4, 9, 10, 11, or 12. It resolves immediately on the next roll.","Practice Field Bets"],
-  ["Hardways","CENTER ACTION","Hard 4, 6, 8, or 10 wins when the number is rolled as a pair before an easy version of that number or a 7.","Practice Hardways"],
+  ["Pass Line","START HERE","Wins on 7 or 11 on the come-out. Loses on 2, 3, or 12. If a point is established, the bet wins if that point repeats before a 7.","Practice Pass Line","/table?lesson=pass-line"],
+  ["Pass Line Odds","LOW HOUSE EDGE","After a point is established, you can place odds behind your Pass Line bet. Odds pay true odds and add no additional house edge.","Practice Pass + Odds","/table?lesson=pass-line"],
+  ["Don't Pass","DARK SIDE","Generally works opposite the Pass Line. It wins on 2 or 3 on the come-out, pushes on 12, and then wants a 7 before the point repeats.","Practice Don't Pass","/table"],
+  ["Place 6 & 8","BEGINNER FRIENDLY","Place bets win when their number rolls before a 7. Six and eight are common starting place bets because of how often they roll.","Practice Place 6 & 8","/table?lesson=place-68"],
+  ["Come","CONTRACT BET","A Come bet acts like a new Pass Line bet after a point is already ON. If it travels to a number, that flat bet remains working on later come-out rolls.","Practice Come Bets","/table"],
+  ["Don't Come","CONTRACT BET","The dark-side counterpart to Come. Once it travels to a number, the flat bet remains working until it wins or loses.","Practice Don't Come","/table"],
+  ["Field","ONE ROLL","A one-roll wager on 2, 3, 4, 9, 10, 11, or 12. It resolves immediately on the next roll.","Practice Field Bets","/table"],
+  ["Hardways","CENTER ACTION","Hard 4, 6, 8, or 10 wins when the number is rolled as a pair before an easy version of that number or a 7.","Practice Hardways","/table"],
 ];
 
 const terms = [
@@ -47,7 +47,7 @@ export default function HowToPlayPage() {
             <h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">Learn the table in the same order you play it.</h1>
             <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-emerald-50/65 sm:text-lg">You do not need to memorize every bet before you start. Learn the puck, the point cycle, and a few core wagers first. Then use Lucky Penny to practice the exact situation until it feels natural.</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/table" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Start Practicing</Link>
+              <Link href="/table?lesson=pass-line" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Start Guided Lesson</Link>
               <Link href="#bets" className="rounded-xl border border-emerald-700/70 bg-emerald-950/30 px-5 py-3 font-black text-emerald-100">Learn the Bets</Link>
             </div>
           </div>
@@ -75,17 +75,17 @@ export default function HowToPlayPage() {
           <div className="mb-6 max-w-3xl">
             <div className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">Core bets</div>
             <h2 className="mt-2 text-3xl font-black">Learn one wager at a time.</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">Every card links back to the live table. Later we can deep-link directly into a preset Practice Mode scenario for each wager.</p>
+            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">Guided lessons open directly on the live table where available. Other wagers still open the full table for free practice.</p>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            {bets.map(([name, level, description, practice]) => (
+            {bets.map(([name, level, description, practice, href]) => (
               <article key={name} className="rounded-2xl border border-emerald-900/80 bg-emerald-950/15 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="text-xl font-black">{name}</h3>
                   <span className="shrink-0 rounded border border-amber-800/70 bg-amber-950/20 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-amber-300">{level}</span>
                 </div>
                 <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">{description}</p>
-                <Link href="/table" className="mt-4 inline-flex items-center gap-1 text-sm font-black text-emerald-300 hover:text-white">{practice} →</Link>
+                <Link href={href} className="mt-4 inline-flex items-center gap-1 text-sm font-black text-emerald-300 hover:text-white">{practice} →</Link>
               </article>
             ))}
           </div>
@@ -124,7 +124,7 @@ export default function HowToPlayPage() {
               </li>
             ))}
           </ol>
-          <Link href="/table" className="mt-5 inline-block rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Practice This Flow</Link>
+          <Link href="/table?lesson=pass-line" className="mt-5 inline-block rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Practice This Flow</Link>
         </div>
       </section>
 
