@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lucky Penny Craps",
+  title: "Lucky Penny",
   description:
     "Learn craps by actually playing it. Practice bets, explore strategies, and build confidence with the Lucky Penny craps simulator.",
 };
