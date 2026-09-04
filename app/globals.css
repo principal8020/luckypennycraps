@@ -133,8 +133,11 @@ div:has(> div > div > button[title^="Don't Come lay odds pay"]) > div > span:fir
     padding-right: 0 !important;
   }
 
-  button[title^="Come odds pay"] > span:first-child,
-  button[title^="Don't Come lay odds pay"] > span:first-child {
+  /* Keep the +ODDS / +LAY ODDS control visible until odds actually exist.
+     Once an odds chip is present, hide the redundant text label so the two
+     chip stacks fit cleanly inside the number box. */
+  button[title^="Come odds pay"]:has(> span[title^="Total wager"]) > span:first-child,
+  button[title^="Don't Come lay odds pay"]:has(> span[title^="Total wager"]) > span:first-child {
     display: none !important;
   }
 
