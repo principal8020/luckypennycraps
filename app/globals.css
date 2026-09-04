@@ -87,30 +87,48 @@ body {
     padding-bottom: 7px !important;
   }
 
-  /* Traveled Come / Don't Come odds share a narrow number box with the flat
-     bet. Once odds are present, remove the redundant text label and compact
-     the odds stack so it stays anchored inside its own number cell. */
-  button[title^="Come odds pay"]:has(> span[title^="Total wager"]),
-  button[title^="Don't Come lay odds pay"]:has(> span[title^="Total wager"]) {
-    width: 48px !important;
-    min-width: 48px !important;
-    flex: 0 0 48px !important;
+  /* Traveled Come / Don't Come bets need to fit two wagers inside one narrow
+     number cell. Anchor that wager cluster to the right edge of its own cell,
+     then shrink both chip stacks slightly. This keeps 9/10 from spilling into
+     the neighboring box on phone layouts. */
+  div:has(> button[title^="Come odds pay"]),
+  div:has(> button[title^="Don't Come lay odds pay"]) {
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important;
+    width: 92px !important;
+    height: 42px !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 0 !important;
+  }
+
+  button[title^="Come odds pay"],
+  button[title^="Don't Come lay odds pay"] {
+    width: 44px !important;
+    min-width: 44px !important;
+    flex: 0 0 44px !important;
     gap: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
 
-  button[title^="Come odds pay"]:has(> span[title^="Total wager"]) > span:first-child,
-  button[title^="Don't Come lay odds pay"]:has(> span[title^="Total wager"]) > span:first-child {
+  button[title^="Come odds pay"] > span:first-child,
+  button[title^="Don't Come lay odds pay"] > span:first-child {
     display: none !important;
   }
 
+  div:has(> button[title^="Come odds pay"]) > span[title^="Total wager"],
+  div:has(> button[title^="Don't Come lay odds pay"]) > span[title^="Total wager"],
   button[title^="Come odds pay"] > span[title^="Total wager"],
   button[title^="Don't Come lay odds pay"] > span[title^="Total wager"] {
-    width: 48px !important;
-    min-width: 48px !important;
-    height: 44px !important;
-    transform: scale(0.78);
-    transform-origin: center;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 42px !important;
+    margin: 0 !important;
+    transform: scale(0.68) !important;
+    transform-origin: center !important;
   }
 }
