@@ -76,44 +76,87 @@ div:has(> div > div > button[title^="Don't Come lay odds pay"]) > div > span:fir
     top: 50% !important;
   }
 
-  /* While a guided lesson is active, keep the lesson card visible over the
-     table so phone users do not have to scroll down after every step. */
+  /* Learn Mode becomes a compact coaching strip on phones. Keep the current
+     task and action visible, but remove the long explanation from the overlay
+     so the player can still see the table underneath. */
   section[class*="border-violet-400/70"] {
     position: fixed !important;
-    top: max(8px, env(safe-area-inset-top)) !important;
+    top: max(6px, env(safe-area-inset-top)) !important;
     left: 8px !important;
     right: 8px !important;
     z-index: 9000 !important;
-    max-height: 46vh !important;
+    max-height: none !important;
     margin-top: 0 !important;
-    overflow-y: auto !important;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.72) !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.68) !important;
   }
 
   section[class*="border-violet-400/70"] > div:first-child {
-    padding: 6px 10px !important;
+    min-height: 30px !important;
+    gap: 6px !important;
+    padding: 4px 8px !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:first-child > div {
+    gap: 6px !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:first-child span:first-child {
+    padding: 3px 6px !important;
+    font-size: 7px !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:first-child span:nth-child(2) {
+    font-size: 7px !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:first-child button {
+    padding: 4px 7px !important;
+    font-size: 7px !important;
   }
 
   section[class*="border-violet-400/70"] > div:nth-child(2) {
-    gap: 8px !important;
-    padding: 10px !important;
+    display: block !important;
+    padding: 7px 9px 8px !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:nth-child(2) > div:first-child > div:first-child {
+    font-size: 7px !important;
+    letter-spacing: 0.1em !important;
   }
 
   section[class*="border-violet-400/70"] h3 {
-    margin-top: 2px !important;
-    font-size: 16px !important;
-    line-height: 1.2 !important;
+    margin-top: 1px !important;
+    font-size: 14px !important;
+    line-height: 1.15 !important;
   }
 
   section[class*="border-violet-400/70"] p {
-    margin-top: 4px !important;
-    font-size: 11px !important;
-    line-height: 1.35rem !important;
+    display: none !important;
   }
 
-  section[class*="border-violet-400/70"] button {
-    padding-top: 7px !important;
-    padding-bottom: 7px !important;
+  section[class*="border-violet-400/70"] > div:nth-child(2) > div:first-child > div:last-child {
+    margin-top: 4px !important;
+    font-size: 8px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:nth-child(2) > div:last-child {
+    margin-top: 5px !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:nth-child(2) > div:last-child button {
+    padding: 6px 10px !important;
+    font-size: 9px !important;
+  }
+
+  /* Learn Mode already tells the player the next action. Hide the redundant
+     cyan Strategy Next Bet strip while a lesson is active. */
+  body:has(section[class*="border-violet-400/70"]) div.fixed.inset-x-0.bottom-0 > div.bg-cyan-400 {
+    display: none !important;
   }
 
   /* Phones use a tighter pair so both wagers stay inside the fixed-width
