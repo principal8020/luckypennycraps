@@ -135,6 +135,8 @@ function guideLabel(target: StrategyGuideTarget | null) {
   if (target === "come") return "COME";
   if (target === "dont-come") return "DON'T COME";
   if (target === "field") return "FIELD";
+  if (target.startsWith("hardway-"))
+    return "HARD " + target.replace("hardway-", "");
   if (target.startsWith("place-"))
     return `PLACE ${target.replace("place-", "")}`;
   if (target.startsWith("come-odds-"))

@@ -9,12 +9,12 @@ const flow = [
 const bets = [
   ["Pass Line","START HERE","Wins on 7 or 11 on the come-out. Loses on 2, 3, or 12. If a point is established, the bet wins if that point repeats before a 7.","Practice Pass Line","/table?lesson=pass-line"],
   ["Pass Line Odds","LOW HOUSE EDGE","After a point is established, you can place odds behind your Pass Line bet. Odds pay true odds and add no additional house edge.","Practice Pass + Odds","/table?lesson=pass-line"],
-  ["Don't Pass","DARK SIDE","Generally works opposite the Pass Line. It wins on 2 or 3 on the come-out, pushes on 12, and then wants a 7 before the point repeats.","Practice Don't Pass","/table"],
+  ["Don't Pass","DARK SIDE","Generally works opposite the Pass Line. It wins on 2 or 3 on the come-out, pushes on 12, and then wants a 7 before the point repeats.","Practice Don't Pass","/table?lesson=dont-pass"],
   ["Place 6 & 8","BEGINNER FRIENDLY","Place bets win when their number rolls before a 7. Six and eight are common starting place bets because of how often they roll.","Practice Place 6 & 8","/table?lesson=place-68"],
   ["Come","CONTRACT BET","A Come bet acts like a new Pass Line bet after a point is already ON. If it travels to a number, that flat bet remains working on later come-out rolls.","Practice Come Bets","/table?lesson=come"],
-  ["Don't Come","CONTRACT BET","The dark-side counterpart to Come. Once it travels to a number, the flat bet remains working until it wins or loses.","Practice Don't Come","/table"],
-  ["Field","ONE ROLL","A one-roll wager on 2, 3, 4, 9, 10, 11, or 12. It resolves immediately on the next roll.","Practice Field Bets","/table"],
-  ["Hardways","CENTER ACTION","Hard 4, 6, 8, or 10 wins when the number is rolled as a pair before an easy version of that number or a 7.","Practice Hardways","/table"],
+  ["Don't Come","CONTRACT BET","The dark-side counterpart to Come. Once it travels to a number, the flat bet remains working until it wins or loses.","Practice Don't Come","/table?lesson=dont-come"],
+  ["Field","ONE ROLL","A one-roll wager on 2, 3, 4, 9, 10, 11, or 12. It resolves immediately on the next roll.","Practice Field Bets","/table?lesson=field"],
+  ["Hardways","CENTER ACTION","Hard 4, 6, 8, or 10 wins when the number is rolled as a pair before an easy version of that number or a 7.","Practice Hardways","/table?lesson=hardways"],
 ];
 
 const terms = [

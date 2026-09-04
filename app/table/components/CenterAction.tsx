@@ -13,6 +13,7 @@ type CenterActionProps = {
   hardways: NumberBets;
   onHardway: (event: MouseEvent<HTMLButtonElement>, number: number) => void;
   flashClass: (area: "hardway" | "prop", key: string) => string;
+  guideTarget?: string | null;
 
   twoBet: number;
   threeBet: number;
@@ -95,6 +96,7 @@ export function CenterAction({
   hardways,
   onHardway,
   flashClass,
+  guideTarget,
   twoBet,
   threeBet,
   yoBet,
@@ -170,7 +172,11 @@ export function CenterAction({
               <button
                 key={number}
                 onClick={(event) => onHardway(event, number)}
-                className={`relative min-h-[66px] border border-white/45 bg-black/[0.025] p-1.5 text-center font-black hover:bg-white/[0.035] ${flashClass("hardway", String(number))}`}
+                className={`relative min-h-[66px] border border-white/45 bg-black/[0.025] p-1.5 text-center font-black hover:bg-white/[0.035] ${flashClass("hardway", String(number))} ${
+                  guideTarget === "hardway-" + number
+                    ? "outline outline-[4px] outline-cyan-300 outline-offset-[-4px] shadow-[0_0_28px_rgba(34,211,238,.78)] animate-pulse"
+                    : ""
+                }`}
               >
                 <div className="text-[9px] uppercase tracking-[0.14em] text-emerald-50/85">
                   HARD {number}

@@ -18,7 +18,8 @@ export type StrategyGuideTarget =
   | "field"
   | `place-${number}`
   | `come-odds-${number}`
-  | `dont-come-odds-${number}`;
+  | `dont-come-odds-${number}`
+  | `hardway-${number}`;
 
 function guideTargetForAction(action: string): StrategyGuideTarget | null {
   const dontComeOdds = action.match(/DON'T COME LAY ODDS behind (\d+)/);

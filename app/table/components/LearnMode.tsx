@@ -1,6 +1,13 @@
 "use client";
 
-export type LearnLessonId = "pass-line" | "place-68" | "come";
+export type LearnLessonId =
+  | "pass-line"
+  | "place-68"
+  | "come"
+  | "dont-pass"
+  | "dont-come"
+  | "field"
+  | "hardways";
 
 export type LearnLessonStep =
   | "pass-place"
@@ -21,7 +28,31 @@ export type LearnLessonStep =
   | "come-travel"
   | "come-odds"
   | "come-resolve"
-  | "come-complete";
+  | "come-complete"
+  | "dp-place"
+  | "dp-bar12"
+  | "dp-point-roll"
+  | "dp-explain"
+  | "dp-odds"
+  | "dp-seven"
+  | "dp-complete"
+  | "dc-place"
+  | "dc-roll-travel"
+  | "dc-explain"
+  | "dc-odds"
+  | "dc-seven"
+  | "dc-complete"
+  | "field-place"
+  | "field-even"
+  | "field-two"
+  | "field-twelve"
+  | "field-loss"
+  | "field-complete"
+  | "hard-place"
+  | "hard-win"
+  | "hard-explain"
+  | "hard-easy"
+  | "hard-complete";
 
 type LearnModeProps = {
   active: boolean;
@@ -31,6 +62,10 @@ type LearnModeProps = {
   onStartPassLine: () => void;
   onStartPlace68: () => void;
   onStartCome: () => void;
+  onStartDontPass: () => void;
+  onStartDontCome: () => void;
+  onStartField: () => void;
+  onStartHardways: () => void;
   onContinue: () => void;
   onRestart: () => void;
   onExit: () => void;
@@ -79,6 +114,50 @@ const lessonMeta: Record<
       "come-odds",
       "come-resolve",
       "come-complete",
+    ],
+  },
+  "dont-pass": {
+    title: "Don't Pass Basics",
+    steps: [
+      "dp-place",
+      "dp-bar12",
+      "dp-point-roll",
+      "dp-explain",
+      "dp-odds",
+      "dp-seven",
+      "dp-complete",
+    ],
+  },
+  "dont-come": {
+    title: "Don't Come Basics",
+    steps: [
+      "dc-place",
+      "dc-roll-travel",
+      "dc-explain",
+      "dc-odds",
+      "dc-seven",
+      "dc-complete",
+    ],
+  },
+  field: {
+    title: "Field Basics",
+    steps: [
+      "field-place",
+      "field-even",
+      "field-two",
+      "field-twelve",
+      "field-loss",
+      "field-complete",
+    ],
+  },
+  hardways: {
+    title: "Hardways Basics",
+    steps: [
+      "hard-place",
+      "hard-win",
+      "hard-explain",
+      "hard-easy",
+      "hard-complete",
     ],
   },
 };
@@ -217,6 +296,174 @@ const copy: Record<LearnLessonStep, LessonCopy> = {
       "You placed a Come bet while the puck was ON, watched it travel to 8, added true odds, and then won when 8 repeated before 7. You can repeat this process to build multiple Come numbers.",
     action: "LESSON COMPLETE",
   },
+  "dp-place": {
+    eyebrow: "STEP 1 OF 7",
+    title: "Place $5 on Don't Pass",
+    body:
+      "Don't Pass is the classic dark-side contract bet. On the come-out it wins on 2 or 3, loses on 7 or 11, and 12 is a push. After a point is set, you want 7 before the point repeats.",
+    action: "YOUR TURN → Click DON'T PASS",
+  },
+  "dp-bar12": {
+    eyebrow: "STEP 2 OF 7",
+    title: "See why the table says BAR 12",
+    body:
+      "Lucky Penny will roll 12. On Don't Pass, 12 pushes: you neither win nor lose, and the original Don't Pass bet stays up for the next come-out roll.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "dp-point-roll": {
+    eyebrow: "STEP 3 OF 7",
+    title: "Establish a point",
+    body:
+      "Now Lucky Penny will roll 6. That turns the puck ON and makes 6 the table point. Your Don't Pass bet now changes its goal.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "dp-explain": {
+    eyebrow: "STEP 4 OF 7",
+    title: "Now you want 7 before 6",
+    body:
+      "Once the point is established, Don't Pass wins if a 7 appears before the point repeats. The flat Don't Pass bet is a contract bet and stays in action until one of those outcomes occurs.",
+    action: "READ THIS → Then click CONTINUE",
+  },
+  "dp-odds": {
+    eyebrow: "STEP 5 OF 7",
+    title: "Build $6 in Don't Pass lay odds",
+    body:
+      "Dark-side odds are laid rather than taken. With point 6, laying $6 wins $5 at true odds. Add $5 first; Lucky Penny will switch you to $1 for the final dollar.",
+    action: "YOUR TURN → Build LAY ODDS to $6",
+  },
+  "dp-seven": {
+    eyebrow: "STEP 6 OF 7",
+    title: "Roll the 7 before the point",
+    body:
+      "Lucky Penny will roll 7. Your $5 Don't Pass flat bet wins $5, and the $6 lay odds win another $5 because 7 arrived before the point 6.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "dp-complete": {
+    eyebrow: "STEP 7 OF 7",
+    title: "Don't Pass lesson complete",
+    body:
+      "You saw Bar 12 push, established a point, added proper lay odds, and then won with a seven-out. That is the basic Don't Pass cycle.",
+    action: "LESSON COMPLETE",
+  },
+  "dc-place": {
+    eyebrow: "STEP 1 OF 6",
+    title: "Place $5 in Don't Come",
+    body:
+      "Don't Come is the dark-side counterpart to Come. It is placed while the puck is already ON and gets its own contract number on the next qualifying roll.",
+    action: "YOUR TURN → Click DON'T COME",
+  },
+  "dc-roll-travel": {
+    eyebrow: "STEP 2 OF 6",
+    title: "Roll to give Don't Come a number",
+    body:
+      "On its first roll, Don't Come wins on 2 or 3, loses on 7 or 11, pushes on 12, and travels behind 4, 5, 6, 8, 9, or 10. Lucky Penny will roll 8.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "dc-explain": {
+    eyebrow: "STEP 3 OF 6",
+    title: "Your Don't Come bet is behind 8",
+    body:
+      "The table point remains 6, but this Don't Come bet now has its own number: 8. From here, it wins if 7 rolls before 8 and loses if 8 repeats first.",
+    action: "READ THIS → Then click CONTINUE",
+  },
+  "dc-odds": {
+    eyebrow: "STEP 4 OF 6",
+    title: "Build $6 in Don't Come lay odds",
+    body:
+      "You can lay true odds behind a traveled Don't Come bet. Behind 8, laying $6 wins $5. Add $5 first, then $1 to reach the proper $6 amount.",
+    action: "YOUR TURN → Build DC LAY ODDS to $6",
+  },
+  "dc-seven": {
+    eyebrow: "STEP 5 OF 6",
+    title: "Roll 7 before the Don't Come number",
+    body:
+      "Lucky Penny will roll 7. The Don't Come 8 wins because 7 arrived before 8. The table point also seven-outs at the same time.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "dc-complete": {
+    eyebrow: "STEP 6 OF 6",
+    title: "Don't Come lesson complete",
+    body:
+      "You placed Don't Come with the puck ON, watched it travel behind 8, added lay odds, and won when 7 arrived before 8.",
+    action: "LESSON COMPLETE",
+  },
+  "field-place": {
+    eyebrow: "STEP 1 OF 6",
+    title: "Place $5 in the Field",
+    body:
+      "The Field is a one-roll bet. It wins on 2, 3, 4, 9, 10, 11, or 12 and loses on 5, 6, 7, or 8. Lucky Penny will walk through several outcomes with the same $5 wager.",
+    action: "YOUR TURN → Click FIELD",
+  },
+  "field-even": {
+    eyebrow: "STEP 2 OF 6",
+    title: "See an even-money Field winner",
+    body:
+      "Lucky Penny will roll 9. On this table, 3, 4, 9, 10, and 11 pay even money, so a $5 Field bet wins $5 profit and stays up.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "field-two": {
+    eyebrow: "STEP 3 OF 6",
+    title: "See 2 pay double",
+    body:
+      "Next Lucky Penny will roll 2. This table pays the Field 2 at 2:1, so the $5 wager wins $10 profit and remains up.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "field-twelve": {
+    eyebrow: "STEP 4 OF 6",
+    title: "See 12 pay triple",
+    body:
+      "Now Lucky Penny will roll 12. This table pays the Field 12 at 3:1, so the same $5 wager wins $15 profit and stays up.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "field-loss": {
+    eyebrow: "STEP 5 OF 6",
+    title: "See a Field loser",
+    body:
+      "Finally Lucky Penny will roll 6. Six is not a Field number, so the $5 wager loses and comes down immediately.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "field-complete": {
+    eyebrow: "STEP 6 OF 6",
+    title: "Field lesson complete",
+    body:
+      "You saw an even-money winner, the special 2 and 12 payouts, and a losing result. Remember: the Field resolves on every single roll.",
+    action: "LESSON COMPLETE",
+  },
+  "hard-place": {
+    eyebrow: "STEP 1 OF 5",
+    title: "Place $5 on Hard 6",
+    body:
+      "A Hard 6 wins only when 6 is rolled as a pair: 3 + 3. It loses if an easy 6 arrives first or if a 7 rolls. Hardways are working for this guided example.",
+    action: "YOUR TURN → Open CENTER BETS and click HARD 6",
+  },
+  "hard-win": {
+    eyebrow: "STEP 2 OF 5",
+    title: "Roll the 6 the hard way",
+    body:
+      "Lucky Penny will roll 3 + 3. Hard 6 pays 9:1, so a $5 wager wins $45 profit. Like the other Hardways on Lucky Penny, the winning bet stays up.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "hard-explain": {
+    eyebrow: "STEP 3 OF 5",
+    title: "The Hard 6 is still working",
+    body:
+      "The bet stayed on the table after the win. It can win again on another 3 + 3, but an easy 6 such as 2 + 4 or 1 + 5 will knock it down. A 7 also loses it.",
+    action: "READ THIS → Then click CONTINUE",
+  },
+  "hard-easy": {
+    eyebrow: "STEP 4 OF 5",
+    title: "See an easy 6 beat the Hard 6",
+    body:
+      "Lucky Penny will roll 2 + 4. The total is still 6, but because it is not a pair, the Hard 6 loses and comes down.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "hard-complete": {
+    eyebrow: "STEP 5 OF 5",
+    title: "Hardways lesson complete",
+    body:
+      "You saw the defining Hardway rule: the exact pair wins, while the easy version of the same total or a 7 loses the wager.",
+    action: "LESSON COMPLETE",
+  },
 };
 
 export function LearnMode({
@@ -227,6 +474,10 @@ export function LearnMode({
   onStartPassLine,
   onStartPlace68,
   onStartCome,
+  onStartDontPass,
+  onStartDontCome,
+  onStartField,
+  onStartHardways,
   onContinue,
   onRestart,
   onExit,
@@ -267,6 +518,30 @@ export function LearnMode({
             >
               Come Bet Basics
             </button>
+            <button
+              onClick={onStartDontPass}
+              className="rounded-lg border border-rose-400/60 bg-rose-950/30 px-4 py-3 text-sm font-black text-rose-100 shadow-lg hover:bg-rose-900/40"
+            >
+              Don't Pass Basics
+            </button>
+            <button
+              onClick={onStartDontCome}
+              className="rounded-lg border border-red-400/60 bg-red-950/30 px-4 py-3 text-sm font-black text-red-100 shadow-lg hover:bg-red-900/40"
+            >
+              Don't Come Basics
+            </button>
+            <button
+              onClick={onStartField}
+              className="rounded-lg border border-yellow-400/60 bg-yellow-950/30 px-4 py-3 text-sm font-black text-yellow-100 shadow-lg hover:bg-yellow-900/40"
+            >
+              Field Basics
+            </button>
+            <button
+              onClick={onStartHardways}
+              className="rounded-lg border border-orange-400/60 bg-orange-950/30 px-4 py-3 text-sm font-black text-orange-100 shadow-lg hover:bg-orange-900/40"
+            >
+              Hardways Basics
+            </button>
           </div>
         </div>
       </section>
@@ -279,11 +554,18 @@ export function LearnMode({
   const isExplanation =
     step === "pass-point" ||
     step === "place-explain" ||
-    step === "come-travel";
+    step === "come-travel" ||
+    step === "dp-explain" ||
+    step === "dc-explain" ||
+    step === "hard-explain";
   const isComplete =
     step === "pass-complete" ||
     step === "place-complete" ||
-    step === "come-complete";
+    step === "come-complete" ||
+    step === "dp-complete" ||
+    step === "dc-complete" ||
+    step === "field-complete" ||
+    step === "hard-complete";
 
   return (
     <section className="mt-2 overflow-hidden rounded-xl border-2 border-violet-400/70 bg-[linear-gradient(135deg,rgba(76,29,149,.32),rgba(3,19,14,.96))] shadow-[0_0_26px_rgba(167,139,250,.16)]">

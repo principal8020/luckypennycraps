@@ -503,7 +503,19 @@ export default function TablePage() {
                 ? "come"
                 : learnStep === "come-odds"
                   ? "come-odds-8"
-                  : null;
+                  : learnStep === "dp-place"
+                    ? "dont-pass"
+                    : learnStep === "dp-odds"
+                      ? "dont-pass-odds"
+                      : learnStep === "dc-place"
+                        ? "dont-come"
+                        : learnStep === "dc-odds"
+                          ? "dont-come-odds-8"
+                          : learnStep === "field-place"
+                            ? "field"
+                            : learnStep === "hard-place"
+                              ? "hardway-6"
+                              : null;
 
   const learnGuideAmount =
     !learnModeActive
@@ -511,13 +523,21 @@ export default function TablePage() {
       : learnStep === "pass-place" ||
           learnStep === "pass-odds" ||
           learnStep === "come-place" ||
-          learnStep === "come-odds"
+          learnStep === "come-odds" ||
+          learnStep === "dp-place" ||
+          learnStep === "dc-place" ||
+          learnStep === "field-place" ||
+          learnStep === "hard-place"
         ? 5
         : learnStep === "place-6"
           ? Math.max(0, 6 - placeBets[6])
           : learnStep === "place-8"
             ? Math.max(0, 6 - placeBets[8])
-            : null;
+            : learnStep === "dp-odds"
+              ? Math.max(0, 6 - dontPassOddsBet)
+              : learnStep === "dc-odds"
+                ? Math.max(0, 6 - dontComeOdds[8])
+                : null;
 
   const effectiveGuideTarget = learnModeActive
     ? learnGuideTarget
@@ -609,11 +629,77 @@ export default function TablePage() {
     setMessage("Learn Mode: place $5 in the Come.");
   }
 
+  function startDontPassLesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setBetsWorking(true);
+    setLearnModeActive(true);
+    setLearnLesson("dont-pass");
+    setLearnStep("dp-place");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: place $5 on Don't Pass.");
+  }
+
+  function startDontComeLesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setBetsWorking(true);
+    setPoint(6);
+    setLearnModeActive(true);
+    setLearnLesson("dont-come");
+    setLearnStep("dc-place");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: place $5 in Don't Come.");
+  }
+
+  function startFieldLesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setPoint(5);
+    setLearnModeActive(true);
+    setLearnLesson("field");
+    setLearnStep("field-place");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: place $5 in the Field.");
+  }
+
+  function startHardwaysLesson() {
+    resetTable();
+    setTestingMode(false);
+    setSelectedChip(5);
+    setRemoveMode(false);
+    setPoint(5);
+    setHardwaysWorking(true);
+    setLearnModeActive(true);
+    setLearnLesson("hardways");
+    setLearnStep("hard-place");
+    setStrategyGuideTarget(null);
+    setStrategyGuideAmount(null);
+    setMessage("Learn Mode: place $5 on Hard 6.");
+  }
+
   function restartLearnLesson() {
     if (learnLesson === "place-68") {
       startPlace68Lesson();
     } else if (learnLesson === "come") {
       startComeLesson();
+    } else if (learnLesson === "dont-pass") {
+      startDontPassLesson();
+    } else if (learnLesson === "dont-come") {
+      startDontComeLesson();
+    } else if (learnLesson === "field") {
+      startFieldLesson();
+    } else if (learnLesson === "hardways") {
+      startHardwaysLesson();
     } else {
       startPassLineLesson();
     }
@@ -645,6 +731,26 @@ export default function TablePage() {
       setLearnStep("come-odds");
       setSelectedChip(5);
       setMessage("Learn Mode: add $5 in Come odds on 8.");
+      return;
+    }
+
+    if (learnStep === "dp-explain") {
+      setLearnStep("dp-odds");
+      setSelectedChip(5);
+      setMessage("Learn Mode: build $6 in Don't Pass lay odds. Start with $5.");
+      return;
+    }
+
+    if (learnStep === "dc-explain") {
+      setLearnStep("dc-odds");
+      setSelectedChip(5);
+      setMessage("Learn Mode: build $6 in Don't Come lay odds behind 8.");
+      return;
+    }
+
+    if (learnStep === "hard-explain") {
+      setLearnStep("hard-easy");
+      setMessage("Learn Mode: roll the dice to see an easy 6 beat the Hard 6.");
     }
   }
 
@@ -715,6 +821,166 @@ export default function TablePage() {
       return;
     }
 
+    if (learnLesson === "dont-pass") {
+      if (learnStep === "dp-place" && dontPassBet >= 5) {
+        setLearnStep("dp-bar12");
+        setMessage("Good. Roll once to see Bar 12 in action.");
+        return;
+      }
+
+      if (
+        learnStep === "dp-bar12" &&
+        rollCount >= 1 &&
+        rollHistory[0]?.total === 12 &&
+        dontPassBet >= 5
+      ) {
+        setLearnStep("dp-point-roll");
+        setMessage("12 pushed and the bet stayed up. Roll again to establish a point.");
+        return;
+      }
+
+      if (
+        learnStep === "dp-point-roll" &&
+        rollCount >= 2 &&
+        point === 6
+      ) {
+        setLearnStep("dp-explain");
+        setMessage("Point 6 is ON. Read how Don't Pass changes after the point.");
+        return;
+      }
+
+      if (learnStep === "dp-odds") {
+        if (dontPassOddsBet >= 6) {
+          setSelectedChip(5);
+          setLearnStep("dp-seven");
+          setMessage("Lay odds are ready. Roll 7 before the point.");
+          return;
+        }
+        if (dontPassOddsBet >= 5) {
+          setSelectedChip(1);
+          setMessage("Good. Add $1 more to make the lay odds a proper $6.");
+        }
+        return;
+      }
+
+      if (
+        learnStep === "dp-seven" &&
+        rollCount >= 3 &&
+        rollHistory[0]?.total === 7 &&
+        point === null &&
+        dontPassBet === 0 &&
+        dontPassOddsBet === 0
+      ) {
+        setLearnStep("dp-complete");
+      }
+      return;
+    }
+
+    if (learnLesson === "dont-come") {
+      if (learnStep === "dc-place" && activeDontComeBet >= 5) {
+        setLearnStep("dc-roll-travel");
+        setMessage("Good. Roll the dice to give Don't Come its number.");
+        return;
+      }
+
+      if (
+        learnStep === "dc-roll-travel" &&
+        rollCount >= 1 &&
+        dontComeBets[8] >= 5
+      ) {
+        setLearnStep("dc-explain");
+        setMessage("Don't Come traveled behind 8. Read the explanation below.");
+        return;
+      }
+
+      if (learnStep === "dc-odds") {
+        if (dontComeOdds[8] >= 6) {
+          setSelectedChip(5);
+          setLearnStep("dc-seven");
+          setMessage("Lay odds are ready. Roll 7 before the Don't Come 8.");
+          return;
+        }
+        if (dontComeOdds[8] >= 5) {
+          setSelectedChip(1);
+          setMessage("Good. Add $1 more to make the lay odds a proper $6.");
+        }
+        return;
+      }
+
+      if (
+        learnStep === "dc-seven" &&
+        rollCount >= 2 &&
+        rollHistory[0]?.total === 7 &&
+        point === null &&
+        dontComeBets[8] === 0 &&
+        dontComeOdds[8] === 0
+      ) {
+        setLearnStep("dc-complete");
+      }
+      return;
+    }
+
+    if (learnLesson === "field") {
+      if (learnStep === "field-place" && fieldBet >= 5) {
+        setLearnStep("field-even");
+        setMessage("Field is up. Roll to see an even-money winner.");
+        return;
+      }
+      if (learnStep === "field-even" && rollCount >= 1 && rollHistory[0]?.total === 9) {
+        setLearnStep("field-two");
+        setMessage("9 paid even money. Roll again to see 2 pay double.");
+        return;
+      }
+      if (learnStep === "field-two" && rollCount >= 2 && rollHistory[0]?.total === 2) {
+        setLearnStep("field-twelve");
+        setMessage("2 paid 2:1. Roll again to see 12 pay 3:1.");
+        return;
+      }
+      if (learnStep === "field-twelve" && rollCount >= 3 && rollHistory[0]?.total === 12) {
+        setLearnStep("field-loss");
+        setMessage("12 paid 3:1. One last roll will show a Field loser.");
+        return;
+      }
+      if (
+        learnStep === "field-loss" &&
+        rollCount >= 4 &&
+        rollHistory[0]?.total === 6 &&
+        fieldBet === 0
+      ) {
+        setLearnStep("field-complete");
+      }
+      return;
+    }
+
+    if (learnLesson === "hardways") {
+      if (learnStep === "hard-place" && hardways[6] >= 5) {
+        setLearnStep("hard-win");
+        setMessage("Hard 6 is up. Roll 3 + 3 to see it win.");
+        return;
+      }
+      if (
+        learnStep === "hard-win" &&
+        rollCount >= 1 &&
+        rollHistory[0]?.first === 3 &&
+        rollHistory[0]?.second === 3 &&
+        hardways[6] >= 5
+      ) {
+        setLearnStep("hard-explain");
+        setMessage("Hard 6 won and stayed up. Read the explanation below.");
+        return;
+      }
+      if (
+        learnStep === "hard-easy" &&
+        rollCount >= 2 &&
+        rollHistory[0]?.total === 6 &&
+        rollHistory[0]?.first !== rollHistory[0]?.second &&
+        hardways[6] === 0
+      ) {
+        setLearnStep("hard-complete");
+      }
+      return;
+    }
+
     if (learnStep === "place-6") {
       if (placeBets[6] >= 6) {
         setLearnStep("place-8");
@@ -778,8 +1044,15 @@ export default function TablePage() {
     passLineBet,
     passOddsBet,
     activeComeBet,
+    activeDontComeBet,
     comeBets,
     comeOdds,
+    dontPassBet,
+    dontPassOddsBet,
+    dontComeBets,
+    dontComeOdds,
+    fieldBet,
+    hardways,
     placeBets,
     point,
     rollCount,
@@ -796,6 +1069,14 @@ export default function TablePage() {
       window.setTimeout(() => startPlace68Lesson(), 0);
     } else if (lesson === "come") {
       window.setTimeout(() => startComeLesson(), 0);
+    } else if (lesson === "dont-pass") {
+      window.setTimeout(() => startDontPassLesson(), 0);
+    } else if (lesson === "dont-come") {
+      window.setTimeout(() => startDontComeLesson(), 0);
+    } else if (lesson === "field") {
+      window.setTimeout(() => startFieldLesson(), 0);
+    } else if (lesson === "hardways") {
+      window.setTimeout(() => startHardwaysLesson(), 0);
     }
     // Run only once so the URL launches the lesson without restarting it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1546,6 +1827,15 @@ export default function TablePage() {
   }
 
   function handleDontPassBet(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "dont-pass" || learnStep !== "dp-place") &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: complete the current step first.");
+      return;
+    }
+
     if (wantsRemove(event)) {
       if (dontPassBet === 0) {
         setMessage("There is no Don't Pass bet to remove.");
@@ -1587,6 +1877,15 @@ export default function TablePage() {
   }
 
   function handleDontPassOdds(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "dont-pass" || learnStep !== "dp-odds") &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: build the highlighted Don't Pass lay odds.");
+      return;
+    }
+
     if (point === null || dontPassBet === 0) {
       setMessage("Don't Pass lay odds require a point.");
       return;
@@ -1795,6 +2094,15 @@ export default function TablePage() {
   }
 
   function handleFieldBet(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "field" || learnStep !== "field-place") &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: complete the current Field step first.");
+      return;
+    }
+
     if (wantsRemove(event)) {
       if (fieldBet === 0) {
         setMessage("There is no Field bet to remove.");
@@ -1872,6 +2180,15 @@ export default function TablePage() {
   }
 
   function handleDontComeBet(event?: MouseEvent<HTMLButtonElement>) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "dont-come" || learnStep !== "dc-place") &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: complete the current step first.");
+      return;
+    }
+
     if (point === null) {
       setMessage("Don't Come requires the table point to be ON.");
       return;
@@ -1980,6 +2297,17 @@ export default function TablePage() {
     event: MouseEvent<HTMLButtonElement>,
     number: number
   ) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "dont-come" ||
+        learnStep !== "dc-odds" ||
+        number !== 8) &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: add lay odds behind the highlighted Don't Come 8.");
+      return;
+    }
+
     const flatBet = dontComeBets[number];
 
     if (!flatBet) {
@@ -2048,6 +2376,17 @@ export default function TablePage() {
     event: MouseEvent<HTMLButtonElement>,
     number: number
   ) {
+    if (
+      learnModeActive &&
+      (learnLesson !== "hardways" ||
+        learnStep !== "hard-place" ||
+        number !== 6) &&
+      !wantsRemove(event)
+    ) {
+      setMessage("Learn Mode: place the highlighted Hard 6 first.");
+      return;
+    }
+
     if (wantsRemove(event)) {
       const currentBet = hardways[number];
 
@@ -2591,7 +2930,18 @@ export default function TablePage() {
       learnStep === "place-roll-8" ||
       learnStep === "place-seven" ||
       learnStep === "come-roll-travel" ||
-      learnStep === "come-resolve";
+      learnStep === "come-resolve" ||
+      learnStep === "dp-bar12" ||
+      learnStep === "dp-point-roll" ||
+      learnStep === "dp-seven" ||
+      learnStep === "dc-roll-travel" ||
+      learnStep === "dc-seven" ||
+      learnStep === "field-even" ||
+      learnStep === "field-two" ||
+      learnStep === "field-twelve" ||
+      learnStep === "field-loss" ||
+      learnStep === "hard-win" ||
+      learnStep === "hard-easy";
 
     if (learnModeActive && !learnRollStep) {
       setMessage("Learn Mode: complete the highlighted lesson step first.");
@@ -2614,22 +2964,43 @@ export default function TablePage() {
       learnModeActive &&
       (learnStep === "place-roll-8" ||
         learnStep === "come-roll-travel" ||
-        learnStep === "come-resolve")
+        learnStep === "come-resolve" ||
+        learnStep === "dc-roll-travel")
     ) {
       finalFirst = 4;
       finalSecond = 4;
-    } else if (learnModeActive && learnStep === "place-seven") {
+    } else if (
+      learnModeActive &&
+      (learnStep === "place-seven" ||
+        learnStep === "dp-seven" ||
+        learnStep === "dc-seven")
+    ) {
       finalFirst = 3;
       finalSecond = 4;
     } else if (
       learnModeActive &&
       (learnStep === "pass-come-out" ||
         learnStep === "pass-resolve" ||
-        learnStep === "place-roll-6")
+        learnStep === "place-roll-6" ||
+        learnStep === "dp-point-roll" ||
+        learnStep === "field-loss" ||
+        learnStep === "hard-win")
     ) {
       // Guided lessons use deterministic rolls so the teaching sequence is repeatable.
       finalFirst = 3;
       finalSecond = 3;
+    } else if (learnModeActive && (learnStep === "dp-bar12" || learnStep === "field-twelve")) {
+      finalFirst = 6;
+      finalSecond = 6;
+    } else if (learnModeActive && learnStep === "field-even") {
+      finalFirst = 4;
+      finalSecond = 5;
+    } else if (learnModeActive && learnStep === "field-two") {
+      finalFirst = 1;
+      finalSecond = 1;
+    } else if (learnModeActive && learnStep === "hard-easy") {
+      finalFirst = 2;
+      finalSecond = 4;
     } else if (testingMode) {
       [finalFirst, finalSecond] =
         forcedDice && forcedDice[0] + forcedDice[1] === forcedTotal
@@ -3541,6 +3912,7 @@ export default function TablePage() {
                 hardways={hardways}
                 onHardway={handleHardway}
                 flashClass={flashClass}
+                guideTarget={effectiveGuideTarget}
                 twoBet={twoBet}
                 threeBet={threeBet}
                 yoBet={yoBet}
@@ -3659,6 +4031,7 @@ export default function TablePage() {
             hardways={hardways}
             onHardway={handleHardway}
             flashClass={flashClass}
+            guideTarget={effectiveGuideTarget}
             twoBet={twoBet}
             threeBet={threeBet}
             yoBet={yoBet}
@@ -3783,6 +4156,10 @@ export default function TablePage() {
           onStartPassLine={startPassLineLesson}
           onStartPlace68={startPlace68Lesson}
           onStartCome={startComeLesson}
+          onStartDontPass={startDontPassLesson}
+          onStartDontCome={startDontComeLesson}
+          onStartField={startFieldLesson}
+          onStartHardways={startHardwaysLesson}
           onContinue={continueLearnLesson}
           onRestart={restartLearnLesson}
           onExit={exitLearnMode}
