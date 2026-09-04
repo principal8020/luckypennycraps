@@ -87,21 +87,20 @@ body {
     padding-bottom: 7px !important;
   }
 
-  /* Traveled Come / Don't Come bets need to fit two wagers inside one narrow
-     number cell. Anchor that wager cluster to the right edge of its own cell,
-     then shrink both chip stacks slightly. This keeps 9/10 from spilling into
-     the neighboring box on phone layouts. */
+  /* Traveled Come / Don't Come wagers sit directly over their printed label.
+     The flat bet is first and the odds / lay odds sit immediately to its right,
+     keeping the entire pair centered inside the correct number cell. */
   div:has(> button[title^="Come odds pay"]),
   div:has(> button[title^="Don't Come lay odds pay"]) {
     position: absolute !important;
-    right: 0 !important;
+    left: 50% !important;
     top: 50% !important;
     width: 92px !important;
     height: 42px !important;
-    transform: translateY(-50%) !important;
+    transform: translate(-50%, -50%) !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-end !important;
+    justify-content: center !important;
     gap: 0 !important;
   }
 
