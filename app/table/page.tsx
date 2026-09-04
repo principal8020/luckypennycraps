@@ -3415,7 +3415,7 @@ export default function TablePage() {
 
 
   return (
-    <main className="min-h-screen bg-[#03130e] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-24 sm:pt-3 lg:pb-24">
+    <main className="min-h-screen bg-[#020b08] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-24 sm:pt-3 lg:pb-24">
       <style>{`
         @keyframes comeChipTravel {
           0% {
@@ -3607,13 +3607,13 @@ export default function TablePage() {
             {/* FELT */}
             <div
               onPointerDownCapture={rememberUndo}
-              className="overflow-hidden rounded-[30px] border-[9px] border-[#6c3b12] bg-[#087348] shadow-[0_18px_45px_rgba(0,0,0,.5),inset_0_0_0_2px_rgba(255,188,90,.08),inset_0_0_24px_rgba(0,0,0,.2)]"
+              className="overflow-hidden rounded-[32px] border-[12px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_24px_60px_rgba(0,0,0,.62),inset_0_0_0_3px_rgba(214,166,72,.28),inset_0_0_0_7px_rgba(45,18,4,.34),inset_0_0_28px_rgba(0,0,0,.28)]"
             >
           <div
-            className="relative border-[3px] border-[#2f1b0a] p-2 sm:p-3"
+            className="relative border-[4px] border-[#cfbd8c]/72 bg-[#075f3d] p-2 sm:p-3"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.04), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.13), transparent 30%), repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, rgba(0,0,0,0.012) 1px, rgba(0,0,0,0.012) 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.008) 0px, rgba(255,255,255,0.008) 1px, transparent 1px, transparent 4px)",
+                "radial-gradient(circle at 20% 10%, rgba(255,255,255,.055), transparent 25%), radial-gradient(circle at 82% 82%, rgba(0,0,0,.18), transparent 34%), linear-gradient(135deg, rgba(255,255,255,.018), rgba(0,0,0,.035)), repeating-linear-gradient(0deg, rgba(255,255,255,.011) 0px, rgba(255,255,255,.011) 1px, rgba(0,0,0,.018) 1px, rgba(0,0,0,.018) 3px), repeating-linear-gradient(90deg, rgba(255,255,255,.007) 0px, rgba(255,255,255,.007) 1px, transparent 1px, transparent 5px)",
             }}
           >
             {rollOutcome && (
@@ -3679,7 +3679,7 @@ export default function TablePage() {
                   {pointNumbers.map((number) => (
                     <div
                       key={number}
-                      className={`relative min-h-[212px] overflow-visible border border-white/60 bg-black/[0.025] text-center transition ${
+                      className={`relative min-h-[212px] overflow-visible border border-[#e3dac1]/72 bg-black/[0.035] text-center transition ${
                         point === number
                           ? "ring-2 ring-inset ring-amber-300/85"
                           : ""
@@ -3694,7 +3694,7 @@ export default function TablePage() {
                     >
                       {point === number && (
                         <div
-                          className={`absolute left-1/2 top-[122px] z-[70] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white bg-[radial-gradient(circle_at_35%_30%,#3f3f46_0%,#18181b_36%,#09090b_72%)] text-[9px] font-black tracking-[0.04em] shadow-[0_6px_12px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.08)] ring-2 ring-black/50 ${
+                          className={`absolute -right-3 top-[138px] z-[70] flex h-[54px] w-[54px] -translate-y-1/2 items-center justify-center rounded-full border-[4px] border-[#f4ead0] bg-[radial-gradient(circle_at_35%_28%,#52525b_0%,#18181b_34%,#050505_74%)] text-[10px] font-black tracking-[0.08em] text-white shadow-[0_8px_16px_rgba(0,0,0,.62),inset_0_0_0_2px_rgba(255,255,255,.1),0_0_0_2px_rgba(202,162,76,.55)] ring-2 ring-black/60 ${
                             learnModeActive &&
                             (learnStep === "pass-point" ||
                               learnStep === "place-explain")
@@ -3836,7 +3836,7 @@ export default function TablePage() {
                       {/* NUMBER */}
                       <div className="absolute inset-x-0 bottom-[42px] top-[120px] flex items-center justify-center bg-emerald-950/[0.13]">
                         <span
-                          className={`box-number font-black leading-none text-white ${
+                          className={`box-number font-serif font-black leading-none tracking-[0.025em] text-[#fff8df] ${
                             number === 6 || number === 9
                               ? "text-4xl sm:text-[42px]"
                               : "text-[42px] sm:text-5xl"
@@ -3857,7 +3857,7 @@ export default function TablePage() {
                       {/* PLACE ZONE */}
                       <button
                         onClick={(event) => handleNumberBet(event, number)}
-                        className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-emerald-100/30 bg-emerald-950/[0.18] px-2 font-black transition hover:bg-white/[0.04] ${
+                        className={`absolute inset-x-0 bottom-0 flex h-[42px] items-center justify-between border-t border-[#ded5bd]/48 bg-emerald-950/[0.18] px-2 font-black transition hover:bg-white/[0.04] ${
                           placeBets[number] > 0 ? "bg-emerald-950/45" : ""
                         } ${flashClass("place", String(number))} ${strategyGuideClass(
                           effectiveGuideTarget,
@@ -3880,7 +3880,7 @@ export default function TablePage() {
 
                   {point === null && (
                     <div
-                      className="absolute -left-1 -top-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-zinc-800 bg-[radial-gradient(circle_at_35%_30%,#ffffff_0%,#f4f4f5_45%,#d4d4d8_100%)] text-[8px] font-black tracking-[0.03em] text-black shadow-[0_5px_12px_rgba(0,0,0,.45),inset_0_0_0_2px_rgba(255,255,255,.8)]"
+                      className="absolute -left-1 -top-2 z-[70] flex h-[52px] w-[52px] items-center justify-center rounded-full border-[4px] border-zinc-900 bg-[radial-gradient(circle_at_35%_28%,#ffffff_0%,#f4f1e7_48%,#cfc8b5_100%)] text-[9px] font-black tracking-[0.07em] text-black shadow-[0_8px_16px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.85),0_0_0_2px_rgba(202,162,76,.5)]"
                       title="Come-out roll"
                     >
                       OFF
@@ -3894,7 +3894,7 @@ export default function TablePage() {
                   <div className="grid min-h-[92px] grid-cols-[112px_minmax(0,1fr)] gap-[3px] sm:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[165px_minmax(0,1fr)]">
                     <button
                       onClick={handleDontComeBet}
-                      className={`relative flex flex-col items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04] ${strategyGuideClass(
+                      className={`relative flex flex-col items-center justify-center rounded-sm border-2 border-[#e4dac0]/78 bg-black/[0.035] px-2 text-center font-black transition hover:bg-white/[0.04] ${strategyGuideClass(
                         effectiveGuideTarget,
                         "dont-come"
                       )}`}
@@ -3920,17 +3920,17 @@ export default function TablePage() {
 
                     <button
                       onClick={handleComeBet}
-                      className={`relative flex items-center justify-center rounded-sm border-2 border-white/70 bg-black/[0.015] px-3 text-center transition hover:bg-white/[0.035] ${strategyGuideClass(
+                      className={`relative flex items-center justify-center rounded-sm border-2 border-[#e4dac0]/78 bg-black/[0.015] px-3 text-center transition hover:bg-white/[0.035] ${strategyGuideClass(
                         effectiveGuideTarget,
                         "come"
                       )}`}
                       title="Place a new Come bet"
                     >
                       <span
-                        className="font-serif text-5xl tracking-[0.05em] text-red-300 sm:text-6xl"
+                        className="font-serif text-5xl tracking-[0.05em] text-[#df7771] sm:text-6xl"
                         style={{
                           textShadow:
-                            "0 2px 0 rgba(0,0,0,.55), 0 0 12px rgba(248,113,113,.12)",
+                            "0 2px 0 rgba(0,0,0,.58), 0 0 12px rgba(170,48,48,.16)",
                         }}
                       >
                         COME
@@ -3944,7 +3944,7 @@ export default function TablePage() {
                   {/* CLASSIC FIELD */}
                   <button
                     onClick={handleFieldBet}
-                    className={`relative mt-[3px] min-h-[102px] w-full overflow-hidden rounded-b-[54px] border-2 border-white/70 bg-black/[0.015] px-5 py-3 transition hover:bg-white/[0.035] ${flashClass(
+                    className={`relative mt-[3px] min-h-[102px] w-full overflow-hidden rounded-b-[54px] border-2 border-[#e7dec6]/82 bg-black/[0.015] px-5 py-3 transition hover:bg-white/[0.035] ${flashClass(
                       "field",
                       "field"
                     )} ${quickPreviewFieldClass()} ${strategyGuideClass(
@@ -3985,7 +3985,7 @@ export default function TablePage() {
 
                   {/* CLASSIC DON'T PASS BAR */}
                   <div
-                    className={`relative mt-[3px] min-h-[56px] overflow-hidden rounded-b-[28px] border-2 border-white/65 bg-black/[0.035] ${flashClass(
+                    className={`relative mt-[3px] min-h-[56px] overflow-hidden rounded-b-[28px] border-2 border-[#ddd2b7]/76 bg-black/[0.035] shadow-[inset_0_1px_0_rgba(255,255,255,.04)] ${flashClass(
                       "dontPass",
                       "dont-pass"
                     )}`}
@@ -4027,14 +4027,14 @@ export default function TablePage() {
 
                   {/* CLASSIC PASS LINE */}
                   <div
-                    className={`relative mt-[3px] min-h-[78px] overflow-hidden rounded-b-[46px] rounded-t-[8px] border-[3px] border-white bg-black/[0.005] shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)] ${flashClass(
+                    className={`relative mt-[3px] min-h-[78px] overflow-hidden rounded-b-[46px] rounded-t-[8px] border-[3px] border-[#eee5cf] bg-black/[0.005] shadow-[inset_0_0_0_1px_rgba(255,255,255,.06),0_0_12px_rgba(210,170,76,.08)] ${flashClass(
                       "pass",
                       "pass"
                     )}`}
                   >
                     <button
                       onClick={handlePassLineBet}
-                      className={`absolute inset-0 z-10 w-full pb-2 text-2xl font-black tracking-[0.2em] hover:bg-white/[0.025] sm:text-3xl ${strategyGuideClass(
+                      className={`absolute inset-0 z-10 w-full pb-2 text-2xl font-black tracking-[0.2em] text-[#fff7dc] [text-shadow:0_2px_0_rgba(0,0,0,.55)] hover:bg-white/[0.025] sm:text-3xl ${strategyGuideClass(
                           effectiveGuideTarget,
                           "pass-line"
                         )}`}
