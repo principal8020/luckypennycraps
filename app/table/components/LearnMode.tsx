@@ -1,6 +1,6 @@
 "use client";
 
-export type LearnLessonId = "pass-line" | "place-68";
+export type LearnLessonId = "pass-line" | "place-68" | "come";
 
 export type LearnLessonStep =
   | "pass-place"
@@ -15,7 +15,13 @@ export type LearnLessonStep =
   | "place-roll-6"
   | "place-roll-8"
   | "place-seven"
-  | "place-complete";
+  | "place-complete"
+  | "come-place"
+  | "come-roll-travel"
+  | "come-travel"
+  | "come-odds"
+  | "come-resolve"
+  | "come-complete";
 
 type LearnModeProps = {
   active: boolean;
@@ -24,6 +30,7 @@ type LearnModeProps = {
   point: number | null;
   onStartPassLine: () => void;
   onStartPlace68: () => void;
+  onStartCome: () => void;
   onContinue: () => void;
   onRestart: () => void;
   onExit: () => void;
@@ -61,6 +68,17 @@ const lessonMeta: Record<
       "place-roll-8",
       "place-seven",
       "place-complete",
+    ],
+  },
+  come: {
+    title: "Come Bet Basics",
+    steps: [
+      "come-place",
+      "come-roll-travel",
+      "come-travel",
+      "come-odds",
+      "come-resolve",
+      "come-complete",
     ],
   },
 };
@@ -157,6 +175,48 @@ const copy: Record<LearnLessonStep, LessonCopy> = {
       "You built proper $6 wagers, watched both numbers pay 7:6, saw the bets stay up after wins, and then saw a seven-out remove them. That is the core Place 6 & 8 cycle.",
     action: "LESSON COMPLETE",
   },
+  "come-place": {
+    eyebrow: "STEP 1 OF 6",
+    title: "Place $5 in the Come",
+    body:
+      "A Come bet is like starting a new Pass Line bet while the table already has a point. For this lesson the table point is 6, so the Come area is available now.",
+    action: "YOUR TURN → Click COME",
+  },
+  "come-roll-travel": {
+    eyebrow: "STEP 2 OF 6",
+    title: "Roll to give the Come bet its number",
+    body:
+      "On its first roll, a Come bet wins on 7 or 11, loses on 2, 3, or 12, and travels to 4, 5, 6, 8, 9, or 10. Lucky Penny will roll an 8 so you can watch it travel.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "come-travel": {
+    eyebrow: "STEP 3 OF 6",
+    title: "Your Come bet traveled to 8",
+    body:
+      "The table point is still 6, but your Come bet now has its own number: 8. From here, the Come 8 wins if an 8 rolls before a 7. This is why Come bets can build several independent contract numbers.",
+    action: "READ THIS → Then click CONTINUE",
+  },
+  "come-odds": {
+    eyebrow: "STEP 4 OF 6",
+    title: "Add $5 in Come odds on 8",
+    body:
+      "Once a Come bet travels, you can add odds behind it just like Pass Line odds. The odds pay true odds and add no additional house edge.",
+    action: "YOUR TURN → Click + ODDS beside COME 8",
+  },
+  "come-resolve": {
+    eyebrow: "STEP 5 OF 6",
+    title: "Roll the Come number again",
+    body:
+      "Now you want 8 before 7 for this Come contract. Lucky Penny will roll an 8 so you can see the flat Come bet and its odds resolve together.",
+    action: "YOUR TURN → Click ROLL DICE",
+  },
+  "come-complete": {
+    eyebrow: "STEP 6 OF 6",
+    title: "Come Bet lesson complete",
+    body:
+      "You placed a Come bet while the puck was ON, watched it travel to 8, added true odds, and then won when 8 repeated before 7. You can repeat this process to build multiple Come numbers.",
+    action: "LESSON COMPLETE",
+  },
 };
 
 export function LearnMode({
@@ -166,6 +226,7 @@ export function LearnMode({
   point,
   onStartPassLine,
   onStartPlace68,
+  onStartCome,
   onContinue,
   onRestart,
   onExit,
@@ -200,6 +261,12 @@ export function LearnMode({
             >
               Place 6 & 8
             </button>
+            <button
+              onClick={onStartCome}
+              className="rounded-lg border border-amber-400/60 bg-amber-950/30 px-4 py-3 text-sm font-black text-amber-100 shadow-lg hover:bg-amber-900/40"
+            >
+              Come Bet Basics
+            </button>
           </div>
         </div>
       </section>
@@ -209,8 +276,14 @@ export function LearnMode({
   const current = copy[step];
   const meta = lessonMeta[lesson];
   const stepIndex = meta.steps.indexOf(step) + 1;
-  const isExplanation = step === "pass-point" || step === "place-explain";
-  const isComplete = step === "pass-complete" || step === "place-complete";
+  const isExplanation =
+    step === "pass-point" ||
+    step === "place-explain" ||
+    step === "come-travel";
+  const isComplete =
+    step === "pass-complete" ||
+    step === "place-complete" ||
+    step === "come-complete";
 
   return (
     <section className="mt-2 overflow-hidden rounded-xl border-2 border-violet-400/70 bg-[linear-gradient(135deg,rgba(76,29,149,.32),rgba(3,19,14,.96))] shadow-[0_0_26px_rgba(167,139,250,.16)]">
@@ -244,7 +317,9 @@ export function LearnMode({
 
           {isExplanation && point !== null && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-950/35 px-3 py-2 text-[10px] font-black text-cyan-100">
-              PUCK ON → POINT {point}
+              {step === "come-travel"
+                ? `TABLE POINT ${point} • COME NUMBER 8`
+                : `PUCK ON → POINT ${point}`}
             </div>
           )}
 
