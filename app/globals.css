@@ -25,6 +25,29 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Traveled Come / Don't Come wager grouping ---------------------------- */
+/* Put the flat traveled bet directly over the printed COME / DON'T COME
+   label, with odds / lay odds immediately to its right. Apply this to the
+   full table as well as mobile so the wager pair never hangs off the cell. */
+div:has(> button[title^="Come odds pay"]),
+div:has(> button[title^="Don't Come lay odds pay"]) {
+  position: absolute !important;
+  left: 30% !important;
+  top: 50% !important;
+  width: 112px !important;
+  height: 42px !important;
+  transform: translate(-50%, -50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+}
+
+button[title^="Come odds pay"],
+button[title^="Don't Come lay odds pay"] {
+  gap: 0 !important;
+}
+
 /* Mobile table UX ------------------------------------------------------- */
 @media (max-width: 1023px) {
   /* Keep the roll result in the center of the visible screen, even when
@@ -87,21 +110,12 @@ body {
     padding-bottom: 7px !important;
   }
 
-  /* On phones, place the traveled flat Come / Don't Come chip directly over
-     the printed COME / DON'T COME label. Put its odds immediately to the right.
-     The labels may be covered; keeping both wagers inside the number box wins. */
+  /* Phones use a tighter pair so both wagers stay inside the fixed-width
+     number cell while preserving flat bet first, odds second. */
   div:has(> button[title^="Come odds pay"]),
   div:has(> button[title^="Don't Come lay odds pay"]) {
-    position: absolute !important;
-    left: 30% !important;
-    top: 50% !important;
+    left: 36% !important;
     width: 86px !important;
-    height: 42px !important;
-    transform: translate(-50%, -50%) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 0 !important;
   }
 
   button[title^="Come odds pay"],
@@ -109,7 +123,6 @@ body {
     width: 40px !important;
     min-width: 40px !important;
     flex: 0 0 40px !important;
-    gap: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
