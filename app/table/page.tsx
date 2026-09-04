@@ -32,7 +32,10 @@ import {
   resolveWorldNetProfit,
 } from "./crapsRules";
 import { BetChip, MiniDie } from "./components/TablePieces";
-import type { RollHistoryItem } from "./components/RollHistory";
+import type {
+  RollHistoryItem,
+  RollResolutionDetail,
+} from "./components/RollHistory";
 import { MobileActionBar } from "./components/MobileActionBar";
 import { MobileCenterActionDrawer } from "./components/MobileCenterActionDrawer";
 import { TableAnalytics } from "./components/TableAnalytics";
@@ -119,6 +122,12 @@ type ResolutionFlash = {
   result: "win" | "loss";
 };
 
+type RollOutcome = {
+  id: number;
+  result: "win" | "loss";
+  amount: number;
+  total: number;
+};
 
 type BetSnapshot = {
   bankroll: number;
@@ -176,6 +185,36 @@ function emptyHopBets(): HopBets {
 
 function money(amount: number) {
   return Math.floor(amount).toLocaleString();
+}
+
+function buildRollDetails(messages: string[]): RollResolutionDetail[] {
+  return messages
+    .filter((message) => message.trim().length > 0)
+    .filter((message) => !/^\d+ rolled\.$/i.test(message.trim()))
+    .map((message) => {
+      const lower = message.toLowerCase();
+      const amountMatch = message.match(/\$([\d,]+)/);
+      const amount = amountMatch
+        ? Number(amountMatch[1].replace(/,/g, ""))
+        : undefined;
+
+      const result: RollResolutionDetail["result"] =
+        lower.includes("wins $") ||
+        lower.includes("win $") ||
+        lower.includes("net profit $")
+          ? "win"
+          : lower.includes("loses $") ||
+              lower.includes("lose $") ||
+              lower.includes("losing")
+            ? "loss"
+            : "info";
+
+      return {
+        text: message,
+        result,
+        amount,
+      };
+    });
 }
 
 function chipRangeStyle(amount: number) {
@@ -270,6 +309,7 @@ export default function TablePage() {
   const [rollCount, setRollCount] = useState(0);
   const rollStartEquityRef = useRef(STARTING_BANKROLL);
   const pendingRollNumberRef = useRef<number | null>(null);
+  const pendingRollDetailsRef = useRef<RollResolutionDetail[]>([]);
 
   const [point, setPoint] = useState<number | null>(null);
   const [message, setMessage] = useState(
@@ -286,6 +326,7 @@ export default function TablePage() {
     useState<TravelAnimation | null>(null);
   const [resolutionFlashes, setResolutionFlashes] =
     useState<ResolutionFlash[]>([]);
+  const [rollOutcome, setRollOutcome] = useState<RollOutcome | null>(null);
   const [quickBetPreview, setQuickBetPreview] =
     useState<QuickBetPreview | null>(null);
   const [strategyGuideTarget, setStrategyGuideTarget] =
@@ -400,6 +441,11 @@ export default function TablePage() {
     return flash.result === "win"
       ? "lucky-win-flash"
       : "lucky-loss-flash";
+  }
+
+  function finalizeRollMessages(messages: string[]) {
+    pendingRollDetailsRef.current = buildRollDetails(messages);
+    setMessage(messages.join(" "));
   }
 
   function classifyRollEvent(
@@ -564,6 +610,27 @@ export default function TablePage() {
 
     pendingRollNumberRef.current = null;
 
+    if (rollNet !== 0) {
+      const outcomeId = Date.now() + Math.floor(Math.random() * 100000);
+      setRollOutcome({
+        id: outcomeId,
+        result: rollNet > 0 ? "win" : "loss",
+        amount: Math.abs(rollNet),
+        total: rollHistory[0]?.first && rollHistory[0]?.second
+          ? rollHistory[0].first + rollHistory[0].second
+          : rollTotal,
+      });
+
+      window.setTimeout(() => {
+        setRollOutcome((current) =>
+          current?.id === outcomeId ? null : current
+        );
+      }, 1550);
+    }
+
+    const rollDetails = pendingRollDetailsRef.current;
+    pendingRollDetailsRef.current = [];
+
     setRollHistory((current) => {
       if (current.length === 0 || typeof current[0].net === "number") {
         return current;
@@ -573,6 +640,7 @@ export default function TablePage() {
         {
           ...current[0],
           net: rollNet,
+          details: rollDetails,
         },
         ...current.slice(1),
       ];
@@ -1568,6 +1636,7 @@ export default function TablePage() {
     setRollCount(0);
     rollStartEquityRef.current = STARTING_BANKROLL;
     pendingRollNumberRef.current = null;
+    pendingRollDetailsRef.current = [];
     setPoint(null);
     setMessage("Table reset. Place your bets for the come-out roll.");
     setBankroll(STARTING_BANKROLL);
@@ -1609,6 +1678,7 @@ export default function TablePage() {
     setLastRollBets(null);
     setTravelAnimation(null);
     setResolutionFlashes([]);
+    setRollOutcome(null);
     setQuickBetPreview(null);
   }
 
@@ -2950,6 +3020,7 @@ export default function TablePage() {
 
     rollStartEquityRef.current = bankroll + totalOnTable;
     pendingRollNumberRef.current = rollCount + 1;
+    pendingRollDetailsRef.current = [];
 
     setIsRolling(true);
     setTravelAnimation(null);
@@ -3035,6 +3106,7 @@ export default function TablePage() {
         first: finalFirst,
         second: finalSecond,
         total,
+        rollNumber: rollCount + 1,
         event: rollEvent,
         pointBefore: pointBeforeRoll,
       },
@@ -3122,7 +3194,7 @@ export default function TablePage() {
           setDontPassOddsBet(0);
         }
 
-        setMessage(messages.join(" "));
+        finalizeRollMessages(messages);
         return;
       }
 
@@ -3144,7 +3216,7 @@ export default function TablePage() {
           );
         }
 
-        setMessage(messages.join(" "));
+        finalizeRollMessages(messages);
         return;
       }
 
@@ -3162,14 +3234,14 @@ export default function TablePage() {
           messages.push("Don't Pass bars 12. Bet stays up.");
         }
 
-        setMessage(messages.join(" "));
+        finalizeRollMessages(messages);
         return;
       }
 
       if (pointNumbers.includes(total)) {
         setPoint(total);
         messages.unshift(`Point established: ${total}.`);
-        setMessage(messages.join(" "));
+        finalizeRollMessages(messages);
         return;
       }
     }
@@ -3248,7 +3320,7 @@ export default function TablePage() {
       setDontPassBet(0);
       setDontPassOddsBet(0);
       setPoint(null);
-      setMessage(messages.join(" "));
+      finalizeRollMessages(messages);
       return;
     }
 
@@ -3328,7 +3400,7 @@ export default function TablePage() {
       setDontPassBet(0);
       setDontPassOddsBet(0);
       setPoint(null);
-      setMessage(messages.join(" "));
+      finalizeRollMessages(messages);
       return;
     }
 
@@ -3338,7 +3410,7 @@ export default function TablePage() {
       messages.unshift(`${total} rolled.`);
     }
 
-    setMessage(messages.join(" "));
+    finalizeRollMessages(messages);
   }
 
 
@@ -3441,6 +3513,58 @@ export default function TablePage() {
           100% { opacity: 0; }
         }
 
+        @keyframes luckyOutcomePop {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -35%) scale(.5);
+          }
+          10% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.12);
+          }
+          20% {
+            transform: translate(-50%, -50%) scale(.98);
+          }
+          72% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -62%) scale(.9);
+          }
+        }
+
+        @keyframes luckyOutcomeWash {
+          0% { opacity: 0; }
+          12% { opacity: 1; }
+          65% { opacity: .55; }
+          100% { opacity: 0; }
+        }
+
+        @keyframes luckyOutcomeRing {
+          0% {
+            opacity: .9;
+            transform: translate(-50%, -50%) scale(.45);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(2.3);
+          }
+        }
+
+        .lucky-roll-outcome {
+          animation: luckyOutcomePop 1550ms cubic-bezier(.18,.9,.22,1) both;
+        }
+
+        .lucky-outcome-wash {
+          animation: luckyOutcomeWash 1550ms ease-out both;
+        }
+
+        .lucky-outcome-ring {
+          animation: luckyOutcomeRing 850ms ease-out both;
+        }
+
         .lucky-rotate-hint {
           display: none;
         }
@@ -3454,7 +3578,10 @@ export default function TablePage() {
         @media (prefers-reduced-motion: reduce) {
           .lucky-travel,
           .lucky-win-flash,
-          .lucky-loss-flash {
+          .lucky-loss-flash,
+          .lucky-roll-outcome,
+          .lucky-outcome-wash,
+          .lucky-outcome-ring {
             animation-duration: 1ms !important;
           }
         }
@@ -3489,6 +3616,61 @@ export default function TablePage() {
                 "radial-gradient(circle at 22% 14%, rgba(255,255,255,0.04), transparent 24%), radial-gradient(circle at 78% 78%, rgba(0,0,0,0.13), transparent 30%), repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, rgba(0,0,0,0.012) 1px, rgba(0,0,0,0.012) 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.008) 0px, rgba(255,255,255,0.008) 1px, transparent 1px, transparent 4px)",
             }}
           >
+            {rollOutcome && (
+              <div
+                key={rollOutcome.id}
+                className="pointer-events-none absolute inset-0 z-[95] overflow-hidden rounded-[18px]"
+                aria-live="polite"
+              >
+                <div
+                  className={`lucky-outcome-wash absolute inset-0 ${
+                    rollOutcome.result === "win"
+                      ? "bg-[radial-gradient(circle_at_center,rgba(34,197,94,.42),rgba(6,78,59,.18)_38%,transparent_72%)]"
+                      : "bg-[radial-gradient(circle_at_center,rgba(239,68,68,.42),rgba(127,29,29,.2)_38%,transparent_72%)]"
+                  }`}
+                />
+
+                <div
+                  className={`lucky-outcome-ring absolute left-1/2 top-[38%] h-44 w-44 rounded-full border-[5px] ${
+                    rollOutcome.result === "win"
+                      ? "border-emerald-300/80 shadow-[0_0_45px_rgba(52,211,153,.85)]"
+                      : "border-red-300/80 shadow-[0_0_45px_rgba(248,113,113,.85)]"
+                  }`}
+                />
+
+                <div
+                  className={`lucky-roll-outcome absolute left-1/2 top-[38%] min-w-[250px] rounded-2xl border-2 px-8 py-5 text-center shadow-[0_18px_55px_rgba(0,0,0,.65)] backdrop-blur-[2px] ${
+                    rollOutcome.result === "win"
+                      ? "border-emerald-300 bg-emerald-950/95 text-emerald-50"
+                      : "border-red-300 bg-red-950/95 text-red-50"
+                  }`}
+                >
+                  <div
+                    className={`text-[11px] font-black uppercase tracking-[0.32em] ${
+                      rollOutcome.result === "win"
+                        ? "text-emerald-300"
+                        : "text-red-300"
+                    }`}
+                  >
+                    Roll {rollOutcome.total}
+                  </div>
+                  <div className="mt-1 text-4xl font-black tracking-[0.08em] sm:text-5xl">
+                    {rollOutcome.result === "win" ? "WIN" : "LOSS"}
+                  </div>
+                  <div
+                    className={`mt-1 text-2xl font-black ${
+                      rollOutcome.result === "win"
+                        ? "text-emerald-300"
+                        : "text-red-300"
+                    }`}
+                  >
+                    {rollOutcome.result === "win" ? "+" : "-"}$
+                    {money(rollOutcome.amount)}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="relative z-10 grid gap-1 lg:grid-cols-[minmax(0,3.2fr)_minmax(240px,.84fr)] xl:grid-cols-[minmax(0,3.2fr)_minmax(290px,.92fr)]">
               {/* MAIN PLAYER AREA */}
               <div className="min-w-0">
