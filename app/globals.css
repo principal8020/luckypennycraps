@@ -24,3 +24,93 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Mobile table UX ------------------------------------------------------- */
+@media (max-width: 1023px) {
+  /* Keep the roll result in the center of the visible screen, even when
+     the player has scrolled below the felt. */
+  div:has(> .lucky-roll-outcome) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+
+  .lucky-outcome-wash {
+    position: fixed !important;
+    inset: 0 !important;
+  }
+
+  .lucky-roll-outcome,
+  .lucky-outcome-ring {
+    top: 50% !important;
+  }
+
+  /* While a guided lesson is active, keep the lesson card visible over the
+     table so phone users do not have to scroll down after every step. */
+  section[class*="border-violet-400/70"] {
+    position: fixed !important;
+    top: max(8px, env(safe-area-inset-top)) !important;
+    left: 8px !important;
+    right: 8px !important;
+    z-index: 9000 !important;
+    max-height: 46vh !important;
+    margin-top: 0 !important;
+    overflow-y: auto !important;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.72) !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:first-child {
+    padding: 6px 10px !important;
+  }
+
+  section[class*="border-violet-400/70"] > div:nth-child(2) {
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  section[class*="border-violet-400/70"] h3 {
+    margin-top: 2px !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+  }
+
+  section[class*="border-violet-400/70"] p {
+    margin-top: 4px !important;
+    font-size: 11px !important;
+    line-height: 1.35rem !important;
+  }
+
+  section[class*="border-violet-400/70"] button {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+
+  /* Traveled Come / Don't Come odds share a narrow number box with the flat
+     bet. Once odds are present, remove the redundant text label and compact
+     the odds stack so it stays anchored inside its own number cell. */
+  button[title^="Come odds pay"]:has(> span[title^="Total wager"]),
+  button[title^="Don't Come lay odds pay"]:has(> span[title^="Total wager"]) {
+    width: 48px !important;
+    min-width: 48px !important;
+    flex: 0 0 48px !important;
+    gap: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  button[title^="Come odds pay"]:has(> span[title^="Total wager"]) > span:first-child,
+  button[title^="Don't Come lay odds pay"]:has(> span[title^="Total wager"]) > span:first-child {
+    display: none !important;
+  }
+
+  button[title^="Come odds pay"] > span[title^="Total wager"],
+  button[title^="Don't Come lay odds pay"] > span[title^="Total wager"] {
+    width: 48px !important;
+    min-width: 48px !important;
+    height: 44px !important;
+    transform: scale(0.78);
+    transform-origin: center;
+  }
+}
