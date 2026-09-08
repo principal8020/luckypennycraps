@@ -33,6 +33,10 @@ export type BlackjackOutcome = {
   returnAmount: number;
 };
 
+type ResolveBlackjackOptions = {
+  blackjackEligible?: boolean;
+};
+
 const suits: BlackjackSuit[] = ["♠", "♥", "♦", "♣"];
 const ranks: BlackjackRank[] = [
   "A",
@@ -115,6 +119,13 @@ export function isBlackjack(cards: BlackjackCard[]) {
   return cards.length === 2 && getHandValue(cards).total === 21;
 }
 
+export function canSplitPair(cards: BlackjackCard[]) {
+  return (
+    cards.length === 2 &&
+    rankValue(cards[0].rank) === rankValue(cards[1].rank)
+  );
+}
+
 export function dealerShouldHit(cards: BlackjackCard[]) {
   // Lucky Penny Blackjack uses S17: the dealer stands on every 17,
   // including soft 17.
@@ -124,11 +135,13 @@ export function dealerShouldHit(cards: BlackjackCard[]) {
 export function resolveBlackjackRound(
   playerCards: BlackjackCard[],
   dealerCards: BlackjackCard[],
-  bet: number
+  bet: number,
+  options: ResolveBlackjackOptions = {}
 ): BlackjackOutcome {
   const playerTotal = getHandValue(playerCards).total;
   const dealerTotal = getHandValue(dealerCards).total;
-  const playerBlackjack = isBlackjack(playerCards);
+  const playerBlackjack =
+    options.blackjackEligible !== false && isBlackjack(playerCards);
   const dealerBlackjack = isBlackjack(dealerCards);
 
   if (playerBlackjack && dealerBlackjack) {
