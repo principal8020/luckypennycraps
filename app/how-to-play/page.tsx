@@ -31,21 +31,21 @@ export default function HowToPlayPage() {
     <main className="min-h-screen bg-[#03130e] text-white">
       <header className="border-b border-emerald-900/80 bg-black/20">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link href="/" className="text-sm font-black text-emerald-300 hover:text-white">← Lucky Penny Craps</Link>
+          <Link href="/" className="text-sm font-black text-emerald-300 hover:text-white">← Lucky Penny Gaming</Link>
           <div className="hidden items-center gap-5 text-sm font-bold text-emerald-100/70 sm:flex">
-            <Link href="/strategies" className="hover:text-white">Strategies</Link>
+            <Link href="/strategies" className="hover:text-white">Craps Strategies</Link>
             <Link href="/about" className="hover:text-white">About</Link>
           </div>
-          <Link href="/table" className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black shadow-lg hover:bg-amber-300">Open the Table</Link>
+          <Link href="/table" className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black shadow-lg hover:bg-amber-300">Open Craps Table</Link>
         </div>
       </header>
 
       <section className="border-b border-emerald-900/70 bg-[radial-gradient(circle_at_20%_10%,rgba(16,185,129,.11),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(245,158,11,.08),transparent_28%)]">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
           <div className="max-w-4xl">
-            <div className="inline-flex rounded-full border border-emerald-700/70 bg-emerald-950/40 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Craps basics</div>
+            <div className="inline-flex rounded-full border border-emerald-700/70 bg-emerald-950/40 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Lucky Penny Gaming • Craps basics</div>
             <h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">Learn the table in the same order you play it.</h1>
-            <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-emerald-50/65 sm:text-lg">You do not need to memorize every bet before you start. Learn the puck, the point cycle, and a few core wagers first. Then use Lucky Penny to practice the exact situation until it feels natural.</p>
+            <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-emerald-50/65 sm:text-lg">You do not need to memorize every bet before you start. Learn the puck, the point cycle, and a few core wagers first. Then use the Lucky Penny Gaming craps table to practice the exact situation until it feels natural.</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/table?lesson=pass-line" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Start Guided Lesson</Link>
               <Link href="#bets" className="rounded-xl border border-emerald-700/70 bg-emerald-950/30 px-5 py-3 font-black text-emerald-100">Learn the Bets</Link>
@@ -75,7 +75,7 @@ export default function HowToPlayPage() {
           <div className="mb-6 max-w-3xl">
             <div className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">Core bets</div>
             <h2 className="mt-2 text-3xl font-black">Learn one wager at a time.</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">Guided lessons open directly on the live table where available. Other wagers still open the full table for free practice.</p>
+            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">Guided lessons open directly on the live craps table where available. Other wagers still open the full table for free practice.</p>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {bets.map(([name, level, description, practice, href]) => (
@@ -132,10 +132,10 @@ export default function HowToPlayPage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-xl font-black">Ready for a full betting system?</h2>
-            <p className="mt-1 text-sm font-medium text-emerald-50/55">Strategy Mode coaches each next move and highlights the matching table location.</p>
+            <p className="mt-1 text-sm font-medium text-emerald-50/55">Craps Strategy Mode coaches each next move and highlights the matching table location.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/strategies" className="rounded-lg border border-cyan-700/70 bg-cyan-950/25 px-4 py-2.5 text-sm font-black text-cyan-200">Explore Strategies</Link>
+            <Link href="/strategies" className="rounded-lg border border-cyan-700/70 bg-cyan-950/25 px-4 py-2.5 text-sm font-black text-cyan-200">Explore Craps Strategies</Link>
             <Link href="/table" className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black">Open Strategy Mode</Link>
           </div>
         </div>
