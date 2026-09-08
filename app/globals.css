@@ -66,6 +66,14 @@ div:has(> div > div > button[title^="Don't Come lay odds pay"]) > div > span:fir
   opacity: 0 !important;
 }
 
+/* Desktop Learn Mode clearance ----------------------------------------- */
+/* Keep the fixed dealer tray from visually crowding the lesson area and
+   leave enough trailing space to scroll the full lesson above the tray. */
+section[class*="border-violet-400/70"] {
+  margin-top: 1.5rem;
+  margin-bottom: 8rem;
+}
+
 /* Mobile table UX ------------------------------------------------------- */
 @media (max-width: 1023px) {
   /* Keep the roll result in the center of the visible screen, even when

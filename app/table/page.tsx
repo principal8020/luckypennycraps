@@ -3415,7 +3415,7 @@ export default function TablePage() {
 
 
   return (
-    <main className="min-h-screen bg-[#020b08] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-24 sm:pt-3 lg:pb-24">
+    <main className="min-h-screen bg-[#020b08] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-28 sm:pt-3 lg:pb-36">
       <style>{`
         @keyframes comeChipTravel {
           0% {
@@ -3714,7 +3714,7 @@ export default function TablePage() {
                         } ${flashClass("dontCome", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[10px] font-black uppercase tracking-[0.13em] text-red-50">
+                          <span className="text-[11px] font-black uppercase tracking-[0.11em] text-red-50">
                             Don&apos;t Come
                           </span>
 
@@ -3733,9 +3733,9 @@ export default function TablePage() {
                                   number
                                 )}`}
                               >
-                                <span className="text-[6px] uppercase tracking-[0.06em] text-red-100">
+                                <span className="text-[7px] uppercase tracking-[0.05em] text-red-100">
                                   {dontComeOdds[number] > 0 ? "LAY" : "+ ODDS"}
-                                  <span className="block text-[7px] text-red-200">
+                                  <span className="block text-[8px] text-red-100/90">
                                     {layOddsLabel(number)}
                                   </span>
                                 </span>
@@ -3769,11 +3769,11 @@ export default function TablePage() {
                         title={`Lay ${number}: 7 before ${number}; true odds less 5% vig`}
                       >
                         <span className="leading-tight">
-                          <span className="block text-[10px] font-black tracking-[0.14em] text-red-50">
+                          <span className="block text-[11px] font-black tracking-[0.11em] text-red-50">
                             LAY • {layOddsLabel(number)}
                           </span>
                           {layBets[number] > 0 && (
-                            <span className="block text-[6px] normal-case tracking-normal text-red-200">
+                            <span className="block text-[7px] normal-case tracking-normal text-red-100/80">
                               wins +$
                               {money(
                                 calculateNumberLayNetProfit(
@@ -3794,7 +3794,7 @@ export default function TablePage() {
                         } ${flashClass("come", String(number))}`}
                       >
                         <div className="flex h-full items-center justify-between gap-1">
-                          <span className="text-[10px] font-black uppercase tracking-[0.14em] text-cyan-50">
+                          <span className="text-[11px] font-black uppercase tracking-[0.11em] text-cyan-50">
                             Come
                           </span>
 
@@ -3811,9 +3811,9 @@ export default function TablePage() {
                                 )}`}
                                 title={`Come odds pay ${passOddsLabel(number)}`}
                               >
-                                <span className="text-[6px] uppercase tracking-[0.06em] text-blue-100">
+                                <span className="text-[7px] uppercase tracking-[0.05em] text-blue-50">
                                   {comeOdds[number] > 0 ? "ODDS" : "+ ODDS"}
-                                  <span className="block text-[7px] text-blue-200">
+                                  <span className="block text-[8px] text-blue-100/90">
                                     {passOddsLabel(number)}
                                   </span>
                                 </span>
@@ -3866,10 +3866,10 @@ export default function TablePage() {
                         title={`Place ${number} pays ${placeOddsLabel(number)}`}
                       >
                         <span className="text-left leading-tight">
-                          <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-emerald-50">
+                          <span className="block text-[11px] font-black uppercase tracking-[0.11em] text-emerald-50">
                             PLACE • {placeOddsLabel(number)}
                           </span>
-                          <span className="block text-[6px] font-black uppercase tracking-[0.1em] text-emerald-200/65">
+                          <span className="block text-[7px] font-black uppercase tracking-[0.08em] text-emerald-100/75">
                             MAX {placeMaxLabel(number)}
                           </span>
                         </span>
@@ -3880,7 +3880,7 @@ export default function TablePage() {
 
                   {point === null && (
                     <div
-                      className="absolute -left-1 -top-2 z-[70] flex h-[52px] w-[52px] items-center justify-center rounded-full border-[4px] border-zinc-900 bg-[radial-gradient(circle_at_35%_28%,#ffffff_0%,#f4f1e7_48%,#cfc8b5_100%)] text-[9px] font-black tracking-[0.07em] text-black shadow-[0_8px_16px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.85),0_0_0_2px_rgba(202,162,76,.5)]"
+                      className="absolute left-1 top-1 z-[70] flex h-[52px] w-[52px] items-center justify-center rounded-full border-[4px] border-zinc-900 bg-[radial-gradient(circle_at_35%_28%,#ffffff_0%,#f4f1e7_48%,#cfc8b5_100%)] text-[9px] font-black tracking-[0.07em] text-black shadow-[0_8px_16px_rgba(0,0,0,.55),inset_0_0_0_2px_rgba(255,255,255,.85),0_0_0_2px_rgba(202,162,76,.5)]"
                       title="Come-out roll"
                     >
                       OFF
@@ -3956,7 +3956,7 @@ export default function TablePage() {
                     <div className="flex h-full items-center justify-center gap-4 sm:gap-7">
                       <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/80 bg-amber-300/5 text-3xl font-black text-amber-100">
                         2
-                        <span className="absolute -top-2 whitespace-nowrap text-[6px] font-black uppercase tracking-[0.12em] text-amber-200/80">
+                        <span className="absolute -top-2 whitespace-nowrap text-[7px] font-black uppercase tracking-[0.1em] text-amber-100/85">
                           pays 2:1
                         </span>
                       </span>
@@ -3972,7 +3972,7 @@ export default function TablePage() {
 
                       <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/80 bg-amber-300/5 text-3xl font-black text-amber-100">
                         12
-                        <span className="absolute -top-2 whitespace-nowrap text-[6px] font-black uppercase tracking-[0.12em] text-amber-200/80">
+                        <span className="absolute -top-2 whitespace-nowrap text-[7px] font-black uppercase tracking-[0.1em] text-amber-100/85">
                           pays 3:1
                         </span>
                       </span>

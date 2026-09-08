@@ -140,7 +140,7 @@ export function CenterAction({
   return (
     <div className="min-w-0 self-start">
       <div className="border border-white/55 bg-black/[0.055] p-1.5">
-        <div className="mb-1.5 border-b border-white/15 pb-1 text-center text-[8px] font-black uppercase tracking-[0.22em] text-emerald-100/65">
+        <div className="mb-1.5 border-b border-white/15 pb-1 text-center text-[9px] font-black uppercase tracking-[0.18em] text-emerald-50/75">
           Center Action
         </div>
         <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-white/15 pb-1.5">
@@ -148,7 +148,7 @@ export function CenterAction({
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-100">
               Hardways
             </p>
-            <p className="text-[7px] text-emerald-100/60">
+            <p className="text-[8px] leading-tight text-emerald-50/70">
               follows the puck by default • tap anytime to override
             </p>
           </div>
@@ -178,14 +178,14 @@ export function CenterAction({
                     : ""
                 }`}
               >
-                <div className="text-[9px] uppercase tracking-[0.14em] text-emerald-50/85">
+                <div className="text-[10px] uppercase tracking-[0.11em] text-emerald-50/90">
                   HARD {number}
                 </div>
                 <div className="my-1 flex items-center justify-center gap-2">
                   <MiniDie value={dieValue} large />
                   <MiniDie value={dieValue} large />
                 </div>
-                <div className="text-[9px] font-black text-emerald-100/80">
+                <div className="text-[10px] font-black text-emerald-50/85">
                   {number === 4 || number === 10 ? "7 TO 1" : "9 TO 1"}
                 </div>
                 <div className="absolute bottom-1 right-1">
@@ -196,7 +196,7 @@ export function CenterAction({
           })}
         </div>
 
-        <div className="my-1 border-t border-white/15 pt-1 text-center text-[9px] font-black uppercase tracking-[0.22em] text-emerald-100/80">
+        <div className="my-1 border-t border-white/15 pt-1 text-center text-[10px] font-black uppercase tracking-[0.18em] text-emerald-50/85">
           One Roll
         </div>
 
@@ -247,14 +247,14 @@ export function CenterAction({
           <button onClick={onCeBet} title="C & E: half the wager on Any Craps and half on Yo 11. A winning side pays while the other half loses." className={`relative min-h-[70px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "ce")}`}>
             <div className="text-[11px] text-amber-100">C &amp; E</div>
             <div className="mt-1 text-[8px] font-bold">CRAPS • 11</div>
-            <div className="text-[7px] text-emerald-100/65">combo</div>
+            <div className="text-[8px] text-emerald-50/70">combo</div>
             <div className="absolute bottom-1 right-1"><BetChip amount={ceBet} compact /></div>
           </button>
 
           <button onClick={onWorldBet} title="World: five equal units on 2, 3, 7, 11, and 12. A 7 is an overall push with standard proposition payouts." className={`relative min-h-[70px] border border-white/45 bg-black/[0.02] p-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "world")}`}>
             <div className="text-[11px] text-amber-100">WORLD</div>
             <div className="mt-1 text-[8px] font-bold">2 • 3 • 7 • 11 • 12</div>
-            <div className="text-[7px] text-emerald-100/65">5-part combo</div>
+            <div className="text-[8px] text-emerald-50/70">5-part combo</div>
             <div className="absolute bottom-1 right-1"><BetChip amount={worldBet} compact /></div>
           </button>
         </div>
@@ -267,8 +267,8 @@ export function CenterAction({
               title={`${item.label}: five-unit Horn bet with two units on the named number and one unit on each other Horn number.`}
               className={`relative min-h-[54px] border border-teal-300/35 bg-teal-950/25 px-1 py-1.5 text-center font-black hover:bg-teal-950/45 ${flashClass("prop", item.key)}`}
             >
-              <div className="text-[8px] leading-tight text-teal-50">{item.label}</div>
-              <div className="mt-1 text-[6px] text-teal-200/65">5-unit combo</div>
+              <div className="text-[9px] leading-tight text-teal-50">{item.label}</div>
+              <div className="mt-1 text-[7px] text-teal-100/70">5-unit combo</div>
               <div className="absolute bottom-1 right-1"><BetChip amount={item.bet} compact /></div>
             </button>
           ))}
@@ -277,11 +277,11 @@ export function CenterAction({
         <button onClick={onHornBet} title="Horn: four equal units on 2, 3, 11, and 12." className={`relative mt-[3px] min-h-[42px] w-full border border-white/45 bg-black/[0.02] px-2 py-1 text-center font-black hover:bg-white/[0.04] ${flashClass("prop", "horn")}`}>
           <span className="text-[10px]">HORN</span>
           <span className="ml-2 text-[8px] font-black tracking-[0.05em]">2 • 3 • 11 • 12</span>
-          <span className="ml-2 text-[7px] text-emerald-100/60">4-part combo</span>
+          <span className="ml-2 text-[8px] text-emerald-50/70">4-part combo</span>
           <span className="absolute right-2 top-1/2 -translate-y-1/2"><BetChip amount={hornBet} compact /></span>
         </button>
 
-        <p className="mt-1 text-center text-[7px] font-bold uppercase tracking-[0.06em] text-emerald-100/50">
+        <p className="mt-1 text-center text-[8px] font-bold uppercase tracking-[0.05em] text-emerald-50/65">
           Winners stay up • losers come down • hover a combo bet for details
         </p>
       </div>
