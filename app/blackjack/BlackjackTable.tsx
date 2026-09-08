@@ -386,7 +386,7 @@ export function BlackjackTable() {
       setActiveHandIndex(nextIndex);
       const value = getHandValue(hands[nextIndex].cards).total;
       setMessage(
-        `Hand ${nextIndex + 1} of ${hands.length}: ${value}. Choose hit, stand, double, or split when available.`
+        `${hands.length} hands • ${money(hands.reduce((sum, hand) => sum + hand.wager, 0))} total wager. Hand ${nextIndex + 1}: ${value}. Choose hit, stand, double, or split when available.`
       );
       return;
     }
@@ -504,7 +504,7 @@ export function BlackjackTable() {
       return;
     }
 
-    setMessage(`Split complete. Playing Hand ${activeHandIndex + 1} first.`);
+    setMessage(`${nextHands.length} hands • ${money(nextHands.reduce((sum, hand) => sum + hand.wager, 0))} total wager. Playing Hand ${activeHandIndex + 1} first.`);
     continueOrFinish(nextHands, nextShoe, activeHandIndex);
   }
 
@@ -536,7 +536,7 @@ export function BlackjackTable() {
     canSplitPair(activeHand.cards) &&
     playerHands.length < 4 &&
     bankroll >= activeHand.wager;
-  const displayedBet = roundState === "betting" ? bet : totalWager || bet;
+  const displayedWager = roundState === "betting" ? bet : totalWager || bet;
 
   return (
     <>
@@ -554,7 +554,7 @@ export function BlackjackTable() {
         <div className="grid grid-cols-4 gap-2 text-center">
           {[
             ["BANKROLL", `$${money(bankroll)}`],
-            ["BET", `$${money(displayedBet)}`],
+            ["TOTAL WAGER", `${money(displayedWager)}`],
             ["SESSION P/L", signedMoney(sessionPL)],
             ["HANDS", String(handsPlayed)],
           ].map(([label, value]) => (
@@ -624,7 +624,7 @@ export function BlackjackTable() {
                 <div className="absolute inset-2 rounded-full border border-amber-100/30" />
                 <div className="text-center">
                   <div className="text-[7px] font-black uppercase tracking-[0.13em] text-emerald-200/70">
-                    Main Bet
+                    Base Bet
                   </div>
                   <div className="mt-1 text-2xl font-black text-amber-100">${money(bet)}</div>
                 </div>
