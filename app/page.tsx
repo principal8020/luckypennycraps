@@ -1,36 +1,47 @@
 import Link from "next/link";
 
-const features = [
+const games = [
   {
-    eyebrow: "PLAY",
-    title: "Play on a full craps table",
-    body: "Place bets, take odds, roll the dice, and follow the action on a casino-style table built for learning.",
+    eyebrow: "LIVE NOW",
+    title: "Craps",
+    body: "Play on a full casino-style table, practice bets, take odds, control scenarios, and learn strategies step by step.",
     href: "/table",
-    cta: "Open the Table",
+    cta: "Play Craps",
+    live: true,
   },
   {
-    eyebrow: "PRACTICE",
-    title: "Control the situation",
-    body: "Use Practice Mode to choose totals, exact dice combinations, points, and common scenarios so you can rehearse what happens next.",
-    href: "/table",
-    cta: "Try Practice Mode",
+    eyebrow: "COMING NEXT",
+    title: "Blackjack",
+    body: "Practice hit, stand, double, split, surrender, and basic strategy decisions hand by hand.",
+    href: "#",
+    cta: "Coming Soon",
+    live: false,
   },
   {
-    eyebrow: "LEARN",
-    title: "Learn a betting strategy",
-    body: "Strategy Mode coaches you through systems like 3-Point Molly, 3-Point Dolly, Iron Cross, Place 6 & 8, and more.",
-    href: "/strategies",
-    cta: "Explore Strategies",
+    eyebrow: "PLANNED",
+    title: "Roulette",
+    body: "Learn inside and outside bets, payouts, table coverage, and how each spin resolves.",
+    href: "#",
+    cta: "Coming Soon",
+    live: false,
+  },
+  {
+    eyebrow: "PLANNED",
+    title: "Baccarat",
+    body: "Practice Player, Banker, and Tie betting while learning drawing rules and table flow.",
+    href: "#",
+    cta: "Coming Soon",
+    live: false,
   },
 ];
 
 const highlights = [
-  "3-4-5× Pass and Come odds",
-  "Don't Pass and Don't Come lay odds",
-  "Place, Field, Hardways, Horn and Hop bets",
-  "Roll history and distribution analytics",
-  "Shooter and hand statistics",
-  "Scenario Trainer and guided Strategy Mode",
+  "Interactive casino-style simulators",
+  "Guided Learn Mode",
+  "Practice and scenario controls",
+  "Strategy coaching",
+  "Session and result analytics",
+  "Practice credits only — no real-money wagering",
 ];
 
 export default function Home() {
@@ -45,13 +56,13 @@ export default function Home() {
                   LP
                 </span>
                 <span className="absolute bottom-[5px] text-[5px] font-black uppercase tracking-[0.18em] text-emerald-400">
-                  craps
+                  gaming
                 </span>
               </div>
 
               <div>
                 <div className="text-xl font-black sm:text-2xl">
-                  Lucky Penny Craps
+                  Lucky Penny Gaming
                 </div>
                 <div className="text-[9px] font-black uppercase tracking-[0.26em] text-emerald-400">
                   Practice • Play • Learn
@@ -60,11 +71,11 @@ export default function Home() {
             </div>
 
             <nav className="hidden items-center gap-5 text-sm font-bold text-emerald-100/80 md:flex">
+              <a className="hover:text-white" href="#games">
+                Games
+              </a>
               <Link className="hover:text-white" href="/how-to-play">
-                How to Play
-              </Link>
-              <Link className="hover:text-white" href="/strategies">
-                Strategies
+                Learn Craps
               </Link>
               <Link className="hover:text-white" href="/about">
                 About
@@ -75,7 +86,7 @@ export default function Home() {
               href="/table"
               className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black shadow-lg transition hover:bg-amber-300"
             >
-              Play Now
+              Play Craps
             </Link>
           </header>
         </div>
@@ -84,19 +95,19 @@ export default function Home() {
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:py-20">
         <div>
           <div className="mb-4 inline-flex rounded-full border border-emerald-700/70 bg-emerald-950/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
-            Free craps simulator & learning tool
+            Casino games built for practice and learning
           </div>
 
           <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
-            Learn craps by
-            <span className="text-amber-300"> actually playing it.</span>
+            Learn casino games by
+            <span className="text-amber-300"> actually playing them.</span>
           </h1>
 
           <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-emerald-50/70 sm:text-lg">
-            Lucky Penny combines a playable craps table with guided practice,
-            strategy coaching, and roll analytics. Learn what each bet does,
-            practice common situations, and build confidence before you step
-            up to a real table.
+            Lucky Penny Gaming combines playable casino-style simulators with
+            guided lessons, practice controls, strategy coaching, and analytics.
+            Craps is live now, with blackjack, roulette, baccarat, and more
+            planned next.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
@@ -104,14 +115,14 @@ export default function Home() {
               href="/table"
               className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300"
             >
-              Start Playing
+              Play Craps
             </Link>
-            <Link
-              href="/how-to-play"
+            <a
+              href="#games"
               className="rounded-xl border border-emerald-600/70 bg-emerald-950/30 px-6 py-3.5 text-base font-black text-emerald-100 transition hover:border-emerald-400"
             >
-              New to Craps?
-            </Link>
+              Explore Games
+            </a>
           </div>
 
           <p className="mt-4 text-[10px] font-bold text-emerald-700">
@@ -124,7 +135,7 @@ export default function Home() {
             <div className="mb-4 overflow-hidden rounded-2xl border border-white/15 bg-black/20 px-4 py-3">
               <img
                 src="/lucky-penny-dogs-logo.png"
-                alt="Lucky and Penny, the Lucky Penny Craps mascots"
+                alt="Lucky and Penny, the Lucky Penny Gaming mascots"
                 className="mx-auto max-h-[170px] w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,.35)]"
               />
               <div className="mt-1 text-center text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200/70">
@@ -168,28 +179,44 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-emerald-900/70 bg-black/20">
-        <div className="mx-auto grid max-w-7xl gap-4 px-5 py-10 sm:px-8 lg:grid-cols-3">
-          {features.map((feature) => (
-            <article
-              key={feature.eyebrow}
-              className="rounded-2xl border border-emerald-900/80 bg-emerald-950/20 p-5"
-            >
-              <div className="text-[9px] font-black uppercase tracking-[0.18em] text-amber-300">
-                {feature.eyebrow}
-              </div>
-              <h2 className="mt-2 text-xl font-black">{feature.title}</h2>
-              <p className="mt-3 min-h-[72px] text-sm font-medium leading-6 text-emerald-50/60">
-                {feature.body}
-              </p>
-              <Link
-                href={feature.href}
-                className="mt-4 inline-block text-sm font-black text-emerald-300 hover:text-white"
+      <section id="games" className="border-y border-emerald-900/70 bg-black/20">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+          <div className="mb-7">
+            <div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-400">
+              Lucky Penny Games
+            </div>
+            <h2 className="mt-2 text-3xl font-black">One brand. More games over time.</h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {games.map((game) => (
+              <article
+                key={game.title}
+                className={`rounded-2xl border p-5 ${
+                  game.live
+                    ? "border-amber-400/70 bg-amber-950/10"
+                    : "border-emerald-900/80 bg-emerald-950/20"
+                }`}
               >
-                {feature.cta} →
-              </Link>
-            </article>
-          ))}
+                <div className={`text-[9px] font-black uppercase tracking-[0.18em] ${game.live ? "text-amber-300" : "text-emerald-500"}`}>
+                  {game.eyebrow}
+                </div>
+                <h3 className="mt-2 text-2xl font-black">{game.title}</h3>
+                <p className="mt-3 min-h-[96px] text-sm font-medium leading-6 text-emerald-50/60">
+                  {game.body}
+                </p>
+                {game.live ? (
+                  <Link href={game.href} className="mt-4 inline-block text-sm font-black text-amber-300 hover:text-white">
+                    {game.cta} →
+                  </Link>
+                ) : (
+                  <span className="mt-4 inline-block text-sm font-black text-emerald-700">
+                    {game.cta}
+                  </span>
+                )}
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -200,14 +227,14 @@ export default function Home() {
               Built for repetition
             </div>
             <h2 className="mt-2 text-3xl font-black">
-              More than a dice roller.
+              More than a game demo.
             </h2>
             <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-emerald-50/65">
-              Lucky Penny is designed around the questions new and improving
-              craps players actually have: Where does this bet go? What does it
-              pay? What happens on the next roll? How does a strategy progress?
-              Practice those answers on the table instead of memorizing them
-              from a diagram.
+              Lucky Penny Gaming is designed around the questions new and
+              improving players actually have: Where does this bet go? What
+              does it pay? What should I do next? What happens if this result
+              occurs? Practice those answers interactively instead of memorizing
+              them from a diagram.
             </p>
           </div>
 
@@ -229,7 +256,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-emerald-100/45 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="font-black text-emerald-100/75">
-              Lucky Penny Craps
+              Lucky Penny Gaming
             </div>
             <div className="mt-1">
               Educational practice experience. Practice credits have no cash
@@ -239,10 +266,10 @@ export default function Home() {
 
           <div className="flex flex-wrap gap-4 font-bold">
             <Link href="/how-to-play" className="hover:text-white">
-              How to Play
+              Learn Craps
             </Link>
             <Link href="/strategies" className="hover:text-white">
-              Strategies
+              Craps Strategies
             </Link>
             <Link href="/about" className="hover:text-white">
               About
