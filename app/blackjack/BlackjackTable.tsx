@@ -161,13 +161,24 @@ export function BlackjackTable() {
       : currentShoe;
   }
 
-  function addToBet(value: number) {
+  function selectChip(value: number) {
     if (roundState !== "betting" && roundState !== "resolved") return;
-    const available = bankroll;
-    const next = Math.min(MAX_BET, bet + value, available);
     setSelectedChip(value);
+    setMessage(`Selected ${value} chip. Use + or - to change the bet.`);
+  }
+
+  function increaseBet() {
+    if (roundState !== "betting" && roundState !== "resolved") return;
+    const next = Math.min(MAX_BET, bankroll, bet + selectedChip);
     setBet(next);
-    setMessage(`Bet set to $${money(next)}.`);
+    setMessage(`Bet set to ${money(next)}.`);
+  }
+
+  function decreaseBet() {
+    if (roundState !== "betting" && roundState !== "resolved") return;
+    const next = Math.max(0, bet - selectedChip);
+    setBet(next);
+    setMessage(next === 0 ? "Bet cleared." : `Bet set to ${money(next)}.`);
   }
 
   function clearBet() {
@@ -366,11 +377,8 @@ export function BlackjackTable() {
                 <div className="text-xl font-black text-amber-100">$5</div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => addToBet(selectedChip)}
-                disabled={roundState === "player" || roundState === "dealer"}
-                className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full border-[3px] border-amber-100/75 bg-black/10 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] disabled:cursor-default sm:h-28 sm:w-28"
+              <div
+                className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full border-[3px] border-amber-100/75 bg-black/10 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] sm:h-28 sm:w-28"
               >
                 <div className="absolute inset-2 rounded-full border border-amber-100/30" />
                 <div className="text-center">
@@ -379,7 +387,7 @@ export function BlackjackTable() {
                   </div>
                   <div className="mt-1 text-2xl font-black text-amber-100">${money(bet)}</div>
                 </div>
-              </button>
+              </div>
 
               <div className="hidden text-left sm:block">
                 <div className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200/55">
@@ -428,12 +436,27 @@ export function BlackjackTable() {
                       key={value}
                       value={value}
                       selected={selectedChip === value}
-                      onClick={() => {
-                        setSelectedChip(value);
-                        addToBet(value);
-                      }}
+                      onClick={() => selectChip(value)}
                     />
                   ))}
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={decreaseBet}
+                    disabled={roundState === "player" || roundState === "dealer" || bet === 0}
+                    className="rounded-lg border border-emerald-300/30 bg-black/25 px-3 py-2 text-xs font-black text-emerald-50 disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    − ${selectedChip}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={increaseBet}
+                    disabled={roundState === "player" || roundState === "dealer" || bet >= Math.min(MAX_BET, bankroll)}
+                    className="rounded-lg border border-emerald-300/30 bg-black/25 px-3 py-2 text-xs font-black text-emerald-50 disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    + ${selectedChip}
+                  </button>
                 </div>
               </div>
 
@@ -484,7 +507,7 @@ export function BlackjackTable() {
                 <button
                   type="button"
                   onClick={deal}
-                  disabled={!canDeal || roundState === "player" || roundState === "dealer"}
+                  disabled={!canDeal}
                   className="rounded-xl bg-amber-400 px-7 py-4 text-sm font-black text-black shadow-lg hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-35"
                 >
                   DEAL

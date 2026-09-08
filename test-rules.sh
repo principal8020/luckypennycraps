@@ -7,7 +7,16 @@ echo "Compiling shared rules modules..."
 rm -rf .rules-test
 mkdir -p .rules-test
 
-npx tsc app/table/crapsRules.ts app/table/strategyRules.ts app/blackjack/blackjackRules.ts \
+npx tsc app/table/crapsRules.ts app/table/strategyRules.ts \
+  --rootDir app/table \
+  --target ES2020 \
+  --module commonjs \
+  --esModuleInterop \
+  --skipLibCheck \
+  --outDir .rules-test
+
+npx tsc app/blackjack/blackjackRules.ts \
+  --rootDir app/blackjack \
   --target ES2020 \
   --module commonjs \
   --esModuleInterop \
