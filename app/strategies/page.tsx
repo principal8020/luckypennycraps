@@ -54,27 +54,28 @@ export default function StrategiesPage() {
             href="/"
             className="text-sm font-bold text-emerald-300 hover:text-white"
           >
-            ← Home
+            ← Lucky Penny Gaming
           </Link>
           <Link
             href="/table"
             className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-black text-black"
           >
-            Open Strategy Mode
+            Open Craps Strategy Mode
           </Link>
         </div>
 
         <div className="mt-8">
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">
-            Strategy Mode
+            Lucky Penny Gaming • Craps Strategy Mode
           </div>
           <h1 className="mt-2 text-4xl font-black sm:text-5xl">
             Learn the sequence while you play.
           </h1>
           <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-emerald-50/65">
-            Strategy Mode does not promise a profitable system. It is a coach:
-            choose an approach, place each wager yourself, and Lucky Penny will
-            identify the next move and highlight the corresponding table area.
+            Craps Strategy Mode does not promise a profitable system. It is a
+            coach: choose an approach, place each wager yourself, and Lucky Penny
+            Gaming will identify the next move and highlight the corresponding
+            table area.
           </p>
         </div>
 
@@ -104,8 +105,8 @@ export default function StrategiesPage() {
           <p className="mt-2 text-sm font-medium leading-6 text-amber-50/60">
             Betting systems organize decisions and can change volatility, but
             they do not make independent dice rolls predictable. Lucky Penny
-            presents Strategy Mode as a learning tool, not as a guarantee of
-            profit.
+            Gaming presents Strategy Mode as a learning tool, not as a guarantee
+            of profit.
           </p>
         </div>
       </div>
