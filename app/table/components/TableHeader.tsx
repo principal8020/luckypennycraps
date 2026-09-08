@@ -27,16 +27,16 @@ export function TableHeader({
               LP
             </span>
             <span className="absolute bottom-[3px] text-[4px] font-black uppercase tracking-[0.16em] text-emerald-400">
-              craps
+              gaming
             </span>
           </div>
 
           <div className="min-w-0">
             <h1 className="truncate text-[15px] font-black tracking-tight sm:text-lg lg:text-xl">
-              Lucky Penny Craps
+              Lucky Penny Gaming
             </h1>
             <p className="text-[7px] font-bold uppercase tracking-[0.16em] text-emerald-400 sm:text-[8px]">
-              Practice • Play • Learn
+              Craps • Practice • Play • Learn
             </p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function TableHeader({
 
           <div className="hidden items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/30 px-2 py-1 xl:flex">
             <span className="text-[6px] font-black uppercase tracking-[0.16em] text-emerald-500">
-              Table
+              Craps Table
             </span>
             <span className="text-[8px] font-black text-emerald-100">
               $5 BASE
