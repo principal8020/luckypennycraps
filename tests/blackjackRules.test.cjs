@@ -38,6 +38,13 @@ test("blackjack requires exactly two cards totaling 21", () => {
   );
 });
 
+test("equal-value cards can be split, including mixed ten-value cards", () => {
+  assert.equal(rules.canSplitPair([card("8a", "8"), card("8b", "8")]), true);
+  assert.equal(rules.canSplitPair([card("j", "J"), card("k", "K")]), true);
+  assert.equal(rules.canSplitPair([card("a", "A"), card("a2", "A")]), true);
+  assert.equal(rules.canSplitPair([card("9", "9"), card("10", "10")]), false);
+});
+
 test("dealer stands on soft 17 and hits below 17", () => {
   assert.equal(rules.dealerShouldHit([card("a", "A"), card("6", "6")]), false);
   assert.equal(rules.dealerShouldHit([card("10", "10"), card("6", "6")]), true);
@@ -53,6 +60,19 @@ test("player blackjack pays 3 to 2", () => {
   assert.equal(result.result, "blackjack");
   assert.equal(result.profit, 37.5);
   assert.equal(result.returnAmount, 62.5);
+});
+
+test("21 after a split pays even money rather than 3 to 2", () => {
+  const result = rules.resolveBlackjackRound(
+    [card("a", "A"), card("k", "K")],
+    [card("10", "10"), card("q", "Q")],
+    25,
+    { blackjackEligible: false }
+  );
+
+  assert.equal(result.result, "win");
+  assert.equal(result.profit, 25);
+  assert.equal(result.returnAmount, 50);
 });
 
 test("matching blackjacks push", () => {
