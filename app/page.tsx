@@ -77,6 +77,9 @@ export default function Home() {
               <Link className="hover:text-white" href="/how-to-play">
                 Learn Craps
               </Link>
+              <Link className="hover:text-white" href="/feedback">
+                Feedback
+              </Link>
               <Link className="hover:text-white" href="/about">
                 About
               </Link>
@@ -252,6 +255,26 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="border-t border-emerald-900/70 bg-emerald-950/10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-10 sm:px-8 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">
+              Built with player feedback
+            </div>
+            <h2 className="mt-2 text-2xl font-black">Have an idea for Lucky Penny Gaming?</h2>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-emerald-50/55">
+              Report a bug, request a game, or suggest a better way to practice. Your feedback can directly shape what we improve next.
+            </p>
+          </div>
+          <Link
+            href="/feedback"
+            className="shrink-0 rounded-xl border border-amber-400/70 bg-amber-950/20 px-5 py-3 text-sm font-black text-amber-200 hover:bg-amber-950/40"
+          >
+            Send Feedback →
+          </Link>
+        </div>
+      </section>
+
       <footer className="border-t border-emerald-900/70 bg-black/30">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-emerald-100/45 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div>
@@ -270,6 +293,9 @@ export default function Home() {
             </Link>
             <Link href="/strategies" className="hover:text-white">
               Craps Strategies
+            </Link>
+            <Link href="/feedback" className="hover:text-white">
+              Feedback
             </Link>
             <Link href="/about" className="hover:text-white">
               About
