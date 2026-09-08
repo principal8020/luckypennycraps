@@ -46,7 +46,7 @@ export default function BlackjackPage() {
             <div className="text-[7px] font-black uppercase tracking-[0.18em] text-amber-200/70">
               Development Preview
             </div>
-            <div className="text-xs font-black text-amber-100">Blackjack Engine v1</div>
+            <div className="text-xs font-black text-amber-100">Blackjack Engine v1.1</div>
           </div>
         </div>
       </header>
@@ -61,7 +61,7 @@ export default function BlackjackPage() {
             </div>
             <div className="mt-1 text-lg font-black">Core game engine</div>
             <p className="mt-2 text-sm leading-6 text-emerald-50/60">
-              Bet, deal, hit, stand, dealer play, 3:2 blackjack payouts, bankroll, and session results are now playable. Double and split come next.
+              Bet, deal, hit, stand, double, split, dealer play, 3:2 blackjack payouts, bankroll, and split-hand results are now playable.
             </p>
           </div>
           <div className="rounded-2xl border border-emerald-900/80 bg-emerald-950/20 p-4">
