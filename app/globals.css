@@ -48,6 +48,18 @@ button[title^="Don't Come lay odds pay"] {
   gap: 0 !important;
 }
 
+/* Keep Pass / Don't Pass odds beside the original flat bet on the left side
+   of the rail instead of floating at the far right edge. */
+button[title^="Pass odds pay"] {
+  left: 84px !important;
+  right: auto !important;
+}
+
+button[title^="Don't Pass lay odds pay"] {
+  left: 76px !important;
+  right: auto !important;
+}
+
 /* Hide only the printed DON'T COME label in a number box that currently
    contains a traveled Don't Come wager. Keep the actual wager chip visible. */
 div:has(> div > div > button[title^="Don't Come lay odds pay"]) > div > span:first-child {
