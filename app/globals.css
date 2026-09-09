@@ -64,6 +64,18 @@ body {
   animation: blackjack-hand-result 520ms cubic-bezier(0.2, 0.82, 0.28, 1) both;
 }
 
+.blackjack-round-outcome {
+  animation: blackjack-outcome-pop 1550ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
+}
+
+.blackjack-outcome-wash {
+  animation: blackjack-outcome-wash 1550ms ease-out both;
+}
+
+.blackjack-outcome-ring {
+  animation: blackjack-outcome-ring 850ms ease-out both;
+}
+
 @keyframes blackjack-card-deal {
   0% {
     opacity: 0;
@@ -92,9 +104,60 @@ body {
   }
 }
 
+@keyframes blackjack-outcome-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -35%) scale(0.5);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -62%) scale(0.9);
+  }
+}
+
+@keyframes blackjack-outcome-wash {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes blackjack-outcome-ring {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.3);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .blackjack-card-enter,
-  .blackjack-hand-result {
+  .blackjack-hand-result,
+  .blackjack-round-outcome,
+  .blackjack-outcome-wash,
+  .blackjack-outcome-ring {
     animation: none;
   }
 
@@ -156,7 +219,8 @@ section[class*="border-violet-400/70"] {
 @media (max-width: 1023px) {
   /* Keep the roll result in the center of the visible screen, even when
      the player has scrolled below the felt. */
-  div:has(> .lucky-roll-outcome) {
+  div:has(> .lucky-roll-outcome),
+  div:has(> .blackjack-round-outcome) {
     position: fixed !important;
     inset: 0 !important;
     z-index: 9999 !important;
@@ -164,13 +228,16 @@ section[class*="border-violet-400/70"] {
     border-radius: 0 !important;
   }
 
-  .lucky-outcome-wash {
+  .lucky-outcome-wash,
+  .blackjack-outcome-wash {
     position: fixed !important;
     inset: 0 !important;
   }
 
   .lucky-roll-outcome,
-  .lucky-outcome-ring {
+  .lucky-outcome-ring,
+  .blackjack-round-outcome,
+  .blackjack-outcome-ring {
     top: 50% !important;
   }
 

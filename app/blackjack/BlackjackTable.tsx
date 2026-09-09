@@ -53,6 +53,14 @@ type StrategyDecisionFeedback = {
   correct: boolean;
 };
 
+type BlackjackRoundOutcome = {
+  id: number;
+  tone: "win" | "loss" | "push" | "blackjack";
+  label: "WIN" | "LOSS" | "PUSH" | "EVEN" | "BLACKJACK";
+  amount: number;
+  detail: string;
+};
+
 type PlayingCardProps = {
   card: BlackjackCard;
   hidden?: boolean;
@@ -68,6 +76,7 @@ const OPENING_DEAL_DELAY_MS = 360;
 const CARD_SETTLE_DELAY_MS = 430;
 const HOLE_CARD_REVEAL_DELAY_MS = 540;
 const RESULT_DELAY_MS = 260;
+const OUTCOME_DISPLAY_MS = 1550;
 
 function pause(milliseconds: number) {
   return new Promise<void>((resolve) => {
@@ -207,7 +216,9 @@ function outcomeMessage(result: HandResult, profit: number) {
   return `Dealer wins. You lose $${money(Math.abs(profit))}.`;
 }
 
-function resultBadge(result?: HandResult) {
+function resultBadge(
+  result?: HandResult
+): BlackjackRoundOutcome["label"] | null {
   if (!result) return null;
   if (result === "blackjack") return "BLACKJACK";
   if (result === "win") return "WIN";
@@ -241,6 +252,8 @@ export function BlackjackTable() {
   const [strategyCorrect, setStrategyCorrect] = useState(0);
   const [strategyFeedback, setStrategyFeedback] =
     useState<StrategyDecisionFeedback | null>(null);
+  const [roundOutcome, setRoundOutcome] =
+    useState<BlackjackRoundOutcome | null>(null);
   const handIdRef = useRef(1);
   const roundIdRef = useRef(1);
 
@@ -272,6 +285,22 @@ export function BlackjackTable() {
 
     roundIdRef.current += 1;
     setHandHistory((current) => [entry, ...current]);
+  }
+
+  function showRoundOutcome(
+    tone: BlackjackRoundOutcome["tone"],
+    label: BlackjackRoundOutcome["label"],
+    amount: number,
+    detail: string
+  ) {
+    const outcomeId = Date.now() + Math.floor(Math.random() * 100000);
+    setRoundOutcome({ id: outcomeId, tone, label, amount, detail });
+
+    window.setTimeout(() => {
+      setRoundOutcome((current) =>
+        current?.id === outcomeId ? null : current
+      );
+    }, OUTCOME_DISPLAY_MS);
   }
 
   function prepareShoeForDeal(currentShoe: BlackjackCard[]) {
@@ -378,6 +407,12 @@ export function BlackjackTable() {
     setIsAnimating(false);
     recordRound(nextDealer, [settledHand], outcome.profit);
     setMessage(outcomeMessage(outcome.result, outcome.profit));
+    showRoundOutcome(
+      outcome.result === "blackjack" ? "blackjack" : outcome.result,
+      resultBadge(outcome.result) ?? "LOSS",
+      Math.abs(outcome.profit),
+      `Dealer ${getHandValue(nextDealer).total}`
+    );
   }
 
   async function deal() {
@@ -513,6 +548,23 @@ export function BlackjackTable() {
     setRoundState("resolved");
     setIsAnimating(false);
     recordRound(nextDealer, settledHands, totalProfit);
+
+    const outcomeTone =
+      totalProfit > 0 ? "win" : totalProfit < 0 ? "loss" : "push";
+    const outcomeLabel =
+      totalProfit > 0
+        ? "WIN"
+        : totalProfit < 0
+          ? "LOSS"
+          : settledHands.length > 1
+            ? "EVEN"
+            : "PUSH";
+    showRoundOutcome(
+      outcomeTone,
+      outcomeLabel,
+      Math.abs(totalProfit),
+      `${settledHands.length} ${settledHands.length === 1 ? "hand" : "hands"} • Dealer ${getHandValue(nextDealer).total}`
+    );
 
     if (settledHands.length === 1) {
       const hand = settledHands[0];
@@ -691,6 +743,7 @@ export function BlackjackTable() {
     setActiveHandIndex(0);
     setRoundState("betting");
     setIsAnimating(false);
+    setRoundOutcome(null);
     if (bet > bankroll) setBet(Math.max(0, Math.min(25, bankroll)));
     setStrategyFeedback(null);
     setMessage("Choose your bet, then deal.");
@@ -790,6 +843,77 @@ export function BlackjackTable() {
         >
           <div className="pointer-events-none absolute left-1/2 top-[54px] h-[510px] w-[92%] -translate-x-1/2 rounded-[50%] border-[3px] border-amber-100/70 sm:top-[66px] sm:h-[560px]" />
           <div className="pointer-events-none absolute left-1/2 top-[94px] h-[430px] w-[80%] -translate-x-1/2 rounded-[50%] border border-amber-100/25 sm:top-[112px] sm:h-[455px]" />
+
+          {roundOutcome ? (
+            <div
+              key={roundOutcome.id}
+              className="pointer-events-none absolute inset-0 z-[95] overflow-hidden rounded-[18px]"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className={`blackjack-outcome-wash absolute inset-0 ${
+                  roundOutcome.tone === "win"
+                    ? "bg-[radial-gradient(circle_at_center,rgba(34,197,94,.42),rgba(6,78,59,.18)_38%,transparent_72%)]"
+                    : roundOutcome.tone === "loss"
+                      ? "bg-[radial-gradient(circle_at_center,rgba(239,68,68,.42),rgba(127,29,29,.2)_38%,transparent_72%)]"
+                      : "bg-[radial-gradient(circle_at_center,rgba(251,191,36,.42),rgba(120,53,15,.18)_38%,transparent_72%)]"
+                }`}
+              />
+
+              <div
+                className={`blackjack-outcome-ring absolute left-1/2 top-[38%] h-44 w-44 rounded-full border-[5px] ${
+                  roundOutcome.tone === "win"
+                    ? "border-emerald-300/80 shadow-[0_0_45px_rgba(52,211,153,.85)]"
+                    : roundOutcome.tone === "loss"
+                      ? "border-red-300/80 shadow-[0_0_45px_rgba(248,113,113,.85)]"
+                      : "border-amber-200/85 shadow-[0_0_45px_rgba(251,191,36,.85)]"
+                }`}
+              />
+
+              <div
+                className={`blackjack-round-outcome absolute left-1/2 top-[38%] min-w-[270px] max-w-[90%] rounded-2xl border-2 px-8 py-5 text-center shadow-[0_18px_55px_rgba(0,0,0,.65)] backdrop-blur-[2px] ${
+                  roundOutcome.tone === "win"
+                    ? "border-emerald-300 bg-emerald-950/95 text-emerald-50"
+                    : roundOutcome.tone === "loss"
+                      ? "border-red-300 bg-red-950/95 text-red-50"
+                      : "border-amber-200 bg-amber-950/95 text-amber-50"
+                }`}
+              >
+                <div
+                  className={`text-[11px] font-black uppercase tracking-[0.24em] ${
+                    roundOutcome.tone === "win"
+                      ? "text-emerald-300"
+                      : roundOutcome.tone === "loss"
+                        ? "text-red-300"
+                        : "text-amber-200"
+                  }`}
+                >
+                  {roundOutcome.detail}
+                </div>
+                <div className="mt-1 text-3xl font-black tracking-[0.06em] sm:text-5xl">
+                  {roundOutcome.label}
+                </div>
+                <div
+                  className={`mt-1 text-2xl font-black ${
+                    roundOutcome.tone === "win"
+                      ? "text-emerald-300"
+                      : roundOutcome.tone === "loss"
+                        ? "text-red-300"
+                        : "text-amber-200"
+                  }`}
+                >
+                  {roundOutcome.tone === "win" ||
+                  roundOutcome.tone === "blackjack"
+                    ? "+"
+                    : roundOutcome.tone === "loss"
+                      ? "−"
+                      : ""}
+                  ${money(roundOutcome.amount)}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="relative z-10 text-center">
             <div className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-100/80 sm:text-xs">
