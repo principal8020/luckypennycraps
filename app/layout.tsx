@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Lucky Penny Gaming",
   description:
-    "Practice casino games by actually playing them. Learn craps today, with blackjack, roulette, baccarat and more coming to Lucky Penny Gaming.",
+    "Practice casino games by actually playing them. Play and learn craps and blackjack at Lucky Penny Gaming.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
