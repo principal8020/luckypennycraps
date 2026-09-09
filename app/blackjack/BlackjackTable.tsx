@@ -733,6 +733,19 @@ export function BlackjackTable() {
     strategyAttempts === 0
       ? null
       : Math.round((strategyCorrect / strategyAttempts) * 100);
+  const coachedAction = strategyCoachOn
+    ? strategyRecommendation?.action ?? null
+    : null;
+
+  function actionButtonClass(action: BasicStrategyAction) {
+    const recommended = coachedAction === action;
+
+    return `relative rounded-xl border px-4 py-3 text-xs font-black shadow-sm transition duration-200 disabled:cursor-not-allowed disabled:opacity-35 ${
+      recommended
+        ? "z-10 scale-[1.03] border-sky-100 bg-sky-300 text-sky-950 ring-2 ring-sky-200/80 shadow-[0_0_24px_rgba(125,211,252,.6)]"
+        : "border-emerald-300/35 bg-emerald-950/55 text-emerald-50 enabled:hover:border-emerald-200/60"
+    }`;
+  }
 
   return (
     <>
@@ -952,16 +965,26 @@ export function BlackjackTable() {
                   type="button"
                   onClick={hit}
                   disabled={!canAct}
-                  className="rounded-xl border border-emerald-300/35 bg-emerald-950/55 px-4 py-3 text-xs font-black text-emerald-50 shadow-sm disabled:cursor-not-allowed disabled:opacity-35"
+                  className={actionButtonClass("hit")}
                 >
+                  {coachedAction === "hit" ? (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                      BEST PLAY
+                    </span>
+                  ) : null}
                   HIT
                 </button>
                 <button
                   type="button"
                   onClick={stand}
                   disabled={!canAct}
-                  className="rounded-xl border border-emerald-300/35 bg-emerald-950/55 px-4 py-3 text-xs font-black text-emerald-50 shadow-sm disabled:cursor-not-allowed disabled:opacity-35"
+                  className={actionButtonClass("stand")}
                 >
+                  {coachedAction === "stand" ? (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                      BEST PLAY
+                    </span>
+                  ) : null}
                   STAND
                 </button>
                 <button
@@ -969,8 +992,13 @@ export function BlackjackTable() {
                   onClick={doubleDown}
                   disabled={!canDouble}
                   title={canDouble ? "Double wager and receive exactly one card" : "Double requires two cards and enough bankroll"}
-                  className="rounded-xl border border-emerald-300/35 bg-emerald-950/55 px-4 py-3 text-xs font-black text-emerald-50 shadow-sm disabled:cursor-not-allowed disabled:opacity-35"
+                  className={actionButtonClass("double")}
                 >
+                  {coachedAction === "double" ? (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                      BEST PLAY
+                    </span>
+                  ) : null}
                   DOUBLE
                 </button>
                 <button
@@ -978,8 +1006,13 @@ export function BlackjackTable() {
                   onClick={splitHand}
                   disabled={!canSplit}
                   title={canSplit ? "Split this pair into two hands" : "Split requires an equal-value pair, room for another hand, and enough bankroll"}
-                  className="rounded-xl border border-emerald-300/35 bg-emerald-950/55 px-4 py-3 text-xs font-black text-emerald-50 shadow-sm disabled:cursor-not-allowed disabled:opacity-35"
+                  className={actionButtonClass("split")}
                 >
+                  {coachedAction === "split" ? (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                      BEST PLAY
+                    </span>
+                  ) : null}
                   SPLIT
                 </button>
               </div>
