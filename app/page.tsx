@@ -78,12 +78,6 @@ export default function Home() {
               <Link className="hover:text-white" href="/about">About</Link>
             </nav>
 
-            <Link
-              href="/blackjack"
-              className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black shadow-lg transition hover:bg-amber-300"
-            >
-              Play Blackjack
-            </Link>
           </header>
         </div>
       </section>
@@ -95,7 +89,7 @@ export default function Home() {
           <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-emerald-50/70 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps and blackjack are live now, with roulette, baccarat, and more planned next.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/blackjack" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Blackjack</Link>
-            <Link href="/table" className="rounded-xl border border-emerald-600/70 bg-emerald-950/30 px-6 py-3.5 text-base font-black text-emerald-100 transition hover:-translate-y-0.5 hover:border-emerald-400">Play Craps</Link>
+            <Link href="/table" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Craps</Link>
             <a href="#games" className="rounded-xl border border-emerald-600/70 bg-emerald-950/30 px-6 py-3.5 text-base font-black text-emerald-100 transition hover:border-emerald-400">Explore Games</a>
           </div>
           <p className="mt-4 text-[10px] font-bold text-emerald-700">Practice credits only. No real-money wagering or cash prizes.</p>
