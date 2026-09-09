@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteHeader } from "./components/SiteHeader";
 
 const games = [
   {
@@ -47,40 +48,7 @@ const highlights = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#03130e] text-white">
-      <section className="border-b border-emerald-900/80 bg-[radial-gradient(circle_at_20%_10%,rgba(16,185,129,.10),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(245,158,11,.08),transparent_28%)]">
-        <div className="mx-auto max-w-7xl px-5 py-5 sm:px-8">
-          <header className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-amber-300/70 bg-amber-300/10 shadow-[inset_0_0_0_3px_rgba(251,191,36,.07)]">
-                <span className="font-serif text-[15px] font-black tracking-[-0.08em] text-amber-200">
-                  LP
-                </span>
-                <span className="absolute bottom-[5px] text-[5px] font-black uppercase tracking-[0.18em] text-emerald-400">
-                  gaming
-                </span>
-              </div>
-
-              <div>
-                <div className="text-xl font-black sm:text-2xl">
-                  Lucky Penny Gaming
-                </div>
-                <div className="text-[9px] font-black uppercase tracking-[0.26em] text-emerald-400">
-                  Practice • Play • Learn
-                </div>
-              </div>
-            </div>
-
-            <nav className="hidden items-center gap-5 text-sm font-bold text-emerald-100/80 md:flex">
-              <a className="hover:text-white" href="#games">Games</a>
-              <Link className="hover:text-white" href="/blackjack">Blackjack</Link>
-              <Link className="hover:text-white" href="/how-to-play">Learn Craps</Link>
-              <Link className="hover:text-white" href="/feedback">Feedback</Link>
-              <Link className="hover:text-white" href="/about">About</Link>
-            </nav>
-
-          </header>
-        </div>
-      </section>
+      <SiteHeader active="home" />
 
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:py-20">
         <div>

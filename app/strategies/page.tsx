@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteHeader } from "../components/SiteHeader";
 
 const strategies = [
   {
@@ -47,24 +47,10 @@ const strategies = [
 
 export default function StrategiesPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] px-5 py-8 text-white sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="flex items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="text-sm font-bold text-emerald-300 hover:text-white"
-          >
-            ← Lucky Penny Gaming
-          </Link>
-          <Link
-            href="/table"
-            className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-black text-black"
-          >
-            Open Craps Strategy Mode
-          </Link>
-        </div>
-
-        <div className="mt-8">
+    <main className="min-h-screen bg-[#03130e] text-white">
+      <SiteHeader active="learn" />
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+        <div>
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">
             Lucky Penny Gaming • Craps Strategy Mode
           </div>

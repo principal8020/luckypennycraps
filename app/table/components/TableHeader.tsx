@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Stat } from "./TablePieces";
+import { SiteHeader } from "../../components/SiteHeader";
 
 type TableHeaderProps = {
   bankroll: number;
@@ -19,26 +19,19 @@ export function TableHeader({
   rollCount,
 }: TableHeaderProps) {
   return (
-    <header className="mb-2 rounded-xl border border-emerald-900/80 bg-black/30 px-2.5 py-2 sm:px-3 lg:px-4">
+    <>
+      <div className="-mx-2 -mt-2 mb-2 sm:-mx-4 sm:-mt-3">
+        <SiteHeader active="craps" wide compact />
+      </div>
+      <header className="mb-2 rounded-xl border border-emerald-900/80 bg-black/30 px-2.5 py-2 sm:px-3 lg:px-4">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/60 bg-amber-300/10 sm:h-10 sm:w-10">
-            <span className="font-serif text-[12px] font-black tracking-[-0.08em] text-amber-200">
-              LP
-            </span>
-            <span className="absolute bottom-[3px] text-[4px] font-black uppercase tracking-[0.16em] text-emerald-400">
-              gaming
-            </span>
-          </div>
-
-          <div className="min-w-0">
-            <h1 className="truncate text-[15px] font-black tracking-tight sm:text-lg lg:text-xl">
-              Lucky Penny Gaming
-            </h1>
-            <p className="text-[7px] font-bold uppercase tracking-[0.16em] text-emerald-400 sm:text-[8px]">
-              Craps • Practice • Play • Learn
-            </p>
-          </div>
+        <div className="min-w-0">
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-emerald-400">
+            Lucky Penny Craps
+          </p>
+          <h1 className="truncate text-[15px] font-black tracking-tight sm:text-lg lg:text-xl">
+            Craps practice table
+          </h1>
         </div>
 
         {/* Phone landscape / medium screens: keep stats in the same row. */}
@@ -52,28 +45,10 @@ export function TableHeader({
             negative={sessionPL < 0}
           />
           <Stat label="Rolls" value={`${rollCount}`} />
-          <Link
-            href="/"
-            className="shrink-0 rounded-md border border-emerald-800/70 px-2 py-1.5 text-[9px] font-bold text-emerald-300"
-          >
-            Home
-          </Link>
         </div>
-
-        {/* Portrait phone */}
-        <Link
-          href="/"
-          className="shrink-0 rounded-md border border-emerald-800/70 px-2 py-1.5 text-[9px] font-bold text-emerald-300 sm:hidden"
-        >
-          Home
-        </Link>
 
         {/* Desktop */}
         <div className="hidden items-center gap-4 text-right lg:flex">
-          <Link href="/" className="text-xs text-emerald-300 underline">
-            Home
-          </Link>
-
           <div className="hidden items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/30 px-2 py-1 xl:flex">
             <span className="text-[6px] font-black uppercase tracking-[0.16em] text-emerald-500">
               Craps Table
@@ -127,6 +102,7 @@ export function TableHeader({
           <Stat label="Rolls" value={`${rollCount}`} />
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }

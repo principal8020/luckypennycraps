@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { SiteHeader } from "../components/SiteHeader";
 
 const feedbackTypes = [
   "Suggestion",
@@ -38,22 +38,7 @@ export default function FeedbackPage() {
 
   return (
     <main className="min-h-screen bg-[#03130e] text-white">
-      <header className="border-b border-emerald-900/80 bg-black/20">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link
-            href="/"
-            className="text-sm font-black text-emerald-300 hover:text-white"
-          >
-            ← Lucky Penny Gaming
-          </Link>
-          <Link
-            href="/table"
-            className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black"
-          >
-            Play Craps
-          </Link>
-        </div>
-      </header>
+      <SiteHeader active="feedback" />
 
       <section className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:py-16">
         <div>

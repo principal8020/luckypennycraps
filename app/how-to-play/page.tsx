@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteHeader } from "../components/SiteHeader";
 
 const flow = [
   { step: "01", title: "Come-out roll", body: "A new round starts with the puck OFF. Pass Line and Don't Pass are the two classic starting contract bets." },
@@ -29,16 +30,7 @@ const terms = [
 export default function HowToPlayPage() {
   return (
     <main className="min-h-screen bg-[#03130e] text-white">
-      <header className="border-b border-emerald-900/80 bg-black/20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link href="/" className="text-sm font-black text-emerald-300 hover:text-white">← Lucky Penny Gaming</Link>
-          <div className="hidden items-center gap-5 text-sm font-bold text-emerald-100/70 sm:flex">
-            <Link href="/strategies" className="hover:text-white">Craps Strategies</Link>
-            <Link href="/about" className="hover:text-white">About</Link>
-          </div>
-          <Link href="/table" className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black shadow-lg hover:bg-amber-300">Open Craps Table</Link>
-        </div>
-      </header>
+      <SiteHeader active="learn" />
 
       <section className="border-b border-emerald-900/70 bg-[radial-gradient(circle_at_20%_10%,rgba(16,185,129,.11),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(245,158,11,.08),transparent_28%)]">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
