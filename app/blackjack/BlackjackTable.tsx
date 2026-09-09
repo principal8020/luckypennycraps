@@ -27,6 +27,23 @@ type PlayerHand = {
   profit?: number;
 };
 
+type HistoryHand = {
+  cards: BlackjackCard[];
+  wager: number;
+  total: number;
+  result: HandResult;
+  profit: number;
+};
+
+type RoundHistoryEntry = {
+  id: number;
+  dealerCards: BlackjackCard[];
+  dealerTotal: number;
+  hands: HistoryHand[];
+  totalWager: number;
+  net: number;
+};
+
 type PlayingCardProps = {
   card: BlackjackCard;
   hidden?: boolean;
@@ -186,13 +203,40 @@ export function BlackjackTable() {
   const [message, setMessage] = useState("Choose your bet, then deal.");
   const [sessionPL, setSessionPL] = useState(0);
   const [handsPlayed, setHandsPlayed] = useState(0);
+  const [handHistory, setHandHistory] = useState<RoundHistoryEntry[]>([]);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<number | null>(null);
   const handIdRef = useRef(1);
+  const roundIdRef = useRef(1);
 
   const dealerValue = useMemo(() => getHandValue(dealerCards), [dealerCards]);
   const activeHand = playerHands[activeHandIndex];
   const activeValue = activeHand ? getHandValue(activeHand.cards) : null;
   const holeHidden = roundState === "player";
   const totalWager = playerHands.reduce((sum, hand) => sum + hand.wager, 0);
+
+  function recordRound(
+    finalDealer: BlackjackCard[],
+    hands: PlayerHand[],
+    net: number
+  ) {
+    const entry: RoundHistoryEntry = {
+      id: roundIdRef.current,
+      dealerCards: finalDealer.map((card) => ({ ...card })),
+      dealerTotal: getHandValue(finalDealer).total,
+      totalWager: hands.reduce((sum, hand) => sum + hand.wager, 0),
+      net,
+      hands: hands.map((hand) => ({
+        cards: hand.cards.map((card) => ({ ...card })),
+        wager: hand.wager,
+        total: getHandValue(hand.cards).total,
+        result: hand.result ?? "loss",
+        profit: hand.profit ?? 0,
+      })),
+    };
+
+    roundIdRef.current += 1;
+    setHandHistory((current) => [entry, ...current]);
+  }
 
   function resetShoeIfNeeded(currentShoe: BlackjackCard[]) {
     return currentShoe.length < 52
@@ -252,6 +296,7 @@ export function BlackjackTable() {
     setSessionPL((current) => current + outcome.profit);
     setHandsPlayed((current) => current + 1);
     setRoundState("resolved");
+    recordRound(nextDealer, [settledHand], outcome.profit);
     setMessage(outcomeMessage(outcome.result, outcome.profit));
   }
 
@@ -357,6 +402,7 @@ export function BlackjackTable() {
     setSessionPL((current) => current + totalProfit);
     setHandsPlayed((current) => current + settledHands.length);
     setRoundState("resolved");
+    recordRound(nextDealer, settledHands, totalProfit);
 
     if (settledHands.length === 1) {
       const hand = settledHands[0];
@@ -811,6 +857,170 @@ export function BlackjackTable() {
           </div>
         </div>
       </div>
+
+      <section className="mt-4 rounded-2xl border border-emerald-900/80 bg-black/25 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-400">
+              Blackjack Hand History
+            </div>
+            <div className="mt-1 text-sm font-bold text-emerald-50/65">
+              Full session history • newest first • scroll for older rounds.
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {handHistory.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setHandHistory([]);
+                  setExpandedHistoryId(null);
+                }}
+                className="rounded-lg border border-emerald-700/70 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-100 hover:border-emerald-400"
+              >
+                Clear History
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {handHistory.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-dashed border-emerald-900/80 bg-emerald-950/10 px-4 py-5 text-center text-sm font-medium text-emerald-100/40">
+            Complete a hand and it will appear here.
+          </div>
+        ) : (
+          <div className="mt-4 max-h-[430px] space-y-2 overflow-y-auto pr-1">
+            {handHistory.map((entry) => {
+              const expanded = expandedHistoryId === entry.id;
+              const wins = entry.hands.filter(
+                (hand) => hand.result === "win" || hand.result === "blackjack"
+              ).length;
+              const losses = entry.hands.filter((hand) => hand.result === "loss").length;
+              const pushes = entry.hands.filter((hand) => hand.result === "push").length;
+
+              return (
+                <article
+                  key={entry.id}
+                  className="overflow-hidden rounded-xl border border-emerald-900/75 bg-[#04140f]"
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedHistoryId((current) =>
+                        current === entry.id ? null : entry.id
+                      )
+                    }
+                    className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-emerald-950/35 sm:px-4"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="text-xs font-black text-emerald-100">
+                          Round {entry.id}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-100/55">
+                          Dealer {entry.dealerTotal}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-100/55">
+                          {entry.hands.length} {entry.hands.length === 1 ? "hand" : "hands"}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-100/55">
+                          ${money(entry.totalWager)} wager
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[9px] font-black uppercase tracking-[0.1em] text-emerald-200/45">
+                        {wins} win • {losses} loss • {pushes} push
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-black ${
+                          entry.net > 0
+                            ? "bg-emerald-400/15 text-emerald-200"
+                            : entry.net < 0
+                              ? "bg-red-400/15 text-red-200"
+                              : "bg-amber-300/15 text-amber-100"
+                        }`}
+                      >
+                        {signedMoney(entry.net)}
+                      </span>
+                      <span className="text-lg font-black text-emerald-300/65">
+                        {expanded ? "−" : "+"}
+                      </span>
+                    </div>
+                  </button>
+
+                  {expanded ? (
+                    <div className="border-t border-emerald-900/70 px-3 pb-3 pt-3 sm:px-4 sm:pb-4">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="font-black uppercase tracking-[0.1em] text-emerald-400">
+                          Dealer
+                        </span>
+                        {entry.dealerCards.map((card) => (
+                          <span
+                            key={card.id}
+                            className="rounded-md border border-white/15 bg-white/5 px-2 py-1 font-black text-white"
+                          >
+                            {card.rank}{card.suit}
+                          </span>
+                        ))}
+                        <span className="text-emerald-100/55">
+                          Total {entry.dealerTotal}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                        {entry.hands.map((hand, index) => (
+                          <div
+                            key={`${entry.id}-${index}`}
+                            className="rounded-lg border border-emerald-900/70 bg-black/20 p-3"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[9px] font-black uppercase tracking-[0.12em] text-emerald-300">
+                                Hand {index + 1}
+                              </span>
+                              <span
+                                className={`text-[10px] font-black ${
+                                  hand.result === "loss"
+                                    ? "text-red-200"
+                                    : hand.result === "push"
+                                      ? "text-amber-100"
+                                      : "text-emerald-200"
+                                }`}
+                              >
+                                {resultBadge(hand.result)}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {hand.cards.map((card) => (
+                                <span
+                                  key={card.id}
+                                  className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs font-black text-white"
+                                >
+                                  {card.rank}{card.suit}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="mt-2 flex items-center justify-between gap-3 text-[10px] font-bold text-emerald-100/55">
+                              <span>
+                                ${money(hand.wager)} • Total {hand.total}
+                              </span>
+                              <span>{signedMoney(hand.profit)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </>
   );
 }
