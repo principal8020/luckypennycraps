@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildShoe,
   canSplitPair,
@@ -110,8 +110,8 @@ function PlayingCard({
         ? "rotate-3"
         : "";
   const size = compact
-    ? "h-24 w-16 sm:h-28 sm:w-20"
-    : "h-28 w-20 sm:h-32 sm:w-24";
+    ? "h-20 w-14 sm:h-28 sm:w-20"
+    : "h-24 w-16 sm:h-32 sm:w-24";
 
   return (
     <div
@@ -191,7 +191,7 @@ function Chip({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-12 w-12 items-center justify-center rounded-full border-[4px] border-dashed text-[11px] font-black shadow-lg transition sm:h-14 sm:w-14 sm:text-xs disabled:cursor-not-allowed disabled:opacity-35 ${style} ${
+      className={`relative flex h-11 w-11 items-center justify-center rounded-full border-[4px] border-dashed text-[10px] font-black shadow-lg transition min-[380px]:h-12 min-[380px]:w-12 min-[380px]:text-[11px] sm:h-14 sm:w-14 sm:text-xs disabled:cursor-not-allowed disabled:opacity-35 ${style} ${
         selected
           ? "scale-110 ring-4 ring-amber-300 ring-offset-2 ring-offset-[#061710]"
           : "enabled:hover:-translate-y-0.5"
@@ -256,6 +256,21 @@ export function BlackjackTable() {
     useState<BlackjackRoundOutcome | null>(null);
   const handIdRef = useRef(1);
   const roundIdRef = useRef(1);
+  const historyDetailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const desktopHistory = window.matchMedia("(min-width: 640px)");
+    const syncHistoryVisibility = () => {
+      if (historyDetailsRef.current) {
+        historyDetailsRef.current.open = desktopHistory.matches;
+      }
+    };
+
+    syncHistoryVisibility();
+    desktopHistory.addEventListener("change", syncHistoryVisibility);
+    return () =>
+      desktopHistory.removeEventListener("change", syncHistoryVisibility);
+  }, []);
 
   const dealerValue = useMemo(() => getHandValue(dealerCards), [dealerCards]);
   const activeHand = playerHands[activeHandIndex];
@@ -808,12 +823,12 @@ export function BlackjackTable() {
             Lucky Penny Blackjack
           </div>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">Blackjack practice table</h1>
-          <p className="mt-1 max-w-2xl text-sm font-medium text-emerald-50/60">
-            Core game engine v1.1: deal, hit, stand, double, split, dealer play, payouts, bankroll, and session results.
+          <p className="mt-1 max-w-2xl text-sm font-medium leading-5 text-emerald-50/65">
+            Practice complete hands with real table rules. Turn on Strategy Coach whenever you want guidance on hit, stand, double, or split.
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 text-center">
+        <div className="grid w-full grid-cols-2 gap-2 text-center sm:w-auto sm:grid-cols-4">
           {[
             ["BANKROLL", `$${money(bankroll)}`],
             ["TOTAL WAGER", `${money(displayedWager)}`],
@@ -822,9 +837,9 @@ export function BlackjackTable() {
           ].map(([label, value]) => (
             <div
               key={label}
-              className="min-w-[86px] rounded-xl border border-emerald-900/80 bg-black/25 px-3 py-2"
+              className="min-w-0 rounded-xl border border-emerald-900/80 bg-black/25 px-2 py-2 sm:min-w-[86px] sm:px-3"
             >
-              <div className="text-[7px] font-black uppercase tracking-[0.12em] text-emerald-400">
+              <div className="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-400 sm:text-[8px]">
                 {label}
               </div>
               <div className="mt-0.5 text-base font-black sm:text-lg">{value}</div>
@@ -833,16 +848,16 @@ export function BlackjackTable() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[34px] border-[12px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_26px_70px_rgba(0,0,0,.65),inset_0_0_0_3px_rgba(214,166,72,.28),inset_0_0_0_7px_rgba(45,18,4,.34)]">
+      <div className="overflow-hidden rounded-[24px] border-[7px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_26px_70px_rgba(0,0,0,.65),inset_0_0_0_3px_rgba(214,166,72,.28),inset_0_0_0_7px_rgba(45,18,4,.34)] sm:rounded-[34px] sm:border-[12px]">
         <div
-          className="relative min-h-[690px] overflow-hidden border-[4px] border-[#cfbd8c]/75 bg-[#075f3d] px-3 py-4 sm:min-h-[760px] sm:px-6 sm:py-5"
+          className="relative min-h-[625px] overflow-hidden border-[3px] border-[#cfbd8c]/75 bg-[#075f3d] px-2 py-3 sm:min-h-[760px] sm:border-[4px] sm:px-6 sm:py-5"
           style={{
             backgroundImage:
               "radial-gradient(circle at 50% 18%, rgba(255,255,255,.055), transparent 28%), radial-gradient(circle at 15% 85%, rgba(0,0,0,.18), transparent 30%), linear-gradient(135deg, rgba(255,255,255,.018), rgba(0,0,0,.035)), repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, rgba(0,0,0,.018) 1px, rgba(0,0,0,.018) 3px)",
           }}
         >
-          <div className="pointer-events-none absolute left-1/2 top-[54px] h-[510px] w-[92%] -translate-x-1/2 rounded-[50%] border-[3px] border-amber-100/70 sm:top-[66px] sm:h-[560px]" />
-          <div className="pointer-events-none absolute left-1/2 top-[94px] h-[430px] w-[80%] -translate-x-1/2 rounded-[50%] border border-amber-100/25 sm:top-[112px] sm:h-[455px]" />
+          <div className="pointer-events-none absolute left-1/2 top-[50px] h-[430px] w-[94%] -translate-x-1/2 rounded-[50%] border-2 border-amber-100/70 sm:top-[66px] sm:h-[560px] sm:w-[92%] sm:border-[3px]" />
+          <div className="pointer-events-none absolute left-1/2 top-[84px] h-[360px] w-[82%] -translate-x-1/2 rounded-[50%] border border-amber-100/25 sm:top-[112px] sm:h-[455px] sm:w-[80%]" />
 
           {roundOutcome ? (
             <div
@@ -919,16 +934,16 @@ export function BlackjackTable() {
             <div className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-100/80 sm:text-xs">
               Blackjack pays 3 to 2
             </div>
-            <div className="mt-1 text-[8px] font-bold uppercase tracking-[0.16em] text-emerald-100/60 sm:text-[9px]">
+            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.13em] text-emerald-100/65 sm:text-[10px] sm:tracking-[0.16em]">
               Dealer stands on soft 17 • 6-deck shoe
             </div>
           </div>
 
-          <div className="relative z-10 mt-7 sm:mt-10">
-            <div className="text-center text-[8px] font-black uppercase tracking-[0.2em] text-emerald-200/70">
+          <div className="relative z-10 mt-4 sm:mt-10">
+            <div className="text-center text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200/75">
               Dealer • {dealerDisplayTotal}
             </div>
-            <div className="mt-3 flex min-h-[128px] items-center justify-center gap-2 sm:gap-3">
+            <div className="mt-2 flex min-h-[104px] items-center justify-center gap-2 sm:mt-3 sm:min-h-[128px] sm:gap-3">
               {dealerCards.length === 0 ? (
                 <div className="text-sm font-bold text-emerald-100/35">Waiting for deal</div>
               ) : (
@@ -944,7 +959,7 @@ export function BlackjackTable() {
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto mt-6 max-w-[900px] sm:mt-8">
+          <div className="relative z-10 mx-auto mt-3 max-w-[900px] sm:mt-8">
             <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
               <div className="hidden text-right sm:block">
                 <div className="text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200/55">
@@ -953,10 +968,10 @@ export function BlackjackTable() {
                 <div className="text-xl font-black text-amber-100">$5</div>
               </div>
 
-              <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full border-[3px] border-amber-100/75 bg-black/10 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] sm:h-28 sm:w-28">
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-amber-100/75 bg-black/10 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] sm:h-28 sm:w-28">
                 <div className="absolute inset-2 rounded-full border border-amber-100/30" />
                 <div className="text-center">
-                  <div className="text-[7px] font-black uppercase tracking-[0.13em] text-emerald-200/70">
+                  <div className="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-200/75 sm:text-[8px] sm:tracking-[0.13em]">
                     Base Bet
                   </div>
                   <div className="mt-1 text-2xl font-black text-amber-100">${money(bet)}</div>
@@ -972,13 +987,13 @@ export function BlackjackTable() {
             </div>
           </div>
 
-          <div className="relative z-10 mt-5 sm:mt-6">
-            <div className="text-center text-[8px] font-black uppercase tracking-[0.2em] text-emerald-200/70">
+          <div className="relative z-10 mt-3 sm:mt-6">
+            <div className="text-center text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200/75">
               {playerHands.length > 1
                 ? `Player • ${playerHands.length} hands`
                 : `Player • ${activeValue ? activeValue.total : "—"}`}
             </div>
-            <div className="mt-3 flex min-h-[155px] items-start justify-center gap-3 overflow-x-auto pb-2">
+            <div className="mt-2 flex min-h-[125px] items-start justify-center gap-2 overflow-x-auto pb-1 sm:mt-3 sm:min-h-[155px] sm:gap-3 sm:pb-2">
               {playerHands.length === 0 ? (
                 <div className="self-center text-sm font-bold text-emerald-100/35">
                   Place a bet and deal
@@ -990,7 +1005,7 @@ export function BlackjackTable() {
                   return (
                     <div
                       key={hand.id}
-                      className={`min-w-[175px] rounded-xl border px-2 py-2 text-center transition sm:min-w-[205px] ${
+                      className={`min-w-[150px] rounded-xl border px-2 py-2 text-center transition sm:min-w-[205px] ${
                         hand.result ? "blackjack-hand-result " : ""
                       }${
                         isActive
@@ -998,7 +1013,7 @@ export function BlackjackTable() {
                           : "border-emerald-200/20 bg-black/10"
                       }`}
                     >
-                      <div className="text-[8px] font-black uppercase tracking-[0.13em] text-emerald-100/75">
+                      <div className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-100/80 sm:text-[9px] sm:tracking-[0.13em]">
                         Hand {handIndex + 1} • ${money(hand.wager)} • {value}
                       </div>
                       <div className="mt-2 flex items-center justify-center gap-1.5">
@@ -1035,14 +1050,28 @@ export function BlackjackTable() {
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto mt-2 w-fit max-w-[92%] rounded-full border border-white/15 bg-black/30 px-5 py-2 text-center text-xs font-black text-amber-100 shadow-lg">
+          <div className="relative z-10 mx-auto mt-2 w-fit max-w-[94%] rounded-full border border-white/15 bg-black/30 px-4 py-2 text-center text-xs font-black text-amber-100 shadow-lg sm:px-5">
             {message}
           </div>
 
-          <div className="relative z-10 mx-auto mt-4 max-w-[1080px] rounded-2xl border border-emerald-200/25 bg-black/20 p-3 backdrop-blur-[1px] sm:p-4">
+          <div className="relative z-10 mx-auto mt-3 max-w-[1080px] rounded-2xl border border-emerald-200/25 bg-black/20 p-3 backdrop-blur-[1px] sm:mt-4 sm:p-4">
+            {roundState === "betting" ? (
+              <div className="mb-3 grid grid-cols-3 gap-1.5 text-center text-[9px] font-black uppercase tracking-[0.08em] text-emerald-100/75 sm:gap-2 sm:text-[10px]">
+                <span className="rounded-lg bg-emerald-950/55 px-2 py-2">
+                  <span className="text-amber-300">1</span> Choose chip
+                </span>
+                <span className="rounded-lg bg-emerald-950/55 px-2 py-2">
+                  <span className="text-amber-300">2</span> Set wager
+                </span>
+                <span className="rounded-lg bg-emerald-950/55 px-2 py-2">
+                  <span className="text-amber-300">3</span> Deal
+                </span>
+              </div>
+            ) : null}
+
             <div className="grid gap-3 lg:grid-cols-[auto_1fr_auto] lg:items-center">
-              <div>
-                <div className="mb-2 flex items-center justify-between gap-3 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300/70">
+              <div className="order-1">
+                <div className="mb-2 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-300/75">
                   <span>Bet chips</span>
                   <button
                     type="button"
@@ -1053,7 +1082,7 @@ export function BlackjackTable() {
                     Clear
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-5 place-items-center gap-1.5 sm:flex sm:flex-wrap sm:justify-start sm:gap-2">
                   {CHIP_VALUES.map((value) => (
                     <Chip
                       key={value}
@@ -1084,7 +1113,7 @@ export function BlackjackTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:px-4">
+              <div className="order-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:order-2 lg:px-4">
                 <button
                   type="button"
                   onClick={hit}
@@ -1092,7 +1121,7 @@ export function BlackjackTable() {
                   className={actionButtonClass("hit")}
                 >
                   {coachedAction === "hit" ? (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[8px] leading-none tracking-[0.1em] text-sky-950 shadow">
                       BEST PLAY
                     </span>
                   ) : null}
@@ -1105,7 +1134,7 @@ export function BlackjackTable() {
                   className={actionButtonClass("stand")}
                 >
                   {coachedAction === "stand" ? (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[8px] leading-none tracking-[0.1em] text-sky-950 shadow">
                       BEST PLAY
                     </span>
                   ) : null}
@@ -1119,7 +1148,7 @@ export function BlackjackTable() {
                   className={actionButtonClass("double")}
                 >
                   {coachedAction === "double" ? (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[8px] leading-none tracking-[0.1em] text-sky-950 shadow">
                       BEST PLAY
                     </span>
                   ) : null}
@@ -1133,7 +1162,7 @@ export function BlackjackTable() {
                   className={actionButtonClass("split")}
                 >
                   {coachedAction === "split" ? (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[7px] leading-none tracking-[0.12em] text-sky-950 shadow">
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-sky-100 px-2 py-0.5 text-[8px] leading-none tracking-[0.1em] text-sky-950 shadow">
                       BEST PLAY
                     </span>
                   ) : null}
@@ -1145,7 +1174,7 @@ export function BlackjackTable() {
                 <button
                   type="button"
                   onClick={newRound}
-                  className="rounded-xl bg-amber-400 px-7 py-4 text-sm font-black text-black shadow-lg hover:bg-amber-300"
+                  className="order-2 w-full rounded-xl bg-amber-400 px-7 py-4 text-sm font-black text-black shadow-lg hover:bg-amber-300 lg:order-3 lg:w-auto"
                 >
                   NEW HAND
                 </button>
@@ -1154,7 +1183,7 @@ export function BlackjackTable() {
                   type="button"
                   onClick={deal}
                   disabled={!canDeal}
-                  className="rounded-xl bg-amber-400 px-7 py-4 text-sm font-black text-black shadow-lg hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-35"
+                  className="order-2 w-full rounded-xl bg-amber-400 px-7 py-4 text-sm font-black text-black shadow-lg hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-35 lg:order-3 lg:w-auto"
                 >
                   {roundState === "dealing" ? "DEALING…" : "DEAL"}
                 </button>
@@ -1249,7 +1278,7 @@ export function BlackjackTable() {
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto mt-3 flex max-w-[1050px] flex-wrap items-center justify-center gap-x-5 gap-y-1 text-center text-[7px] font-bold uppercase tracking-[0.11em] text-emerald-100/50 sm:text-[8px]">
+          <div className="relative z-10 mx-auto mt-3 flex max-w-[1050px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[9px] font-bold uppercase tracking-[0.08em] text-emerald-100/55 sm:gap-x-5 sm:text-[9px] sm:tracking-[0.11em]">
             <span>6-deck shoe</span>
             <span>Dealer stands on soft 17</span>
             <span>Blackjack pays 3:2</span>
@@ -1261,19 +1290,32 @@ export function BlackjackTable() {
         </div>
       </div>
 
-      <section className="mt-4 rounded-2xl border border-emerald-900/80 bg-black/25 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <details
+        ref={historyDetailsRef}
+        className="group mt-4 rounded-2xl border border-emerald-900/80 bg-black/25"
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl p-4 transition hover:bg-emerald-950/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 [&::-webkit-details-marker]:hidden">
           <div>
-            <div className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-400">
+            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-400">
               Blackjack Hand History
             </div>
             <div className="mt-1 text-sm font-bold text-emerald-50/65">
-              Full session history • newest first • scroll for older rounds.
+              {handHistory.length === 0
+                ? "Completed hands will appear here."
+                : `${handHistory.length} ${handHistory.length === 1 ? "round" : "rounds"} • newest first`}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {handHistory.length > 0 ? (
+          <div className="flex shrink-0 items-center gap-2 text-xs font-black uppercase tracking-[0.1em] text-emerald-200/70">
+            <span className="group-open:hidden">Show</span>
+            <span className="hidden group-open:inline">Hide</span>
+            <span className="text-xl leading-none transition group-open:rotate-45">+</span>
+          </div>
+        </summary>
+
+        <div className="border-t border-emerald-900/70 p-4">
+          {handHistory.length > 0 ? (
+            <div className="mb-3 flex justify-end">
               <button
                 type="button"
                 onClick={() => {
@@ -1284,16 +1326,15 @@ export function BlackjackTable() {
               >
                 Clear History
               </button>
-            ) : null}
-          </div>
-        </div>
+            </div>
+          ) : null}
 
-        {handHistory.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-dashed border-emerald-900/80 bg-emerald-950/10 px-4 py-5 text-center text-sm font-medium text-emerald-100/40">
-            Complete a hand and it will appear here.
-          </div>
-        ) : (
-          <div className="mt-4 max-h-[430px] space-y-2 overflow-y-auto pr-1">
+          {handHistory.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-emerald-900/80 bg-emerald-950/10 px-4 py-5 text-center text-sm font-medium text-emerald-100/40">
+              Complete a hand and it will appear here.
+            </div>
+          ) : (
+            <div className="max-h-[430px] space-y-2 overflow-y-auto pr-1">
             {handHistory.map((entry) => {
               const expanded = expandedHistoryId === entry.id;
               const wins = entry.hands.filter(
@@ -1421,9 +1462,10 @@ export function BlackjackTable() {
                 </article>
               );
             })}
-          </div>
-        )}
-      </section>
+            </div>
+          )}
+        </div>
+      </details>
     </>
   );
 }
