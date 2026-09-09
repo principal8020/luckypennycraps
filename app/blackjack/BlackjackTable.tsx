@@ -5,11 +5,13 @@ import {
   buildShoe,
   canSplitPair,
   dealerShouldHit,
+  getBasicStrategyRecommendation,
   getHandValue,
   isBlackjack,
   resolveBlackjackRound,
   shuffleShoe,
   shouldReshuffleBeforeDeal,
+  type BasicStrategyAction,
   type BlackjackCard,
 } from "./blackjackRules";
 
@@ -43,6 +45,12 @@ type RoundHistoryEntry = {
   hands: HistoryHand[];
   totalWager: number;
   net: number;
+};
+
+type StrategyDecisionFeedback = {
+  chosen: BasicStrategyAction;
+  recommended: BasicStrategyAction;
+  correct: boolean;
 };
 
 type PlayingCardProps = {
@@ -190,6 +198,10 @@ function resultBadge(result?: HandResult) {
   return "LOSS";
 }
 
+function strategyActionLabel(action: BasicStrategyAction) {
+  return action.toUpperCase();
+}
+
 export function BlackjackTable() {
   const [shoe, setShoe] = useState<BlackjackCard[]>(() =>
     shuffleShoe(buildShoe(6))
@@ -206,6 +218,11 @@ export function BlackjackTable() {
   const [handsPlayed, setHandsPlayed] = useState(0);
   const [handHistory, setHandHistory] = useState<RoundHistoryEntry[]>([]);
   const [expandedHistoryId, setExpandedHistoryId] = useState<number | null>(null);
+  const [strategyCoachOn, setStrategyCoachOn] = useState(true);
+  const [strategyAttempts, setStrategyAttempts] = useState(0);
+  const [strategyCorrect, setStrategyCorrect] = useState(0);
+  const [strategyFeedback, setStrategyFeedback] =
+    useState<StrategyDecisionFeedback | null>(null);
   const handIdRef = useRef(1);
   const roundIdRef = useRef(1);
 
@@ -249,6 +266,44 @@ export function BlackjackTable() {
     const id = handIdRef.current;
     handIdRef.current += 1;
     return id;
+  }
+
+  function currentStrategyRecommendation() {
+    const hand = playerHands[activeHandIndex];
+    const dealerUpCard = dealerCards[0];
+
+    if (
+      roundState !== "player" ||
+      !hand ||
+      hand.status !== "playing" ||
+      !dealerUpCard
+    ) {
+      return null;
+    }
+
+    return getBasicStrategyRecommendation(hand.cards, dealerUpCard, {
+      canDouble: hand.cards.length === 2 && bankroll >= hand.wager,
+      canSplit:
+        hand.cards.length === 2 &&
+        canSplitPair(hand.cards) &&
+        playerHands.length < 4 &&
+        bankroll >= hand.wager,
+    });
+  }
+
+  function recordStrategyDecision(chosen: BasicStrategyAction) {
+    if (!strategyCoachOn) return;
+    const recommendation = currentStrategyRecommendation();
+    if (!recommendation) return;
+
+    const correct = chosen === recommendation.action;
+    setStrategyAttempts((current) => current + 1);
+    if (correct) setStrategyCorrect((current) => current + 1);
+    setStrategyFeedback({
+      chosen,
+      recommended: recommendation.action,
+      correct,
+    });
   }
 
   function selectChip(value: number) {
@@ -331,6 +386,7 @@ export function BlackjackTable() {
 
     setDealerCards(nextDealer);
     setActiveHandIndex(0);
+    setStrategyFeedback(null);
 
     if (isBlackjack(nextPlayer) || isBlackjack(nextDealer)) {
       settleNatural(hand, nextDealer, nextShoe);
@@ -444,6 +500,7 @@ export function BlackjackTable() {
   function hit() {
     if (roundState !== "player" || !activeHand || activeHand.status !== "playing") return;
 
+    recordStrategyDecision("hit");
     const draw = drawCard(shoe);
     const nextCards = [...activeHand.cards, draw.card];
     const value = getHandValue(nextCards).total;
@@ -469,6 +526,7 @@ export function BlackjackTable() {
 
   function stand() {
     if (roundState !== "player" || !activeHand || activeHand.status !== "playing") return;
+    recordStrategyDecision("stand");
     const nextHands = [...playerHands];
     nextHands[activeHandIndex] = { ...activeHand, status: "stood" };
     continueOrFinish(nextHands, shoe, activeHandIndex + 1);
@@ -482,6 +540,7 @@ export function BlackjackTable() {
       return;
     }
 
+    recordStrategyDecision("double");
     const draw = drawCard(shoe);
     const nextCards = [...activeHand.cards, draw.card];
     const value = getHandValue(nextCards).total;
@@ -510,6 +569,7 @@ export function BlackjackTable() {
       return;
     }
 
+    recordStrategyDecision("split");
     let nextShoe = shoe;
     const leftDraw = drawCard(nextShoe);
     nextShoe = leftDraw.rest;
@@ -559,6 +619,7 @@ export function BlackjackTable() {
     setActiveHandIndex(0);
     setRoundState("betting");
     if (bet > bankroll) setBet(Math.max(0, Math.min(25, bankroll)));
+    setStrategyFeedback(null);
     setMessage("Choose your bet, then deal.");
   }
 
@@ -585,6 +646,11 @@ export function BlackjackTable() {
   const shoeStatus = shouldReshuffleBeforeDeal(shoe.length)
     ? "Auto reshuffle before next deal"
     : `${shoe.length} cards remaining`;
+  const strategyRecommendation = currentStrategyRecommendation();
+  const strategyAccuracy =
+    strategyAttempts === 0
+      ? null
+      : Math.round((strategyCorrect / strategyAttempts) * 100);
 
   return (
     <>
@@ -750,6 +816,93 @@ export function BlackjackTable() {
 
           <div className="relative z-10 mx-auto mt-2 w-fit max-w-[92%] rounded-full border border-white/15 bg-black/30 px-5 py-2 text-center text-xs font-black text-amber-100 shadow-lg">
             {message}
+          </div>
+
+          <div className="relative z-10 mx-auto mt-4 max-w-[1080px] rounded-2xl border border-sky-300/35 bg-[#062438]/85 p-3 shadow-lg sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-pressed={strategyCoachOn}
+                  onClick={() => {
+                    setStrategyCoachOn((current) => !current);
+                    setStrategyFeedback(null);
+                  }}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] transition ${
+                    strategyCoachOn
+                      ? "border-sky-200/70 bg-sky-300 text-sky-950"
+                      : "border-sky-200/30 bg-black/20 text-sky-100/65"
+                  }`}
+                >
+                  Strategy Coach {strategyCoachOn ? "On" : "Off"}
+                </button>
+                <div className="text-xs font-bold text-sky-100/60">
+                  {strategyAttempts === 0
+                    ? "No decisions scored yet"
+                    : `${strategyCorrect}/${strategyAttempts} correct • ${strategyAccuracy}%`}
+                </div>
+              </div>
+
+              <div className="text-xs font-black text-sky-200/55">
+                6 decks • Dealer stands on soft 17 • Double after split • No surrender
+              </div>
+            </div>
+
+            <div className="mt-3" aria-live="polite">
+              {!strategyCoachOn ? (
+                <p className="text-sm font-medium text-sky-100/55">
+                  Turn the coach on whenever you want a recommended play and explanation.
+                </p>
+              ) : strategyRecommendation ? (
+                <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
+                  <div className="rounded-xl border border-sky-200/35 bg-sky-300/10 px-4 py-3 text-center">
+                    <div className="text-xs font-black uppercase tracking-[0.16em] text-sky-200/65">
+                      Best play
+                    </div>
+                    <div className="mt-0.5 text-xl font-black text-sky-100">
+                      {strategyActionLabel(strategyRecommendation.action)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold leading-5 text-sky-50/80">
+                      {strategyRecommendation.explanation}
+                    </p>
+                    {strategyFeedback ? (
+                      <p
+                        className={`mt-1 text-xs font-black ${
+                          strategyFeedback.correct
+                            ? "text-emerald-300"
+                            : "text-amber-200"
+                        }`}
+                      >
+                        {strategyFeedback.correct
+                          ? `${strategyActionLabel(strategyFeedback.chosen)} was correct.`
+                          : `You chose ${strategyActionLabel(strategyFeedback.chosen)}; basic strategy recommended ${strategyActionLabel(strategyFeedback.recommended)}.`}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {strategyFeedback ? (
+                    <p
+                      className={`text-sm font-black ${
+                        strategyFeedback.correct
+                          ? "text-emerald-300"
+                          : "text-amber-200"
+                      }`}
+                    >
+                      {strategyFeedback.correct
+                        ? `${strategyActionLabel(strategyFeedback.chosen)} was correct.`
+                        : `You chose ${strategyActionLabel(strategyFeedback.chosen)}; basic strategy recommended ${strategyActionLabel(strategyFeedback.recommended)}.`}
+                    </p>
+                  ) : null}
+                  <p className="mt-1 text-sm font-medium text-sky-100/55">
+                    Deal a hand to receive the next basic-strategy recommendation.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="relative z-10 mx-auto mt-4 max-w-[1080px] rounded-2xl border border-emerald-200/25 bg-black/20 p-3 backdrop-blur-[1px] sm:p-4">
