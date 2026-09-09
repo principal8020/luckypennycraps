@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "./components/SiteHeader";
 
@@ -63,16 +64,54 @@ export default function Home() {
           <p className="mt-4 text-[10px] font-bold text-emerald-700">Practice credits only. No real-money wagering or cash prizes.</p>
         </div>
 
-        <div className="rounded-3xl border border-emerald-700/50 bg-[#087348] p-3 shadow-[0_24px_70px_rgba(0,0,0,.45)]">
-          <div className="rounded-2xl border-[7px] border-[#6c3b12] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.04),transparent_25%),#087348] p-4 sm:p-5">
-            <div className="mb-4 overflow-hidden rounded-2xl border border-white/15 bg-black/20 px-4 py-3">
-              <img src="/lucky-penny-dogs-logo.png" alt="Lucky and Penny, the Lucky Penny Gaming mascots" className="mx-auto max-h-[170px] w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,.35)]" />
-              <div className="mt-1 text-center text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200/70">Lucky + Penny • the mascots behind the name</div>
+        <div className="rounded-[32px] border border-amber-300/35 bg-[radial-gradient(circle_at_top,rgba(52,211,153,.16),transparent_42%),#082a20] p-3 shadow-[0_24px_70px_rgba(0,0,0,.45)] sm:p-4">
+          <div className="overflow-hidden rounded-2xl border border-emerald-300/20 bg-black/25 px-5 py-4">
+            <Image
+              src="/lucky-penny-dogs-logo.png"
+              width={1374}
+              height={1145}
+              alt="Lucky and Penny, the Lucky Penny Gaming mascots"
+              className="mx-auto h-auto max-h-[160px] w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,.35)]"
+              sizes="(max-width: 1024px) 90vw, 440px"
+              priority
+            />
+            <div className="mt-1 text-center text-xs font-black uppercase tracking-[0.16em] text-emerald-200/70">
+              Choose your game
             </div>
-            <div className="grid grid-cols-6 gap-1">{[4,5,6,8,9,10].map((number)=><div key={number} className="rounded border border-white/50 bg-black/5 py-3 text-center"><div className="text-xl font-black sm:text-2xl">{number}</div><div className="mt-1 text-[6px] font-black uppercase tracking-[0.1em] text-emerald-100/70">Place</div></div>)}</div>
-            <div className="mt-1 rounded border border-white/60 py-4 text-center font-serif text-3xl text-red-300 sm:text-4xl">COME</div>
-            <div className="mt-1 rounded-[28px] border-2 border-white/70 py-3 text-center text-xl font-black tracking-[0.12em] sm:text-2xl">PASS LINE</div>
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-black/20 px-3 py-3"><div className="flex gap-2"><span className="h-9 w-9 rounded-full border-4 border-dashed border-white bg-red-600"/><span className="h-9 w-9 rounded-full border-4 border-dashed border-white bg-emerald-700"/><span className="h-9 w-9 rounded-full border-4 border-dashed border-white bg-zinc-950"/></div><div className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-black text-black">ROLL DICE</div></div>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Link
+              href="/table"
+              className="group flex min-h-[190px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
+            >
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">
+                Live table
+              </div>
+              <div className="mt-2 text-3xl font-black text-white">Craps</div>
+              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+                Full betting layout, guided lessons, practice controls, and strategy modes.
+              </p>
+              <div className="mt-auto pt-4 text-sm font-black text-amber-300 group-hover:text-white">
+                Play Craps →
+              </div>
+            </Link>
+
+            <Link
+              href="/blackjack"
+              className="group flex min-h-[190px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
+            >
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">
+                Live table
+              </div>
+              <div className="mt-2 text-3xl font-black text-white">Blackjack</div>
+              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+                Complete hand play, splitting and doubling, plus an optional Strategy Coach.
+              </p>
+              <div className="mt-auto pt-4 text-sm font-black text-amber-300 group-hover:text-white">
+                Play Blackjack →
+              </div>
+            </Link>
           </div>
         </div>
       </section>
