@@ -1,17 +1,12 @@
 import Link from "next/link";
+import { SiteHeader } from "../components/SiteHeader";
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] px-5 py-8 text-white sm:px-8">
-      <div className="mx-auto max-w-4xl">
-        <Link
-          href="/"
-          className="text-sm font-bold text-emerald-300 hover:text-white"
-        >
-          ← Lucky Penny Gaming
-        </Link>
-
-        <div className="mt-8 rounded-3xl border border-emerald-900/80 bg-black/25 p-6 sm:p-9">
+    <main className="min-h-screen bg-[#03130e] text-white">
+      <SiteHeader active="about" />
+      <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8">
+        <div className="rounded-3xl border border-emerald-900/80 bg-black/25 p-6 sm:p-9">
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
             About
           </div>
