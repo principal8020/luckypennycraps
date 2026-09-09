@@ -25,6 +25,84 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Blackjack table motion ------------------------------------------------ */
+.blackjack-card-slot {
+  position: relative;
+  flex: 0 0 auto;
+  perspective: 900px;
+}
+
+.blackjack-card-enter {
+  animation: blackjack-card-deal 430ms cubic-bezier(0.2, 0.82, 0.28, 1) both;
+  transform-origin: 50% 20%;
+  will-change: transform, opacity;
+}
+
+.blackjack-card-flipper {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(0.2, 0.72, 0.25, 1);
+  will-change: transform;
+}
+
+.blackjack-card-flipper.blackjack-card-hidden {
+  transform: rotateY(180deg);
+}
+
+.blackjack-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.blackjack-card-back {
+  transform: rotateY(180deg);
+}
+
+.blackjack-hand-result {
+  animation: blackjack-hand-result 520ms cubic-bezier(0.2, 0.82, 0.28, 1) both;
+}
+
+@keyframes blackjack-card-deal {
+  0% {
+    opacity: 0;
+    transform: translate3d(96px, -72px, 0) rotate(8deg) scale(0.86);
+  }
+  65% {
+    opacity: 1;
+    transform: translate3d(-4px, 3px, 0) rotate(-1.5deg) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+}
+
+@keyframes blackjack-hand-result {
+  0% {
+    transform: scale(0.975);
+  }
+  55% {
+    box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.24), 0 0 30px rgba(252, 211, 77, 0.13);
+    transform: scale(1.012);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blackjack-card-enter,
+  .blackjack-hand-result {
+    animation: none;
+  }
+
+  .blackjack-card-flipper {
+    transition: none;
+  }
+}
+
 /* Traveled Come / Don't Come wager grouping ---------------------------- */
 /* Put the flat traveled bet directly over the printed COME / DON'T COME
    label, with odds / lay odds immediately to its right. Apply this to the

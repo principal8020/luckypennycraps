@@ -15,7 +15,7 @@ import {
   type BlackjackCard,
 } from "./blackjackRules";
 
-type RoundState = "betting" | "player" | "dealer" | "resolved";
+type RoundState = "betting" | "dealing" | "player" | "dealer" | "resolved";
 type HandStatus = "playing" | "stood" | "bust";
 type HandResult = "blackjack" | "win" | "loss" | "push";
 
@@ -64,6 +64,16 @@ const STARTING_BANKROLL = 5000;
 const MIN_BET = 5;
 const MAX_BET = 1000;
 const CHIP_VALUES = [1, 5, 25, 100, 500];
+const OPENING_DEAL_DELAY_MS = 360;
+const CARD_SETTLE_DELAY_MS = 430;
+const HOLE_CARD_REVEAL_DELAY_MS = 540;
+const RESULT_DELAY_MS = 260;
+
+function pause(milliseconds: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
+}
 
 function money(amount: number) {
   return amount.toLocaleString(undefined, {
@@ -94,48 +104,52 @@ function PlayingCard({
     ? "h-24 w-16 sm:h-28 sm:w-20"
     : "h-28 w-20 sm:h-32 sm:w-24";
 
-  if (hidden) {
-    return (
-      <div
-        className={`relative ${size} overflow-hidden rounded-lg border-2 border-white/90 bg-[#0b2f63] shadow-[0_10px_24px_rgba(0,0,0,.45)] ${tilt}`}
-        aria-label="Face-down card"
-      >
-        <div className="absolute inset-1 rounded-md border border-white/50 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,.12)_0px,rgba(255,255,255,.12)_3px,transparent_3px,transparent_7px)]" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-300/70 bg-black/30 font-serif text-xs font-black text-amber-200 sm:h-11 sm:w-11 sm:text-sm">
-            LP
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
-      className={`relative ${size} rounded-lg border border-zinc-300 bg-[#fffdf6] text-zinc-950 shadow-[0_10px_24px_rgba(0,0,0,.45)] ${tilt}`}
+      className={`blackjack-card-slot ${size} ${tilt}`}
+      aria-label={hidden ? "Face-down card" : `${card.rank} of ${card.suit}`}
     >
-      <div
-        className={`absolute left-2 top-1.5 text-base font-black leading-none sm:text-xl ${
-          red ? "text-red-600" : "text-zinc-950"
-        }`}
-      >
-        <div>{card.rank}</div>
-        <div className="mt-0.5 text-sm sm:text-lg">{card.suit}</div>
-      </div>
-      <div
-        className={`absolute inset-0 flex items-center justify-center text-3xl sm:text-5xl ${
-          red ? "text-red-600" : "text-zinc-950"
-        }`}
-      >
-        {card.suit}
-      </div>
-      <div
-        className={`absolute bottom-1.5 right-2 rotate-180 text-base font-black leading-none sm:text-xl ${
-          red ? "text-red-600" : "text-zinc-950"
-        }`}
-      >
-        <div>{card.rank}</div>
-        <div className="mt-0.5 text-sm sm:text-lg">{card.suit}</div>
+      <div className="blackjack-card-enter h-full w-full">
+        <div
+          className={`blackjack-card-flipper h-full w-full ${
+            hidden ? "blackjack-card-hidden" : ""
+          }`}
+        >
+          <div className="blackjack-card-face relative h-full w-full rounded-lg border border-zinc-300 bg-[#fffdf6] text-zinc-950 shadow-[0_10px_24px_rgba(0,0,0,.45)]">
+            <div
+              className={`absolute left-2 top-1.5 text-base font-black leading-none sm:text-xl ${
+                red ? "text-red-600" : "text-zinc-950"
+              }`}
+            >
+              <div>{card.rank}</div>
+              <div className="mt-0.5 text-sm sm:text-lg">{card.suit}</div>
+            </div>
+            <div
+              className={`absolute inset-0 flex items-center justify-center text-3xl sm:text-5xl ${
+                red ? "text-red-600" : "text-zinc-950"
+              }`}
+            >
+              {card.suit}
+            </div>
+            <div
+              className={`absolute bottom-1.5 right-2 rotate-180 text-base font-black leading-none sm:text-xl ${
+                red ? "text-red-600" : "text-zinc-950"
+              }`}
+            >
+              <div>{card.rank}</div>
+              <div className="mt-0.5 text-sm sm:text-lg">{card.suit}</div>
+            </div>
+          </div>
+
+          <div className="blackjack-card-face blackjack-card-back absolute inset-0 overflow-hidden rounded-lg border-2 border-white/90 bg-[#0b2f63] shadow-[0_10px_24px_rgba(0,0,0,.45)]">
+            <div className="absolute inset-1 rounded-md border border-white/50 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,.12)_0px,rgba(255,255,255,.12)_3px,transparent_3px,transparent_7px)]" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-300/70 bg-black/30 font-serif text-xs font-black text-amber-200 sm:h-11 sm:w-11 sm:text-sm">
+                LP
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -144,10 +158,12 @@ function PlayingCard({
 function Chip({
   value,
   selected = false,
+  disabled = false,
   onClick,
 }: {
   value: number;
   selected?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
 }) {
   const style =
@@ -165,10 +181,11 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex h-12 w-12 items-center justify-center rounded-full border-[4px] border-dashed text-[11px] font-black shadow-lg transition sm:h-14 sm:w-14 sm:text-xs ${style} ${
+      disabled={disabled}
+      className={`relative flex h-12 w-12 items-center justify-center rounded-full border-[4px] border-dashed text-[11px] font-black shadow-lg transition sm:h-14 sm:w-14 sm:text-xs disabled:cursor-not-allowed disabled:opacity-35 ${style} ${
         selected
           ? "scale-110 ring-4 ring-amber-300 ring-offset-2 ring-offset-[#061710]"
-          : "hover:-translate-y-0.5"
+          : "enabled:hover:-translate-y-0.5"
       }`}
     >
       <span className="absolute inset-[5px] rounded-full border border-current opacity-35" />
@@ -213,6 +230,7 @@ export function BlackjackTable() {
   const [activeHandIndex, setActiveHandIndex] = useState(0);
   const [dealerCards, setDealerCards] = useState<BlackjackCard[]>([]);
   const [roundState, setRoundState] = useState<RoundState>("betting");
+  const [isAnimating, setIsAnimating] = useState(false);
   const [message, setMessage] = useState("Choose your bet, then deal.");
   const [sessionPL, setSessionPL] = useState(0);
   const [handsPlayed, setHandsPlayed] = useState(0);
@@ -229,7 +247,7 @@ export function BlackjackTable() {
   const dealerValue = useMemo(() => getHandValue(dealerCards), [dealerCards]);
   const activeHand = playerHands[activeHandIndex];
   const activeValue = activeHand ? getHandValue(activeHand.cards) : null;
-  const holeHidden = roundState === "player";
+  const holeHidden = roundState === "dealing" || roundState === "player";
   const totalWager = playerHands.reduce((sum, hand) => sum + hand.wager, 0);
 
   function recordRound(
@@ -274,6 +292,7 @@ export function BlackjackTable() {
 
     if (
       roundState !== "player" ||
+      isAnimating ||
       !hand ||
       hand.status !== "playing" ||
       !dealerUpCard
@@ -307,12 +326,14 @@ export function BlackjackTable() {
   }
 
   function selectChip(value: number) {
+    if (isAnimating) return;
     if (roundState !== "betting" && roundState !== "resolved") return;
     setSelectedChip(value);
     setMessage(`Selected $${value} chip. Use + or - to change the bet.`);
   }
 
   function increaseBet() {
+    if (isAnimating) return;
     if (roundState !== "betting" && roundState !== "resolved") return;
     const next = Math.min(MAX_BET, bankroll, bet + selectedChip);
     setBet(next);
@@ -320,6 +341,7 @@ export function BlackjackTable() {
   }
 
   function decreaseBet() {
+    if (isAnimating) return;
     if (roundState !== "betting" && roundState !== "resolved") return;
     const next = Math.max(0, bet - selectedChip);
     setBet(next);
@@ -327,6 +349,7 @@ export function BlackjackTable() {
   }
 
   function clearBet() {
+    if (isAnimating) return;
     if (roundState !== "betting" && roundState !== "resolved") return;
     setBet(0);
     setMessage("Bet cleared.");
@@ -352,12 +375,13 @@ export function BlackjackTable() {
     setSessionPL((current) => current + outcome.profit);
     setHandsPlayed((current) => current + 1);
     setRoundState("resolved");
+    setIsAnimating(false);
     recordRound(nextDealer, [settledHand], outcome.profit);
     setMessage(outcomeMessage(outcome.result, outcome.profit));
   }
 
-  function deal() {
-    if (roundState !== "betting") return;
+  async function deal() {
+    if (roundState !== "betting" || isAnimating) return;
     if (bet < MIN_BET || bet > MAX_BET || bet > bankroll) {
       setMessage(`Bet must be between $${MIN_BET} and $${MAX_BET}, within your bankroll.`);
       return;
@@ -384,19 +408,36 @@ export function BlackjackTable() {
       splitAces: false,
     };
 
-    setDealerCards(nextDealer);
+    setIsAnimating(true);
+    setRoundState("dealing");
+    setPlayerHands([]);
+    setDealerCards([]);
     setActiveHandIndex(0);
     setStrategyFeedback(null);
+    setMessage("Dealing the opening hand…");
+
+    await pause(140);
+    setPlayerHands([{ ...hand, cards: [p1.card] }]);
+    await pause(OPENING_DEAL_DELAY_MS);
+    setDealerCards([d1.card]);
+    await pause(OPENING_DEAL_DELAY_MS);
+    setPlayerHands([hand]);
+    await pause(OPENING_DEAL_DELAY_MS);
+    setDealerCards(nextDealer);
+    setShoe(nextShoe);
+    await pause(CARD_SETTLE_DELAY_MS);
 
     if (isBlackjack(nextPlayer) || isBlackjack(nextDealer)) {
+      setRoundState("dealer");
+      setMessage("Dealer reveals the hole card.");
+      await pause(HOLE_CARD_REVEAL_DELAY_MS);
       settleNatural(hand, nextDealer, nextShoe);
       return;
     }
 
-    setShoe(nextShoe);
-    setPlayerHands([hand]);
     setBankroll((current) => current - bet);
     setRoundState("player");
+    setIsAnimating(false);
     setMessage("Your move: hit, stand, double, or split when available.");
   }
 
@@ -407,8 +448,13 @@ export function BlackjackTable() {
     return -1;
   }
 
-  function finishRound(hands: PlayerHand[], startingShoe: BlackjackCard[]) {
+  async function finishRound(
+    hands: PlayerHand[],
+    startingShoe: BlackjackCard[]
+  ) {
     setRoundState("dealer");
+    setMessage("Dealer reveals the hole card.");
+    await pause(HOLE_CARD_REVEAL_DELAY_MS);
 
     const nextDealer = [...dealerCards];
     let nextShoe = startingShoe;
@@ -419,8 +465,14 @@ export function BlackjackTable() {
         const draw = drawCard(nextShoe);
         nextDealer.push(draw.card);
         nextShoe = draw.rest;
+        setDealerCards([...nextDealer]);
+        setShoe(nextShoe);
+        setMessage(`Dealer draws to ${getHandValue(nextDealer).total}.`);
+        await pause(CARD_SETTLE_DELAY_MS);
       }
     }
+
+    await pause(RESULT_DELAY_MS);
 
     let totalReturn = 0;
     let totalProfit = 0;
@@ -459,6 +511,7 @@ export function BlackjackTable() {
     setSessionPL((current) => current + totalProfit);
     setHandsPlayed((current) => current + settledHands.length);
     setRoundState("resolved");
+    setIsAnimating(false);
     recordRound(nextDealer, settledHands, totalProfit);
 
     if (settledHands.length === 1) {
@@ -476,7 +529,7 @@ export function BlackjackTable() {
     }
   }
 
-  function continueOrFinish(
+  async function continueOrFinish(
     hands: PlayerHand[],
     nextShoe: BlackjackCard[],
     startIndex: number
@@ -486,21 +539,30 @@ export function BlackjackTable() {
     setShoe(nextShoe);
 
     if (nextIndex >= 0) {
+      await pause(CARD_SETTLE_DELAY_MS);
       setActiveHandIndex(nextIndex);
       const value = getHandValue(hands[nextIndex].cards).total;
       setMessage(
         `${hands.length} hands • ${money(hands.reduce((sum, hand) => sum + hand.wager, 0))} total wager. Hand ${nextIndex + 1}: ${value}. Choose hit, stand, double, or split when available.`
       );
+      setIsAnimating(false);
       return;
     }
 
-    finishRound(hands, nextShoe);
+    await pause(CARD_SETTLE_DELAY_MS);
+    await finishRound(hands, nextShoe);
   }
 
-  function hit() {
-    if (roundState !== "player" || !activeHand || activeHand.status !== "playing") return;
+  async function hit() {
+    if (
+      roundState !== "player" ||
+      isAnimating ||
+      !activeHand ||
+      activeHand.status !== "playing"
+    ) return;
 
     recordStrategyDecision("hit");
+    setIsAnimating(true);
     const draw = drawCard(shoe);
     const nextCards = [...activeHand.cards, draw.card];
     const value = getHandValue(nextCards).total;
@@ -513,27 +575,35 @@ export function BlackjackTable() {
 
     if (value > 21) {
       setMessage(`Hand ${activeHandIndex + 1} busts with ${value}.`);
-      continueOrFinish(nextHands, draw.rest, activeHandIndex + 1);
+      await continueOrFinish(nextHands, draw.rest, activeHandIndex + 1);
     } else if (value === 21) {
       setMessage(`Hand ${activeHandIndex + 1} has 21.`);
-      continueOrFinish(nextHands, draw.rest, activeHandIndex + 1);
+      await continueOrFinish(nextHands, draw.rest, activeHandIndex + 1);
     } else {
       setPlayerHands(nextHands);
       setShoe(draw.rest);
       setMessage(`Hand ${activeHandIndex + 1} has ${value}. Hit or stand.`);
+      await pause(CARD_SETTLE_DELAY_MS);
+      setIsAnimating(false);
     }
   }
 
-  function stand() {
-    if (roundState !== "player" || !activeHand || activeHand.status !== "playing") return;
+  async function stand() {
+    if (
+      roundState !== "player" ||
+      isAnimating ||
+      !activeHand ||
+      activeHand.status !== "playing"
+    ) return;
     recordStrategyDecision("stand");
+    setIsAnimating(true);
     const nextHands = [...playerHands];
     nextHands[activeHandIndex] = { ...activeHand, status: "stood" };
-    continueOrFinish(nextHands, shoe, activeHandIndex + 1);
+    await continueOrFinish(nextHands, shoe, activeHandIndex + 1);
   }
 
-  function doubleDown() {
-    if (!activeHand || roundState !== "player") return;
+  async function doubleDown() {
+    if (!activeHand || roundState !== "player" || isAnimating) return;
     if (activeHand.cards.length !== 2 || activeHand.status !== "playing") return;
     if (bankroll < activeHand.wager) {
       setMessage("Not enough bankroll to double this hand.");
@@ -541,6 +611,7 @@ export function BlackjackTable() {
     }
 
     recordStrategyDecision("double");
+    setIsAnimating(true);
     const draw = drawCard(shoe);
     const nextCards = [...activeHand.cards, draw.card];
     const value = getHandValue(nextCards).total;
@@ -558,11 +629,11 @@ export function BlackjackTable() {
         ? `Double: Hand ${activeHandIndex + 1} busts with ${value}.`
         : `Double: Hand ${activeHandIndex + 1} stands on ${value}.`
     );
-    continueOrFinish(nextHands, draw.rest, activeHandIndex + 1);
+    await continueOrFinish(nextHands, draw.rest, activeHandIndex + 1);
   }
 
-  function splitHand() {
-    if (!activeHand || roundState !== "player") return;
+  async function splitHand() {
+    if (!activeHand || roundState !== "player" || isAnimating) return;
     if (!canSplitPair(activeHand.cards) || playerHands.length >= 4) return;
     if (bankroll < activeHand.wager) {
       setMessage("Not enough bankroll to split this hand.");
@@ -570,6 +641,7 @@ export function BlackjackTable() {
     }
 
     recordStrategyDecision("split");
+    setIsAnimating(true);
     let nextShoe = shoe;
     const leftDraw = drawCard(nextShoe);
     nextShoe = leftDraw.rest;
@@ -605,12 +677,12 @@ export function BlackjackTable() {
 
     if (splitAces) {
       setMessage("Split aces receive one card each. Dealer will play now.");
-      continueOrFinish(nextHands, nextShoe, activeHandIndex);
+      await continueOrFinish(nextHands, nextShoe, activeHandIndex);
       return;
     }
 
     setMessage(`${nextHands.length} hands • ${money(nextHands.reduce((sum, hand) => sum + hand.wager, 0))} total wager. Playing Hand ${activeHandIndex + 1} first.`);
-    continueOrFinish(nextHands, nextShoe, activeHandIndex);
+    await continueOrFinish(nextHands, nextShoe, activeHandIndex);
   }
 
   function newRound() {
@@ -618,6 +690,7 @@ export function BlackjackTable() {
     setDealerCards([]);
     setActiveHandIndex(0);
     setRoundState("betting");
+    setIsAnimating(false);
     if (bet > bankroll) setBet(Math.max(0, Math.min(25, bankroll)));
     setStrategyFeedback(null);
     setMessage("Choose your bet, then deal.");
@@ -630,8 +703,17 @@ export function BlackjackTable() {
         ? String(getHandValue(dealerCards.slice(0, 1)).total)
         : String(dealerValue.total);
 
-  const canDeal = roundState === "betting" && bet >= MIN_BET && bet <= bankroll;
-  const canAct = roundState === "player" && activeHand?.status === "playing";
+  const canAdjustBet =
+    !isAnimating && (roundState === "betting" || roundState === "resolved");
+  const canDeal =
+    !isAnimating &&
+    roundState === "betting" &&
+    bet >= MIN_BET &&
+    bet <= bankroll;
+  const canAct =
+    !isAnimating &&
+    roundState === "player" &&
+    activeHand?.status === "playing";
   const canDouble =
     canAct &&
     activeHand.cards.length === 2 &&
@@ -772,6 +854,8 @@ export function BlackjackTable() {
                     <div
                       key={hand.id}
                       className={`min-w-[175px] rounded-xl border px-2 py-2 text-center transition sm:min-w-[205px] ${
+                        hand.result ? "blackjack-hand-result " : ""
+                      }${
                         isActive
                           ? "border-amber-300 bg-amber-300/10 shadow-[0_0_0_2px_rgba(252,211,77,.18)]"
                           : "border-emerald-200/20 bg-black/10"
@@ -910,7 +994,12 @@ export function BlackjackTable() {
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-300/70">
                   <span>Bet chips</span>
-                  <button type="button" onClick={clearBet} className="text-amber-200 hover:text-white">
+                  <button
+                    type="button"
+                    onClick={clearBet}
+                    disabled={!canAdjustBet}
+                    className="text-amber-200 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                  >
                     Clear
                   </button>
                 </div>
@@ -920,6 +1009,7 @@ export function BlackjackTable() {
                       key={value}
                       value={value}
                       selected={selectedChip === value}
+                      disabled={!canAdjustBet}
                       onClick={() => selectChip(value)}
                     />
                   ))}
@@ -928,7 +1018,7 @@ export function BlackjackTable() {
                   <button
                     type="button"
                     onClick={decreaseBet}
-                    disabled={roundState === "player" || roundState === "dealer" || bet === 0}
+                    disabled={!canAdjustBet || bet === 0}
                     className="rounded-lg border border-emerald-300/30 bg-black/25 px-3 py-2 text-xs font-black text-emerald-50 disabled:cursor-not-allowed disabled:opacity-35"
                   >
                     − ${selectedChip}
@@ -936,7 +1026,7 @@ export function BlackjackTable() {
                   <button
                     type="button"
                     onClick={increaseBet}
-                    disabled={roundState === "player" || roundState === "dealer" || bet >= Math.min(MAX_BET, bankroll)}
+                    disabled={!canAdjustBet || bet >= Math.min(MAX_BET, bankroll)}
                     className="rounded-lg border border-emerald-300/30 bg-black/25 px-3 py-2 text-xs font-black text-emerald-50 disabled:cursor-not-allowed disabled:opacity-35"
                   >
                     + ${selectedChip}
@@ -996,7 +1086,7 @@ export function BlackjackTable() {
                   disabled={!canDeal}
                   className="rounded-xl bg-amber-400 px-7 py-4 text-sm font-black text-black shadow-lg hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-35"
                 >
-                  DEAL
+                  {roundState === "dealing" ? "DEALING…" : "DEAL"}
                 </button>
               )}
             </div>
