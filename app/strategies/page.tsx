@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import { SiteHeader } from "../components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "Craps Strategies Explained",
+  description:
+    "Explore common craps approaches including 3-Point Molly, Iron Cross, Place 6 and 8, and Pass Line with odds.",
+  alternates: { canonical: "/strategies" },
+};
 
 const strategies = [
   {

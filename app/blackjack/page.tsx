@@ -4,9 +4,16 @@ import { SiteHeader } from "../components/SiteHeader";
 import { BlackjackTable } from "./BlackjackTable";
 
 export const metadata: Metadata = {
-  title: "Blackjack | Lucky Penny Gaming",
+  title: "Free Blackjack Practice Table",
   description:
-    "Practice blackjack with a casino-style table, guided learning, and strategy coaching from Lucky Penny Gaming.",
+    "Play free blackjack with a six-deck shoe, 3:2 payouts, splitting, doubling, hand history, and an optional basic-strategy coach.",
+  alternates: { canonical: "/blackjack" },
+  openGraph: {
+    title: "Free Blackjack Practice Table",
+    description:
+      "Practice complete blackjack hands with realistic rules and an optional basic-strategy coach.",
+    url: "/blackjack",
+  },
 };
 
 export default function BlackjackPage() {
@@ -22,6 +29,12 @@ export default function BlackjackPage() {
             Practice credits only. No real-money wagering or cash prizes.
           </div>
           <div className="flex gap-2">
+            <Link
+              href="/blackjack/basic-strategy"
+              className="rounded-lg border border-amber-700/70 px-4 py-2 text-xs font-black text-amber-200 hover:border-amber-400"
+            >
+              Basic Strategy Guide
+            </Link>
             <Link
               href="/"
               className="rounded-lg border border-emerald-700/70 px-4 py-2 text-xs font-black text-emerald-100 hover:border-emerald-400"

@@ -24,7 +24,7 @@ const navigation: Array<{
   { label: "Games", href: "/#games", section: "home" },
   { label: "Craps", href: "/table", section: "craps" },
   { label: "Blackjack", href: "/blackjack", section: "blackjack" },
-  { label: "Learn Craps", href: "/how-to-play", section: "learn" },
+  { label: "Guides", href: "/guides", section: "learn" },
   { label: "Feedback", href: "/feedback", section: "feedback" },
   { label: "About", href: "/about", section: "about" },
 ];
