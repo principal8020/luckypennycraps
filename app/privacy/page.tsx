@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "../components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Privacy policy for Lucky Penny Gaming.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

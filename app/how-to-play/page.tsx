@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "../components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "How to Play Craps for Beginners",
+  description:
+    "Learn the come-out roll, point cycle, Pass Line, odds, Place bets, Come bets, and core craps terminology step by step.",
+  alternates: { canonical: "/how-to-play" },
+};
 
 const flow = [
   { step: "01", title: "Come-out roll", body: "A new round starts with the puck OFF. Pass Line and Don't Pass are the two classic starting contract bets." },

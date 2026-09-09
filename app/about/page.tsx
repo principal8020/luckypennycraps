@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "../components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Learn why Lucky Penny Gaming was created and how its free practice tables help players understand casino games.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (
