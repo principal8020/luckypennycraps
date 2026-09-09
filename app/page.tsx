@@ -10,12 +10,12 @@ const games = [
     live: true,
   },
   {
-    eyebrow: "COMING NEXT",
+    eyebrow: "LIVE NOW",
     title: "Blackjack",
-    body: "Practice hit, stand, double, split, surrender, and basic strategy decisions hand by hand.",
-    href: "#",
-    cta: "Coming Soon",
-    live: false,
+    body: "Play complete hands, practice hit, stand, double, and split decisions, and turn on the Strategy Coach whenever you want guidance.",
+    href: "/blackjack",
+    cta: "Play Blackjack",
+    live: true,
   },
   {
     eyebrow: "PLANNED",
@@ -72,16 +72,17 @@ export default function Home() {
 
             <nav className="hidden items-center gap-5 text-sm font-bold text-emerald-100/80 md:flex">
               <a className="hover:text-white" href="#games">Games</a>
+              <Link className="hover:text-white" href="/blackjack">Blackjack</Link>
               <Link className="hover:text-white" href="/how-to-play">Learn Craps</Link>
               <Link className="hover:text-white" href="/feedback">Feedback</Link>
               <Link className="hover:text-white" href="/about">About</Link>
             </nav>
 
             <Link
-              href="/table"
+              href="/blackjack"
               className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black shadow-lg transition hover:bg-amber-300"
             >
-              Play Craps
+              Play Blackjack
             </Link>
           </header>
         </div>
@@ -91,9 +92,10 @@ export default function Home() {
         <div>
           <div className="mb-4 inline-flex rounded-full border border-emerald-700/70 bg-emerald-950/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Casino games built for practice and learning</div>
           <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">Learn casino games by <span className="text-amber-300">actually playing them.</span></h1>
-          <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-emerald-50/70 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps is live now, with blackjack, roulette, baccarat, and more planned next.</p>
+          <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-emerald-50/70 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps and blackjack are live now, with roulette, baccarat, and more planned next.</p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/table" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Craps</Link>
+            <Link href="/blackjack" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Blackjack</Link>
+            <Link href="/table" className="rounded-xl border border-emerald-600/70 bg-emerald-950/30 px-6 py-3.5 text-base font-black text-emerald-100 transition hover:-translate-y-0.5 hover:border-emerald-400">Play Craps</Link>
             <a href="#games" className="rounded-xl border border-emerald-600/70 bg-emerald-950/30 px-6 py-3.5 text-base font-black text-emerald-100 transition hover:border-emerald-400">Explore Games</a>
           </div>
           <p className="mt-4 text-[10px] font-bold text-emerald-700">Practice credits only. No real-money wagering or cash prizes.</p>
@@ -119,7 +121,7 @@ export default function Home() {
 
       <section className="border-t border-emerald-900/70 bg-emerald-950/10"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-10 sm:px-8 md:flex-row md:items-center md:justify-between"><div><div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-400">Help us build it</div><h2 className="mt-2 text-2xl font-black">Have an idea for Lucky Penny Gaming?</h2><p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-emerald-50/60">Report a bug, request a game, or tell us what would make the practice experience better.</p></div><Link href="/feedback" className="shrink-0 rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Send Feedback</Link></div></section>
 
-      <footer className="border-t border-emerald-900/70 bg-black/30"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-emerald-100/45 sm:px-8 md:flex-row md:items-center md:justify-between"><div><div className="font-black text-emerald-100/75">Lucky Penny Gaming</div><div className="mt-1">Educational practice experience. Practice credits have no cash value.</div></div><div className="flex flex-wrap gap-4 font-bold"><Link href="/how-to-play" className="hover:text-white">Learn Craps</Link><Link href="/strategies" className="hover:text-white">Craps Strategies</Link><Link href="/feedback" className="hover:text-white">Feedback</Link><Link href="/privacy" className="hover:text-white">Privacy</Link><Link href="/about" className="hover:text-white">About</Link></div></div></footer>
+      <footer className="border-t border-emerald-900/70 bg-black/30"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-emerald-100/45 sm:px-8 md:flex-row md:items-center md:justify-between"><div><div className="font-black text-emerald-100/75">Lucky Penny Gaming</div><div className="mt-1">Educational practice experience. Practice credits have no cash value.</div></div><div className="flex flex-wrap gap-4 font-bold"><Link href="/blackjack" className="hover:text-white">Play Blackjack</Link><Link href="/how-to-play" className="hover:text-white">Learn Craps</Link><Link href="/strategies" className="hover:text-white">Craps Strategies</Link><Link href="/feedback" className="hover:text-white">Feedback</Link><Link href="/privacy" className="hover:text-white">Privacy</Link><Link href="/about" className="hover:text-white">About</Link></div></div></footer>
     </main>
   );
 }
