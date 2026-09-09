@@ -9,6 +9,7 @@ import {
   isBlackjack,
   resolveBlackjackRound,
   shuffleShoe,
+  shouldReshuffleBeforeDeal,
   type BlackjackCard,
 } from "./blackjackRules";
 
@@ -238,8 +239,8 @@ export function BlackjackTable() {
     setHandHistory((current) => [entry, ...current]);
   }
 
-  function resetShoeIfNeeded(currentShoe: BlackjackCard[]) {
-    return currentShoe.length < 52
+  function prepareShoeForDeal(currentShoe: BlackjackCard[]) {
+    return shouldReshuffleBeforeDeal(currentShoe.length)
       ? shuffleShoe(buildShoe(6))
       : currentShoe;
   }
@@ -307,7 +308,7 @@ export function BlackjackTable() {
       return;
     }
 
-    let nextShoe = resetShoeIfNeeded(shoe);
+    let nextShoe = prepareShoeForDeal(shoe);
     const p1 = drawCard(nextShoe);
     nextShoe = p1.rest;
     const d1 = drawCard(nextShoe);
@@ -353,8 +354,8 @@ export function BlackjackTable() {
   function finishRound(hands: PlayerHand[], startingShoe: BlackjackCard[]) {
     setRoundState("dealer");
 
-    let nextDealer = [...dealerCards];
-    let nextShoe = resetShoeIfNeeded(startingShoe);
+    const nextDealer = [...dealerCards];
+    let nextShoe = startingShoe;
     const hasLiveHand = hands.some((hand) => hand.status !== "bust");
 
     if (hasLiveHand) {
@@ -443,8 +444,7 @@ export function BlackjackTable() {
   function hit() {
     if (roundState !== "player" || !activeHand || activeHand.status !== "playing") return;
 
-    const readyShoe = resetShoeIfNeeded(shoe);
-    const draw = drawCard(readyShoe);
+    const draw = drawCard(shoe);
     const nextCards = [...activeHand.cards, draw.card];
     const value = getHandValue(nextCards).total;
     const nextHands = [...playerHands];
@@ -482,8 +482,7 @@ export function BlackjackTable() {
       return;
     }
 
-    const readyShoe = resetShoeIfNeeded(shoe);
-    const draw = drawCard(readyShoe);
+    const draw = drawCard(shoe);
     const nextCards = [...activeHand.cards, draw.card];
     const value = getHandValue(nextCards).total;
     const nextHands = [...playerHands];
@@ -511,7 +510,7 @@ export function BlackjackTable() {
       return;
     }
 
-    let nextShoe = resetShoeIfNeeded(shoe);
+    let nextShoe = shoe;
     const leftDraw = drawCard(nextShoe);
     nextShoe = leftDraw.rest;
     const rightDraw = drawCard(nextShoe);
@@ -583,6 +582,9 @@ export function BlackjackTable() {
     playerHands.length < 4 &&
     bankroll >= activeHand.wager;
   const displayedWager = roundState === "betting" ? bet : totalWager || bet;
+  const shoeStatus = shouldReshuffleBeforeDeal(shoe.length)
+    ? "Auto reshuffle before next deal"
+    : `${shoe.length} cards remaining`;
 
   return (
     <>
@@ -851,6 +853,7 @@ export function BlackjackTable() {
             <span>6-deck shoe</span>
             <span>Dealer stands on soft 17</span>
             <span>Blackjack pays 3:2</span>
+            <span>{shoeStatus}</span>
             <span>Double after split</span>
             <span>Split up to 4 hands</span>
             <span>Split aces receive 1 card</span>

@@ -13,6 +13,13 @@ test("6-deck blackjack shoe contains 312 unique cards", () => {
   assert.equal(new Set(shoe.map((item) => item.id)).size, 312);
 });
 
+test("automatic reshuffle waits until the next deal", () => {
+  assert.equal(rules.shouldReshuffleBeforeDeal(52), false);
+  assert.equal(rules.shouldReshuffleBeforeDeal(51), true);
+  assert.equal(rules.shouldReshuffleBeforeDeal(20, 20), false);
+  assert.equal(rules.shouldReshuffleBeforeDeal(19, 20), true);
+});
+
 test("hand values correctly handle soft and hard aces", () => {
   assert.deepEqual(
     rules.getHandValue([card("a", "A"), card("6", "6")]),

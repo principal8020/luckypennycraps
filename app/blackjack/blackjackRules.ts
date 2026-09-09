@@ -95,6 +95,13 @@ export function shuffleShoe(
   return shuffled;
 }
 
+export function shouldReshuffleBeforeDeal(
+  cardsRemaining: number,
+  reshuffleAt = 52
+) {
+  return cardsRemaining < reshuffleAt;
+}
+
 export function getHandValue(cards: BlackjackCard[]): HandValue {
   let total = 0;
   let acesAsEleven = 0;
