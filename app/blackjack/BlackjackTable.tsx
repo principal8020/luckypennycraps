@@ -902,93 +902,6 @@ export function BlackjackTable() {
             {message}
           </div>
 
-          <div className="relative z-10 mx-auto mt-4 max-w-[1080px] rounded-2xl border border-sky-300/35 bg-[#062438]/85 p-3 shadow-lg sm:p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  aria-pressed={strategyCoachOn}
-                  onClick={() => {
-                    setStrategyCoachOn((current) => !current);
-                    setStrategyFeedback(null);
-                  }}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] transition ${
-                    strategyCoachOn
-                      ? "border-sky-200/70 bg-sky-300 text-sky-950"
-                      : "border-sky-200/30 bg-black/20 text-sky-100/65"
-                  }`}
-                >
-                  Strategy Coach {strategyCoachOn ? "On" : "Off"}
-                </button>
-                <div className="text-xs font-bold text-sky-100/60">
-                  {strategyAttempts === 0
-                    ? "No decisions scored yet"
-                    : `${strategyCorrect}/${strategyAttempts} correct • ${strategyAccuracy}%`}
-                </div>
-              </div>
-
-              <div className="text-xs font-black text-sky-200/55">
-                6 decks • Dealer stands on soft 17 • Double after split • No surrender
-              </div>
-            </div>
-
-            <div className="mt-3" aria-live="polite">
-              {!strategyCoachOn ? (
-                <p className="text-sm font-medium text-sky-100/55">
-                  Turn the coach on whenever you want a recommended play and explanation.
-                </p>
-              ) : strategyRecommendation ? (
-                <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
-                  <div className="rounded-xl border border-sky-200/35 bg-sky-300/10 px-4 py-3 text-center">
-                    <div className="text-xs font-black uppercase tracking-[0.16em] text-sky-200/65">
-                      Best play
-                    </div>
-                    <div className="mt-0.5 text-xl font-black text-sky-100">
-                      {strategyActionLabel(strategyRecommendation.action)}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold leading-5 text-sky-50/80">
-                      {strategyRecommendation.explanation}
-                    </p>
-                    {strategyFeedback ? (
-                      <p
-                        className={`mt-1 text-xs font-black ${
-                          strategyFeedback.correct
-                            ? "text-emerald-300"
-                            : "text-amber-200"
-                        }`}
-                      >
-                        {strategyFeedback.correct
-                          ? `${strategyActionLabel(strategyFeedback.chosen)} was correct.`
-                          : `You chose ${strategyActionLabel(strategyFeedback.chosen)}; basic strategy recommended ${strategyActionLabel(strategyFeedback.recommended)}.`}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  {strategyFeedback ? (
-                    <p
-                      className={`text-sm font-black ${
-                        strategyFeedback.correct
-                          ? "text-emerald-300"
-                          : "text-amber-200"
-                      }`}
-                    >
-                      {strategyFeedback.correct
-                        ? `${strategyActionLabel(strategyFeedback.chosen)} was correct.`
-                        : `You chose ${strategyActionLabel(strategyFeedback.chosen)}; basic strategy recommended ${strategyActionLabel(strategyFeedback.recommended)}.`}
-                    </p>
-                  ) : null}
-                  <p className="mt-1 text-sm font-medium text-sky-100/55">
-                    Deal a hand to receive the next basic-strategy recommendation.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
           <div className="relative z-10 mx-auto mt-4 max-w-[1080px] rounded-2xl border border-emerald-200/25 bg-black/20 p-3 backdrop-blur-[1px] sm:p-4">
             <div className="grid gap-3 lg:grid-cols-[auto_1fr_auto] lg:items-center">
               <div>
@@ -1088,6 +1001,93 @@ export function BlackjackTable() {
                 >
                   {roundState === "dealing" ? "DEALING…" : "DEAL"}
                 </button>
+              )}
+            </div>
+          </div>
+
+          <div className="relative z-10 mx-auto mt-4 max-w-[1080px] rounded-2xl border border-sky-300/35 bg-[#062438]/85 p-3 shadow-lg sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-pressed={strategyCoachOn}
+                  onClick={() => {
+                    setStrategyCoachOn((current) => !current);
+                    setStrategyFeedback(null);
+                  }}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] transition ${
+                    strategyCoachOn
+                      ? "border-sky-200/70 bg-sky-300 text-sky-950"
+                      : "border-sky-200/30 bg-black/20 text-sky-100/65"
+                  }`}
+                >
+                  Strategy Coach {strategyCoachOn ? "On" : "Off"}
+                </button>
+                <div className="text-xs font-bold text-sky-100/60">
+                  {strategyAttempts === 0
+                    ? "No decisions scored yet"
+                    : `${strategyCorrect}/${strategyAttempts} correct • ${strategyAccuracy}%`}
+                </div>
+              </div>
+
+              <div className="text-xs font-black text-sky-200/55">
+                6 decks • Dealer stands on soft 17 • Double after split • No surrender
+              </div>
+            </div>
+
+            <div className="mt-3" aria-live="polite">
+              {!strategyCoachOn ? (
+                <p className="text-sm font-medium text-sky-100/55">
+                  Turn the coach on whenever you want a recommended play and explanation.
+                </p>
+              ) : strategyRecommendation ? (
+                <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
+                  <div className="rounded-xl border border-sky-200/35 bg-sky-300/10 px-4 py-3 text-center">
+                    <div className="text-xs font-black uppercase tracking-[0.16em] text-sky-200/65">
+                      Best play
+                    </div>
+                    <div className="mt-0.5 text-xl font-black text-sky-100">
+                      {strategyActionLabel(strategyRecommendation.action)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold leading-5 text-sky-50/80">
+                      {strategyRecommendation.explanation}
+                    </p>
+                    {strategyFeedback ? (
+                      <p
+                        className={`mt-1 text-xs font-black ${
+                          strategyFeedback.correct
+                            ? "text-emerald-300"
+                            : "text-amber-200"
+                        }`}
+                      >
+                        {strategyFeedback.correct
+                          ? `${strategyActionLabel(strategyFeedback.chosen)} was correct.`
+                          : `You chose ${strategyActionLabel(strategyFeedback.chosen)}; basic strategy recommended ${strategyActionLabel(strategyFeedback.recommended)}.`}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {strategyFeedback ? (
+                    <p
+                      className={`text-sm font-black ${
+                        strategyFeedback.correct
+                          ? "text-emerald-300"
+                          : "text-amber-200"
+                      }`}
+                    >
+                      {strategyFeedback.correct
+                        ? `${strategyActionLabel(strategyFeedback.chosen)} was correct.`
+                        : `You chose ${strategyActionLabel(strategyFeedback.chosen)}; basic strategy recommended ${strategyActionLabel(strategyFeedback.recommended)}.`}
+                    </p>
+                  ) : null}
+                  <p className="mt-1 text-sm font-medium text-sky-100/55">
+                    Deal a hand to receive the next basic-strategy recommendation.
+                  </p>
+                </div>
               )}
             </div>
           </div>
