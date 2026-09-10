@@ -11,12 +11,20 @@ export const metadata: Metadata = {
 
 const guides = [
   {
+    game: "Craps",
+    title: "Why Proper Craps Bets Matter",
+    description:
+      "Learn the correct Place bet amounts, why 6 and 8 use multiples of $6, and how clean payouts keep rounding out of your rack.",
+    href: "/craps/proper-bets",
+    label: "New guide",
+  },
+  {
     game: "Blackjack",
     title: "When to Hit or Stand",
     description:
       "Simple rules for hard hands, soft hands, and the moments when standing still is the brave decision.",
     href: "/blackjack/hit-or-stand",
-    label: "New guide",
+    label: "Decision guide",
   },
   {
     game: "Blackjack",
@@ -46,7 +54,6 @@ const guides = [
 
 const comingNext = [
   "Soft Blackjack Hands Without the Soft Thinking",
-  "Why Proper Craps Bets Matter",
   "Maximum Odds Without the Math Headache",
   "The House Edge, Minus the Casino Brochure",
 ];
@@ -73,7 +80,7 @@ export default function GuidesPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {guides.map((guide) => (
             <article
               key={guide.href}
