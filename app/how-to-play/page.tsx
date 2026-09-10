@@ -32,7 +32,7 @@ const terms = [
   ["Seven-out","A 7 rolled while the puck is ON. The current shooter/hand ends."],
   ["Working","A wager is active on the next roll."],
   ["Off","A wager stays on the table but does not win or lose on that roll."],
-  ["Proper bet","A wager sized in an increment that allows the payout to be calculated cleanly without unnecessary rounding."],
+  ["Proper bet","A wager sized in an increment that allows the payout to be calculated cleanly without unnecessary rounding. See the full proper-bets guide below."],
 ];
 
 export default function HowToPlayPage() {
@@ -104,6 +104,9 @@ export default function HowToPlayPage() {
               </div>
             ))}
           </div>
+          <Link href="/craps/proper-bets" className="mt-4 inline-flex text-sm font-black text-amber-300 hover:text-white">
+            Read the Proper Craps Bets guide →
+          </Link>
         </div>
 
         <div className="rounded-2xl border border-cyan-900/70 bg-cyan-950/15 p-5 sm:p-6">
