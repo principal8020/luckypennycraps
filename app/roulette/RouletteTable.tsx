@@ -236,10 +236,10 @@ function InsideBetButton({
   const odds = payoutOdds(spot.selection);
   const hitArea =
     spot.shape === "vertical"
-      ? "h-10 w-5"
+      ? "h-11 w-8 sm:h-10 sm:w-5"
       : spot.shape === "horizontal"
-        ? "h-5 w-10"
-        : "h-7 w-7";
+        ? "h-8 w-11 sm:h-5 sm:w-10"
+        : "h-9 w-9 sm:h-7 sm:w-7";
   const marker =
     spot.shape === "vertical"
       ? "h-7 w-[3px]"
@@ -549,14 +549,14 @@ export function RouletteTable() {
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
           {[
             ["Bankroll", `$${money(bankroll)}`],
             ["On Table", `$${money(totalOnTable)}`],
             ["Session P/L", signedMoney(sessionPL)],
             ["Spins", String(spinCount)],
           ].map(([label, value]) => (
-            <div key={label} className="min-w-[82px] rounded-xl border border-emerald-800/80 bg-black/25 px-3 py-2 text-center">
+            <div key={label} className="min-w-0 rounded-xl border border-emerald-800/80 bg-black/25 px-3 py-2 text-center sm:min-w-[82px]">
               <div className="text-[7px] font-black uppercase tracking-[0.13em] text-emerald-400">{label}</div>
               <div className={`mt-1 text-base font-black ${label === "Session P/L" && sessionPL < 0 ? "text-red-300" : "text-white"}`}>{value}</div>
             </div>
@@ -586,7 +586,7 @@ export function RouletteTable() {
           )}
 
           <div className="grid gap-4 xl:grid-cols-[350px_minmax(0,1fr)] xl:items-center">
-            <div className="rounded-2xl border border-emerald-200/20 bg-black/20 p-3">
+            <div className="order-2 rounded-2xl border border-emerald-200/20 bg-black/20 p-3 xl:order-1">
               <RouletteWheel rotation={wheelRotation} pocket={winningPocket} spinning={isWheelSpinning} />
               <div className="mt-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-center">
                 <div className="text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">Dealer</div>
@@ -594,13 +594,18 @@ export function RouletteTable() {
               </div>
             </div>
 
-            <div className="min-w-0">
+            <div className="order-1 min-w-0 xl:order-2">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-200/75">
                 <span>American layout • 0 and 00</span>
                 <span>Table minimum $1 • Maximum $1,000 per position</span>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-emerald-100/30 bg-black/10 p-2">
+              <div className="mb-2 flex items-center justify-between gap-3 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100 xl:hidden">
+                <span>Swipe left and right to explore the betting table</span>
+                <span className="shrink-0 text-base" aria-hidden="true">↔</span>
+              </div>
+
+              <div className="overflow-x-auto overscroll-x-contain rounded-xl border border-emerald-100/30 bg-black/10 p-2">
                 <div className="flex min-w-[850px] gap-1">
                   <div className="relative z-20 grid h-[194px] w-[62px] shrink-0 grid-rows-2 gap-1 self-start">
                     {(["00", "0"] as RoulettePocket[]).map((pocket) => {
@@ -731,7 +736,7 @@ export function RouletteTable() {
 
               <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-bold text-emerald-100/65">
-                  Number 35:1 • Split 17:1 • Street edge 11:1 • Corner 8:1 • Shift-click removes a chip
+                  Number 35:1 • Split 17:1 • Street edge 11:1 • Corner 8:1 • <span className="sm:hidden">Use Remove Mode to take chips back</span><span className="hidden sm:inline">Shift-click removes a chip</span>
                 </div>
                 <div className="text-right text-[9px] font-black uppercase tracking-[0.12em] text-emerald-300/70">
                   Lifetime wager ${money(lifetimeWager)}
@@ -743,7 +748,7 @@ export function RouletteTable() {
       </section>
 
       <div className="sticky bottom-2 z-[100] mt-3 rounded-2xl border border-emerald-700/80 bg-[#03130e]/95 p-3 shadow-[0_12px_40px_rgba(0,0,0,.65)] backdrop-blur">
-        <div className="flex items-center gap-3 overflow-x-auto pb-1">
+        <div className="flex items-center gap-3 overflow-x-auto overscroll-x-contain pb-1">
           <div className="shrink-0">
             <div className="mb-1 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-400">Bet chips</div>
             <div className="flex gap-2">
