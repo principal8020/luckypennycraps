@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-3 text-sm font-medium text-emerald-100/45">
-          Last updated September 8, 2026
+          Last updated September 10, 2026
         </p>
 
         <div className="mt-8 space-y-5">
@@ -61,10 +61,18 @@ export default function PrivacyPage() {
           <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
             <h2 className="text-xl font-black">Cookies, analytics, and advertising</h2>
             <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
-              Lucky Penny Gaming is still in development. If we add analytics,
-              advertising, accounts, payments, or other features that materially
-              change how information is collected or used, this policy will be
-              updated before those features are broadly launched.
+              Lucky Penny Gaming uses Vercel Web Analytics to understand site
+              traffic, including pages viewed, referring sites, general device
+              and browser information, and approximate geographic information.
+              We also use Vercel Speed Insights to measure page performance and
+              Core Web Vitals. We use this information to improve the site and
+              do not use it to identify individual visitors.
+            </p>
+            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+              Lucky Penny Gaming does not currently use advertising cookies or
+              sell personal information. If advertising, accounts, payments, or
+              other features materially change how information is collected or
+              used, this policy will be updated.
             </p>
           </section>
 
