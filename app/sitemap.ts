@@ -23,6 +23,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    {
+      path: "/craps/max-odds",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
     { path: "/guides", changeFrequency: "weekly", priority: 0.8 },
     { path: "/how-to-play", changeFrequency: "monthly", priority: 0.8 },
     { path: "/strategies", changeFrequency: "monthly", priority: 0.7 },

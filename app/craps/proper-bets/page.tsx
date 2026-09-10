@@ -250,6 +250,11 @@ export default function ProperCrapsBetsPage() {
                   Review Craps Basics
                 </Link>
               </div>
+              <div className="mt-5">
+                <Link href="/craps/max-odds" className="text-sm font-black text-emerald-200 hover:text-white">
+                  Next: calculate maximum Pass Line odds →
+                </Link>
+              </div>
             </section>
           </div>
 
