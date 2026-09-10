@@ -523,13 +523,13 @@ export function LearnMode({
               onClick={onStartDontPass}
               className="rounded-lg border border-rose-400/60 bg-rose-950/30 px-4 py-3 text-sm font-black text-rose-100 shadow-lg hover:bg-rose-900/40"
             >
-              Don't Pass Basics
+              Don&apos;t Pass Basics
             </button>
             <button
               onClick={onStartDontCome}
               className="rounded-lg border border-red-400/60 bg-red-950/30 px-4 py-3 text-sm font-black text-red-100 shadow-lg hover:bg-red-900/40"
             >
-              Don't Come Basics
+              Don&apos;t Come Basics
             </button>
             <button
               onClick={onStartField}
@@ -640,7 +640,7 @@ export function LearnMode({
           {isExplanation && (
             <button
               onClick={onContinue}
-              className="rounded-lg bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg"
+              className="rounded-lg bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg outline outline-[3px] outline-cyan-100/80 outline-offset-2 motion-safe:animate-pulse"
             >
               Continue
             </button>
