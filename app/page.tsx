@@ -48,7 +48,7 @@ const highlights = [
   "Practice and scenario controls",
   "Strategy coaching",
   "Session and result analytics",
-  "Practice credits only — no real-money wagering",
+  "Practice credits only. No real-money wagering",
 ];
 
 export default function Home() {
@@ -130,15 +130,15 @@ export default function Home() {
               New guide • Blackjack
             </div>
             <h2 className="mt-2 text-3xl font-black">
-              The basic strategy chart your gut hoped you would never find.
+              When to hit or stand, especially when both choices feel suspicious.
             </h2>
             <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-emerald-50/65">
-              Learn when to hit, stand, double, or split—then open the table and see whether the chart survives contact with your decision-making.
+              Learn the shortcuts for hard hands, soft hands, and the dealer cards that should change your decision.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/blackjack/basic-strategy" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
-              Read Basic Strategy
+            <Link href="/blackjack/hit-or-stand" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
+              Read Hit or Stand
             </Link>
             <Link href="/guides" className="rounded-xl border border-emerald-700/70 bg-emerald-950/25 px-5 py-3 font-black text-emerald-100 hover:border-emerald-400">
               All Guides
