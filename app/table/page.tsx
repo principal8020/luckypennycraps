@@ -1150,6 +1150,23 @@ export default function TablePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!learnModeActive) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      document.getElementById("learn-mode-coach")?.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [learnModeActive]);
+
   function toggleBetsWorking() {
     setBetsWorking((current) => {
       const next = !current;
@@ -3600,6 +3617,25 @@ export default function TablePage() {
           <span>Rotate your phone to landscape for the best table view.</span>
         </div>
 
+        {learnModeActive ? (
+          <LearnMode
+            active
+            lesson={learnLesson}
+            step={learnStep}
+            point={point}
+            onStartPassLine={startPassLineLesson}
+            onStartPlace68={startPlace68Lesson}
+            onStartCome={startComeLesson}
+            onStartDontPass={startDontPassLesson}
+            onStartDontCome={startDontComeLesson}
+            onStartField={startFieldLesson}
+            onStartHardways={startHardwaysLesson}
+            onContinue={continueLearnLesson}
+            onRestart={restartLearnLesson}
+            onExit={exitLearnMode}
+          />
+        ) : null}
+
         {/* Phones keep the core table intact. Portrait can pan; landscape fits.
             Tablets show the full table including Center Action. */}
         <div className="-mx-2 overflow-x-auto overscroll-x-contain px-2 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 lg:pb-0">
@@ -4330,22 +4366,24 @@ export default function TablePage() {
           />
         </div>
 
-        <LearnMode
-          active={learnModeActive}
-          lesson={learnLesson}
-          step={learnStep}
-          point={point}
-          onStartPassLine={startPassLineLesson}
-          onStartPlace68={startPlace68Lesson}
-          onStartCome={startComeLesson}
-          onStartDontPass={startDontPassLesson}
-          onStartDontCome={startDontComeLesson}
-          onStartField={startFieldLesson}
-          onStartHardways={startHardwaysLesson}
-          onContinue={continueLearnLesson}
-          onRestart={restartLearnLesson}
-          onExit={exitLearnMode}
-        />
+        {!learnModeActive ? (
+          <LearnMode
+            active={false}
+            lesson={learnLesson}
+            step={learnStep}
+            point={point}
+            onStartPassLine={startPassLineLesson}
+            onStartPlace68={startPlace68Lesson}
+            onStartCome={startComeLesson}
+            onStartDontPass={startDontPassLesson}
+            onStartDontCome={startDontComeLesson}
+            onStartField={startFieldLesson}
+            onStartHardways={startHardwaysLesson}
+            onContinue={continueLearnLesson}
+            onRestart={restartLearnLesson}
+            onExit={exitLearnMode}
+          />
+        ) : null}
 
         {!learnModeActive && (
           <>
