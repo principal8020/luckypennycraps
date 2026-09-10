@@ -495,7 +495,8 @@ export function LearnMode({
             </h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-violet-50/60">
               Lucky Penny explains each step, highlights where to click, and waits
-              for you to perform the correct action before moving on.
+              for you to perform the correct action before moving on. The active
+              instruction stays pinned above the table while you play.
             </p>
           </div>
 
@@ -568,7 +569,13 @@ export function LearnMode({
     step === "hard-complete";
 
   return (
-    <section className="mt-2 overflow-hidden rounded-xl border-2 border-violet-400/70 bg-[linear-gradient(135deg,rgba(76,29,149,.32),rgba(3,19,14,.96))] shadow-[0_0_26px_rgba(167,139,250,.16)]">
+    <section
+      id="learn-mode-coach"
+      aria-labelledby="learn-mode-step-title"
+      aria-live="polite"
+      aria-atomic="true"
+      className="sticky top-2 z-[110] mb-2 scroll-mt-2 overflow-hidden rounded-xl border-2 border-violet-300/80 bg-[linear-gradient(135deg,rgba(76,29,149,.96),rgba(3,19,14,.98))] shadow-[0_14px_38px_rgba(0,0,0,.55),0_0_28px_rgba(167,139,250,.22)] backdrop-blur-md"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-violet-950/35 px-4 py-2">
         <div className="flex items-center gap-2">
           <span className="rounded bg-violet-400 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-slate-950">
@@ -576,6 +583,9 @@ export function LearnMode({
           </span>
           <span className="text-[9px] font-black uppercase tracking-[0.12em] text-violet-200">
             {meta.title}
+          </span>
+          <span className="text-[9px] font-black text-violet-100/55">
+            {stepIndex}/{meta.steps.length}
           </span>
         </div>
 
@@ -587,13 +597,32 @@ export function LearnMode({
         </button>
       </div>
 
-      <div className="grid gap-4 px-4 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div
+        role="progressbar"
+        aria-label={`${meta.title} progress`}
+        aria-valuemin={1}
+        aria-valuemax={meta.steps.length}
+        aria-valuenow={stepIndex}
+        className="h-1 bg-black/35"
+      >
+        <div
+          className="h-full bg-gradient-to-r from-violet-400 to-amber-300 transition-[width] duration-300"
+          style={{ width: `${(stepIndex / meta.steps.length) * 100}%` }}
+        />
+      </div>
+
+      <div className="grid gap-3 px-4 py-3 sm:px-5 lg:grid-cols-[1fr_auto] lg:items-center">
         <div>
           <div className="text-[9px] font-black uppercase tracking-[0.14em] text-violet-300">
             {current.eyebrow}
           </div>
-          <h3 className="mt-1 text-xl font-black text-white">{current.title}</h3>
-          <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-violet-50/70">
+          <h3 id="learn-mode-step-title" className="mt-1 text-xl font-black text-white">
+            {current.title}
+          </h3>
+          <div className="mt-2 inline-flex rounded-lg border border-amber-300/45 bg-amber-300/10 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-amber-200">
+            {current.action}
+          </div>
+          <p className="mt-2 max-w-4xl text-sm font-medium leading-5 text-violet-50/75 sm:leading-6">
             {current.body}
           </p>
 
@@ -605,9 +634,6 @@ export function LearnMode({
             </div>
           )}
 
-          <div className="mt-3 text-[10px] font-black uppercase tracking-[0.09em] text-amber-300">
-            {current.action}
-          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -629,14 +655,6 @@ export function LearnMode({
             </button>
           )}
 
-          <div className="hidden min-w-[86px] text-center lg:block">
-            <div className="text-3xl font-black text-violet-300">
-              {stepIndex}/{meta.steps.length}
-            </div>
-            <div className="mt-1 text-[7px] font-black uppercase tracking-[0.1em] text-violet-400/60">
-              Progress
-            </div>
-          </div>
         </div>
       </div>
     </section>
