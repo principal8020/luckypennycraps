@@ -128,6 +128,7 @@ function CasinoRackChip({
 function guideLabel(target: StrategyGuideTarget | null) {
   if (!target) return null;
 
+  if (target === "roll") return "ROLL DICE";
   if (target === "pass-line") return "PASS LINE";
   if (target === "pass-odds") return "PASS ODDS";
   if (target === "dont-pass") return "DON'T PASS";
@@ -168,13 +169,13 @@ export function MobileActionBar({
   strategyGuideTarget,
   strategyGuideAmount,
 }: MobileActionBarProps) {
-  const nextBet = guideLabel(strategyGuideTarget);
+  const nextAction = guideLabel(strategyGuideTarget);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[120] px-2 pb-[max(.45rem,env(safe-area-inset-bottom))] pt-1.5 lg:bottom-2 lg:px-4 lg:pb-0">
-      {nextBet && (
+      {nextAction && (
         <div className="mx-auto mb-1 max-w-[980px] rounded-md border-2 border-cyan-100 bg-cyan-400 px-2 py-1 text-center text-[10px] font-black uppercase tracking-[0.1em] text-slate-950 shadow-[0_0_18px_rgba(34,211,238,.65)] lg:hidden">
-          Strategy next bet → {nextBet}
+          Next action → {nextAction}
           {strategyGuideAmount !== null && (
             <span className="ml-2 rounded bg-slate-950/85 px-1.5 py-0.5 text-white">
               ${money(strategyGuideAmount)}
@@ -223,14 +224,14 @@ export function MobileActionBar({
           </div>
         </div>
 
-        {nextBet && (
+        {nextAction && (
           <div className="hidden shrink-0 rounded-xl border-2 border-cyan-100 bg-cyan-400 px-3 py-2 text-slate-950 shadow-[0_0_22px_rgba(34,211,238,.7)] lg:block">
             <span className="block text-[7px] font-black uppercase tracking-[0.14em]">
-              Next Bet
+              Next Action
             </span>
             <div className="flex items-end gap-2">
               <span className="block text-[12px] font-black">
-                {nextBet}
+                {nextAction}
               </span>
               {strategyGuideAmount !== null && (
                 <span className="rounded-md bg-slate-950 px-2 py-0.5 text-[12px] font-black text-white shadow-sm">
@@ -244,10 +245,14 @@ export function MobileActionBar({
         <button
           onClick={onRollDice}
           disabled={isRolling}
-          className={`shrink-0 rounded-xl px-4 py-3 text-[12px] font-black text-black shadow-lg lg:px-7 lg:py-3.5 lg:text-[14px] ${
+          className={`shrink-0 rounded-xl px-4 py-3 text-[12px] font-black text-black shadow-lg transition lg:px-7 lg:py-3.5 lg:text-[14px] ${
             isRolling
               ? "cursor-not-allowed bg-amber-200"
               : "bg-amber-400 active:scale-[.98]"
+          } ${
+            strategyGuideTarget === "roll"
+              ? "outline outline-[4px] outline-cyan-200 outline-offset-2 shadow-[0_0_28px_rgba(34,211,238,.85)] motion-safe:animate-pulse"
+              : ""
           }`}
         >
           {isRolling ? "ROLLING…" : "ROLL DICE"}
@@ -284,7 +289,11 @@ export function MobileActionBar({
 
         <button
           onClick={onOpenCenterBets}
-          className="shrink-0 rounded-xl border border-emerald-400/70 bg-emerald-950/80 px-3 py-3 text-[10px] font-black uppercase tracking-[0.06em] text-emerald-100 lg:hidden"
+          className={`shrink-0 rounded-xl border border-emerald-400/70 bg-emerald-950/80 px-3 py-3 text-[10px] font-black uppercase tracking-[0.06em] text-emerald-100 transition lg:hidden ${
+            strategyGuideTarget?.startsWith("hardway-")
+              ? "outline outline-[4px] outline-cyan-200 outline-offset-2 shadow-[0_0_24px_rgba(34,211,238,.8)] motion-safe:animate-pulse"
+              : ""
+          }`}
         >
           Center Bets
         </button>

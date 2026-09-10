@@ -65,6 +65,26 @@ const STARTING_BANKROLL = 5000;
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 const pointNumbers = [4, 5, 6, 8, 9, 10];
 const hardwayNumbers = [4, 6, 8, 10];
+const learnRollSteps = new Set<LearnLessonStep>([
+  "pass-come-out",
+  "pass-resolve",
+  "place-roll-6",
+  "place-roll-8",
+  "place-seven",
+  "come-roll-travel",
+  "come-resolve",
+  "dp-bar12",
+  "dp-point-roll",
+  "dp-seven",
+  "dc-roll-travel",
+  "dc-seven",
+  "field-even",
+  "field-two",
+  "field-twelve",
+  "field-loss",
+  "hard-win",
+  "hard-easy",
+]);
 
 // 2, 3, Yo 11, and 12 already have dedicated One Roll boxes,
  // so their exact combinations are intentionally omitted here.
@@ -537,7 +557,9 @@ export default function TablePage() {
   const learnGuideTarget: StrategyGuideTarget | null =
     !learnModeActive
       ? null
-      : learnStep === "pass-place"
+      : learnRollSteps.has(learnStep)
+        ? "roll"
+        : learnStep === "pass-place"
         ? "pass-line"
         : learnStep === "pass-odds"
           ? "pass-odds"
@@ -3010,25 +3032,7 @@ export default function TablePage() {
   async function rollDice() {
     if (isRolling) return;
 
-    const learnRollStep =
-      learnStep === "pass-come-out" ||
-      learnStep === "pass-resolve" ||
-      learnStep === "place-roll-6" ||
-      learnStep === "place-roll-8" ||
-      learnStep === "place-seven" ||
-      learnStep === "come-roll-travel" ||
-      learnStep === "come-resolve" ||
-      learnStep === "dp-bar12" ||
-      learnStep === "dp-point-roll" ||
-      learnStep === "dp-seven" ||
-      learnStep === "dc-roll-travel" ||
-      learnStep === "dc-seven" ||
-      learnStep === "field-even" ||
-      learnStep === "field-two" ||
-      learnStep === "field-twelve" ||
-      learnStep === "field-loss" ||
-      learnStep === "hard-win" ||
-      learnStep === "hard-easy";
+    const learnRollStep = learnRollSteps.has(learnStep);
 
     if (learnModeActive && !learnRollStep) {
       setMessage("Learn Mode: complete the highlighted lesson step first.");

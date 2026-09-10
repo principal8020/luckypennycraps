@@ -9,6 +9,7 @@ import {
 type NumberBets = Record<number, number>;
 
 export type StrategyGuideTarget =
+  | "roll"
   | "pass-line"
   | "pass-odds"
   | "dont-pass"
