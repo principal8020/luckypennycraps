@@ -4,6 +4,10 @@ export type RouletteSelection =
   | { kind: "straight"; pocket: RoulettePocket }
   | { kind: "split"; pockets: [RoulettePocket, RoulettePocket] }
   | {
+      kind: "street";
+      pockets: [RoulettePocket, RoulettePocket, RoulettePocket];
+    }
+  | {
       kind: "corner";
       pockets: [RoulettePocket, RoulettePocket, RoulettePocket, RoulettePocket];
     }
@@ -95,6 +99,8 @@ export function selectionKey(selection: RouletteSelection) {
       return `straight:${selection.pocket}`;
     case "split":
       return `split:${selection.pockets.join(":")}`;
+    case "street":
+      return `street:${selection.pockets.join(":")}`;
     case "corner":
       return `corner:${selection.pockets.join(":")}`;
     case "color":
@@ -116,6 +122,8 @@ export function selectionLabel(selection: RouletteSelection) {
       return `Straight ${selection.pocket}`;
     case "split":
       return `Split ${selection.pockets.join(" / ")}`;
+    case "street":
+      return `Street ${selection.pockets.join(" / ")}`;
     case "corner":
       return `Corner ${selection.pockets.join(" / ")}`;
     case "color":
@@ -134,6 +142,7 @@ export function selectionLabel(selection: RouletteSelection) {
 export function payoutOdds(selection: RouletteSelection) {
   if (selection.kind === "straight") return 35;
   if (selection.kind === "split") return 17;
+  if (selection.kind === "street") return 11;
   if (selection.kind === "corner") return 8;
   if (selection.kind === "dozen" || selection.kind === "column") return 2;
   return 1;
@@ -147,7 +156,11 @@ export function selectionWins(
     return selection.pocket === outcome;
   }
 
-  if (selection.kind === "split" || selection.kind === "corner") {
+  if (
+    selection.kind === "split" ||
+    selection.kind === "street" ||
+    selection.kind === "corner"
+  ) {
     return selection.pockets.includes(outcome);
   }
 

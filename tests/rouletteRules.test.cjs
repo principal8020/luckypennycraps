@@ -39,6 +39,45 @@ test("adjacent-number split bets pay 17 to 1", () => {
   assert.equal(rules.selectionWins(verticalSplit, "24"), true);
 });
 
+test("zero-area split bets pay 17 to 1", () => {
+  const zeroSplits = [
+    ["0", "00"],
+    ["00", "3"],
+    ["00", "2"],
+    ["0", "2"],
+    ["0", "1"],
+  ];
+
+  for (const pockets of zeroSplits) {
+    const split = { kind: "split", pockets };
+    assert.equal(rules.payoutOdds(split), 17);
+    assert.equal(rules.selectionWins(split, pockets[0]), true);
+    assert.equal(rules.selectionWins(split, pockets[1]), true);
+  }
+});
+
+test("three-number street bets pay 11 to 1", () => {
+  const streets = [
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+    ["13", "14", "15"],
+    ["34", "35", "36"],
+  ];
+
+  for (const pockets of streets) {
+    const street = { kind: "street", pockets };
+    assert.equal(rules.payoutOdds(street), 11);
+    for (const pocket of pockets) {
+      assert.equal(rules.selectionWins(street, pocket), true);
+    }
+  }
+
+  assert.equal(
+    rules.selectionWins({ kind: "street", pockets: ["1", "2", "3"] }, "4"),
+    false
+  );
+});
+
 test("four-number corner bets pay 8 to 1", () => {
   const corner = { kind: "corner", pockets: ["16", "17", "19", "20"] };
 

@@ -27,7 +27,7 @@ const games = [
   {
     eyebrow: "LIVE NOW",
     title: "Roulette",
-    body: "Practice straight-up, split, corner, and outside bets on a 38-pocket American wheel with realistic payouts and spin history.",
+    body: "Practice straight-up, split, street, corner, and outside bets on a 38-pocket American wheel with realistic payouts and detailed spin history.",
     href: "/roulette",
     cta: "Play Roulette",
     live: true,
