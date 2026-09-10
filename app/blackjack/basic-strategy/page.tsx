@@ -14,7 +14,7 @@ export const metadata: Metadata = {
       "A practical, plain-English chart for hitting, standing, doubling, and splitting in blackjack.",
     url: "/blackjack/basic-strategy",
     publishedTime: "2026-09-09",
-    modifiedTime: "2026-09-09",
+    modifiedTime: "2026-09-10",
   },
 };
 
@@ -127,7 +127,7 @@ export default function BlackjackBasicStrategyPage() {
     description:
       "A practical blackjack basic strategy chart for a six-deck game where the dealer stands on soft 17 and doubling after a split is allowed.",
     datePublished: "2026-09-09",
-    dateModified: "2026-09-09",
+    dateModified: "2026-09-10",
     mainEntityOfPage: "https://luckypennygaming.com/blackjack/basic-strategy",
     author: {
       "@type": "Organization",
@@ -164,7 +164,7 @@ export default function BlackjackBasicStrategyPage() {
               Blackjack basic strategy: the boring cheat code that isn&apos;t cheating
             </h1>
             <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-emerald-50/70">
-              Your gut is charming. It is also terrible at blackjack. Here is the chart that tells you when to hit, stand, double, or split—without requiring a math degree or a tiny green visor.
+              Your gut is charming. It is also terrible at blackjack. Here is the chart that tells you when to hit, stand, double, or split without requiring a math degree or a tiny green visor.
             </p>
             <div className="mt-6 flex flex-wrap gap-3 text-xs font-bold text-emerald-200/55">
               <span>Updated September 9, 2026</span>
@@ -272,6 +272,11 @@ export default function BlackjackBasicStrategyPage() {
               >
                 Practice Blackjack Free
               </Link>
+              <div className="mt-4">
+                <Link href="/blackjack/hit-or-stand" className="text-sm font-black text-emerald-200 hover:text-white">
+                  Read the Hit or Stand deep dive →
+                </Link>
+              </div>
             </section>
           </div>
 
