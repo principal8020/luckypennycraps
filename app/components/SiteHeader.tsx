@@ -6,6 +6,7 @@ type SiteSection =
   | "home"
   | "craps"
   | "blackjack"
+  | "roulette"
   | "learn"
   | "feedback"
   | "about";
@@ -24,6 +25,7 @@ const navigation: Array<{
   { label: "Games", href: "/#games", section: "home" },
   { label: "Craps", href: "/table", section: "craps" },
   { label: "Blackjack", href: "/blackjack", section: "blackjack" },
+  { label: "Roulette", href: "/roulette", section: "roulette" },
   { label: "Guides", href: "/guides", section: "learn" },
   { label: "Feedback", href: "/feedback", section: "feedback" },
   { label: "About", href: "/about", section: "about" },

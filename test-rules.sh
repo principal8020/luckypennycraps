@@ -23,6 +23,14 @@ npx tsc app/blackjack/blackjackRules.ts \
   --skipLibCheck \
   --outDir .rules-test
 
+npx tsc app/roulette/rouletteRules.ts \
+  --rootDir app/roulette \
+  --target ES2020 \
+  --module commonjs \
+  --esModuleInterop \
+  --skipLibCheck \
+  --outDir .rules-test
+
 echo "Running craps rules tests..."
 node --test tests/crapsRules.test.cjs
 
@@ -31,6 +39,9 @@ node --test tests/strategyRules.test.cjs
 
 echo "Running blackjack rules tests..."
 node --test tests/blackjackRules.test.cjs
+
+echo "Running roulette rules tests..."
+node --test tests/rouletteRules.test.cjs
 
 rm -rf .rules-test
 echo "All Lucky Penny rules and strategy tests passed."

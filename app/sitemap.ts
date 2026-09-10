@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { path: "", changeFrequency: "weekly", priority: 1 },
     { path: "/blackjack", changeFrequency: "weekly", priority: 0.9 },
+    { path: "/roulette", changeFrequency: "weekly", priority: 0.9 },
     {
       path: "/blackjack/basic-strategy",
       changeFrequency: "monthly",
