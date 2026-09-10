@@ -12,11 +12,19 @@ export const metadata: Metadata = {
 const guides = [
   {
     game: "Craps",
+    title: "Maximum Odds Calculator",
+    description:
+      "Calculate 3-4-5x Pass Line odds, true-odds payouts, total money at risk, and the return when the point repeats.",
+    href: "/craps/max-odds",
+    label: "New tool",
+  },
+  {
+    game: "Craps",
     title: "Why Proper Craps Bets Matter",
     description:
       "Learn the correct Place bet amounts, why 6 and 8 use multiples of $6, and how clean payouts keep rounding out of your rack.",
     href: "/craps/proper-bets",
-    label: "New guide",
+    label: "Payout guide",
   },
   {
     game: "Blackjack",
@@ -54,7 +62,6 @@ const guides = [
 
 const comingNext = [
   "Soft Blackjack Hands Without the Soft Thinking",
-  "Maximum Odds Without the Math Headache",
   "The House Edge, Minus the Casino Brochure",
 ];
 

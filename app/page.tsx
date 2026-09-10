@@ -130,15 +130,15 @@ export default function Home() {
               New guide • Craps
             </div>
             <h2 className="mt-2 text-3xl font-black">
-              Proper craps bets: because the casino will not pay you in fractions.
+              Maximum craps odds, calculated without casino-floor arithmetic.
             </h2>
             <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-emerald-50/65">
-              Learn the correct Place bet amounts, including why a $5 table calls for $6 on the 6 and 8.
+              Choose the point and your Pass Line wager to see the 3-4-5x maximum, payout, and total money at risk.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/craps/proper-bets" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
-              Read Proper Bets
+            <Link href="/craps/max-odds" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
+              Try the Odds Calculator
             </Link>
             <Link href="/guides" className="rounded-xl border border-emerald-700/70 bg-emerald-950/25 px-5 py-3 font-black text-emerald-100 hover:border-emerald-400">
               All Guides
