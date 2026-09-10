@@ -60,6 +60,57 @@ type InsideBetSpot = {
   shape: "horizontal" | "vertical" | "corner";
 };
 
+type RouletteLearnStep = {
+  action: "bet" | "spin" | "complete";
+  title: string;
+  instruction: string;
+  explanation: string;
+  selection?: RouletteSelection;
+};
+
+const rouletteLearnSteps: RouletteLearnStep[] = [
+  {
+    action: "bet",
+    title: "Start with a straight-up bet",
+    instruction: "Place one chip directly on 17, which is highlighted in gold.",
+    explanation: "A straight-up bet covers 1 of 38 pockets, about a 2.6% chance, and pays 35 to 1.",
+    selection: { kind: "straight", pocket: "17" },
+  },
+  {
+    action: "bet",
+    title: "Try a split bet",
+    instruction: "Place one chip on the highlighted line shared by 17 and 20.",
+    explanation: "A split covers 2 of 38 pockets, about a 5.3% chance, and pays 17 to 1.",
+    selection: { kind: "split", pockets: ["17", "20"] },
+  },
+  {
+    action: "bet",
+    title: "Cover a corner",
+    instruction: "Place one chip on the highlighted corner shared by 16, 17, 19, and 20.",
+    explanation: "A corner covers 4 of 38 pockets, about a 10.5% chance, and pays 8 to 1.",
+    selection: { kind: "corner", pockets: ["17", "20", "16", "19"] },
+  },
+  {
+    action: "bet",
+    title: "Add an outside bet",
+    instruction: "Place one chip on the highlighted RED betting area.",
+    explanation: "Red covers 18 of 38 pockets, about a 47.4% chance, and pays even money. Both 0 and 00 still lose.",
+    selection: { kind: "color", color: "red" },
+  },
+  {
+    action: "spin",
+    title: "Spin and settle the bets",
+    instruction: "Select the highlighted SPIN WHEEL button to complete the round.",
+    explanation: "The same winning pocket will be checked against every bet on the table.",
+  },
+  {
+    action: "complete",
+    title: "Lesson complete",
+    instruction: "You placed four common bet types and watched one complete settlement.",
+    explanation: "Open the newest Recent Spins result to see exactly how every wager performed.",
+  },
+];
+
 const insideBetSpots: InsideBetSpot[] = [];
 
 for (let row = 0; row < numberRows.length; row += 1) {
@@ -206,6 +257,7 @@ function RouletteBetButton({
       type="button"
       disabled={disabled}
       onClick={(event) => onBet(selection, event.shiftKey)}
+      data-selection-key={selectionKey(selection)}
       aria-label={`${label}. Current wager $${money(amount)}. Shift-click to reduce.`}
       className={`relative isolate overflow-hidden font-black transition hover:brightness-110 active:scale-[.98] disabled:cursor-not-allowed ${className} ${
         highlighted
@@ -225,11 +277,13 @@ function InsideBetButton({
   spot,
   amount,
   disabled,
+  highlighted = false,
   onBet,
 }: {
   spot: InsideBetSpot;
   amount: number;
   disabled: boolean;
+  highlighted?: boolean;
   onBet: (selection: RouletteSelection, reduce: boolean) => void;
 }) {
   const label = selectionLabel(spot.selection);
@@ -252,9 +306,10 @@ function InsideBetButton({
       type="button"
       disabled={disabled}
       onClick={(event) => onBet(spot.selection, event.shiftKey)}
+      data-selection-key={selectionKey(spot.selection)}
       aria-label={`${label}. Pays ${odds} to 1. Current wager $${money(amount)}. Shift-click to reduce.`}
       title={`${label} • Pays ${odds}:1 • Shift-click to reduce`}
-      className={`group absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-200 disabled:cursor-not-allowed ${hitArea} ${amount > 0 ? "z-50" : spot.shape === "corner" ? "z-40" : "z-30"}`}
+      className={`group absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-200 disabled:cursor-not-allowed ${hitArea} ${highlighted ? "z-[60] bg-amber-300/25 ring-4 ring-amber-200/90 shadow-[0_0_22px_rgba(253,230,138,.95)] motion-safe:animate-pulse" : amount > 0 ? "z-50" : spot.shape === "corner" ? "z-40" : "z-30"}`}
       style={{ left: spot.left, top: spot.top }}
     >
       {amount > 0 ? (
@@ -352,6 +407,75 @@ function RouletteWheel({
   );
 }
 
+function RouletteLearnCoach({
+  enabled,
+  stepIndex,
+  feedback,
+  disabled,
+  onStart,
+  onExit,
+  onRestart,
+}: {
+  enabled: boolean;
+  stepIndex: number;
+  feedback: string;
+  disabled: boolean;
+  onStart: () => void;
+  onExit: () => void;
+  onRestart: () => void;
+}) {
+  if (!enabled) {
+    return (
+      <div className="rounded-2xl border border-sky-300/35 bg-sky-950/75 p-3 shadow-[0_12px_32px_rgba(0,0,0,.35)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-[0.16em] text-sky-300">Learn Mode</div>
+            <div className="mt-1 text-xs font-bold text-sky-50/75">Practice four common bets with guidance on the table.</div>
+          </div>
+          <button type="button" onClick={onStart} disabled={disabled} className="rounded-xl bg-sky-300 px-4 py-2.5 text-xs font-black text-sky-950 transition hover:bg-sky-200 disabled:cursor-not-allowed disabled:opacity-45">
+            START LESSON
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const step = rouletteLearnSteps[stepIndex];
+  const lessonStepCount = rouletteLearnSteps.length - 1;
+  const completed = step.action === "complete";
+  const progress = completed ? 100 : ((stepIndex + 1) / lessonStepCount) * 100;
+
+  return (
+    <div className="rounded-2xl border border-sky-200/60 bg-[#08283a]/95 p-3 shadow-[0_14px_36px_rgba(0,0,0,.5)] backdrop-blur">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[9px] font-black uppercase tracking-[0.16em] text-sky-300">
+            Learn Mode On • {completed ? "Complete" : `Step ${stepIndex + 1} of ${lessonStepCount}`}
+          </div>
+          <div className="mt-1 text-sm font-black text-white">{step.title}</div>
+        </div>
+        <button type="button" onClick={onExit} disabled={disabled} className="shrink-0 rounded-lg border border-sky-100/25 px-2.5 py-1.5 text-[9px] font-black text-sky-100/70 hover:border-sky-100/50 hover:text-white disabled:opacity-40">
+          EXIT
+        </button>
+      </div>
+
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/35">
+        <div className="h-full rounded-full bg-sky-300 transition-[width] duration-300" style={{ width: `${progress}%` }} />
+      </div>
+
+      <p className="mt-3 text-xs font-bold leading-5 text-sky-50">{step.instruction}</p>
+      <p className="mt-1 text-[10px] font-medium leading-4 text-sky-100/65">{step.explanation}</p>
+      {feedback && <p className="mt-2 rounded-lg border border-emerald-300/20 bg-emerald-950/35 px-2.5 py-2 text-[10px] font-bold text-emerald-200">{feedback}</p>}
+
+      {completed && (
+        <button type="button" onClick={onRestart} disabled={disabled} className="mt-3 w-full rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-black transition hover:bg-amber-300 disabled:opacity-45">
+          PRACTICE AGAIN
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function RouletteTable() {
   const [bankroll, setBankroll] = useState(STARTING_BANKROLL);
   const [selectedChip, setSelectedChip] = useState(25);
@@ -367,8 +491,13 @@ export function RouletteTable() {
   const [selectedSpin, setSelectedSpin] = useState<SpinHistoryItem | null>(null);
   const [spinCount, setSpinCount] = useState(0);
   const [lifetimeWager, setLifetimeWager] = useState(0);
+  const [learnMode, setLearnMode] = useState(false);
+  const [learnStep, setLearnStep] = useState(0);
+  const [learnFeedback, setLearnFeedback] = useState("");
   const [message, setMessage] = useState("Choose a chip, place one or more bets, then spin.");
   const spinTimerRef = useRef<number | null>(null);
+  const boardScrollRef = useRef<HTMLDivElement | null>(null);
+  const spinButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -381,9 +510,47 @@ export function RouletteTable() {
     [bets]
   );
   const sessionPL = bankroll + totalOnTable - STARTING_BANKROLL;
+  const activeLearnStep = rouletteLearnSteps[learnStep];
+  const learnTargetKey =
+    learnMode && activeLearnStep.action === "bet" && activeLearnStep.selection
+      ? selectionKey(activeLearnStep.selection)
+      : null;
+
+  useEffect(() => {
+    if (!learnTargetKey) return;
+    const target = boardScrollRef.current?.querySelector<HTMLElement>(
+      `[data-selection-key="${learnTargetKey}"]`
+    );
+    target?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [learnTargetKey]);
+
+  useEffect(() => {
+    if (!learnMode || activeLearnStep.action !== "spin") return;
+    spinButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [activeLearnStep.action, learnMode]);
 
   function amountFor(selection: RouletteSelection) {
     return bets[selectionKey(selection)]?.amount ?? 0;
+  }
+
+  function startLearnMode() {
+    if (isSpinning) return;
+    if (totalOnTable > 0) setBankroll((current) => current + totalOnTable);
+    setBets({});
+    setRemoveMode(false);
+    setRoundResult(null);
+    setSelectedSpin(null);
+    setLearnMode(true);
+    setLearnStep(0);
+    setLearnFeedback("");
+    setMessage("Learn Mode started. Place one chip on the highlighted 17.");
+  }
+
+  function exitLearnMode() {
+    if (isSpinning) return;
+    setLearnMode(false);
+    setLearnFeedback("");
+    setMessage("Learn Mode closed. You can continue playing normally.");
   }
 
   function handleBet(selection: RouletteSelection, reduce = false) {
@@ -392,6 +559,31 @@ export function RouletteTable() {
     const key = selectionKey(selection);
     const currentAmount = bets[key]?.amount ?? 0;
     const label = selectionLabel(selection);
+
+    if (learnMode) {
+      if (activeLearnStep.action !== "bet" || !activeLearnStep.selection) {
+        const guidance = activeLearnStep.action === "spin"
+          ? "Your lesson bets are ready. Select SPIN WHEEL next."
+          : "This lesson is complete. Select Practice Again to restart it.";
+        setLearnFeedback(guidance);
+        setMessage(guidance);
+        return;
+      }
+
+      if (removeMode || reduce) {
+        const guidance = "Keep the lesson bets on the table until the guided spin is complete.";
+        setLearnFeedback(guidance);
+        setMessage(guidance);
+        return;
+      }
+
+      if (key !== selectionKey(activeLearnStep.selection)) {
+        const guidance = `Not quite. Find the gold highlight and place a chip on ${selectionLabel(activeLearnStep.selection)}.`;
+        setLearnFeedback(guidance);
+        setMessage(guidance);
+        return;
+      }
+    }
 
     if (removeMode || reduce) {
       if (currentAmount <= 0) {
@@ -427,11 +619,25 @@ export function RouletteTable() {
       [key]: { selection, amount: currentAmount + selectedChip },
     }));
     setBankroll((current) => current - selectedChip);
-    setMessage(`Placed $${money(selectedChip)} on ${label}.`);
+
+    if (learnMode) {
+      const completedExplanation = activeLearnStep.explanation;
+      setLearnStep((current) => Math.min(current + 1, rouletteLearnSteps.length - 1));
+      setLearnFeedback(`Correct. ${completedExplanation}`);
+      setMessage(`Correct: ${label}. ${completedExplanation}`);
+    } else {
+      setMessage(`Placed $${money(selectedChip)} on ${label}.`);
+    }
   }
 
   function clearBets() {
     if (isSpinning || totalOnTable === 0) return;
+    if (learnMode) {
+      const guidance = "Keep the guided bets in place. Select EXIT if you want to return to regular play.";
+      setLearnFeedback(guidance);
+      setMessage(guidance);
+      return;
+    }
     setBankroll((current) => current + totalOnTable);
     setBets({});
     setMessage("Bets cleared and returned to your bankroll.");
@@ -439,6 +645,7 @@ export function RouletteTable() {
 
   function repeatLastBets() {
     if (isSpinning || totalOnTable > 0 || lastBets.length === 0) return;
+    if (learnMode) return;
 
     const repeatTotal = lastBets.reduce((total, bet) => total + bet.amount, 0);
     if (repeatTotal > bankroll) {
@@ -470,6 +677,14 @@ export function RouletteTable() {
 
   function spinWheel() {
     if (isSpinning) return;
+    if (learnMode && activeLearnStep.action !== "spin") {
+      const guidance = activeLearnStep.action === "complete"
+        ? "This lesson is complete. Select Practice Again to run it another time."
+        : "Finish the highlighted betting step before spinning the wheel.";
+      setLearnFeedback(guidance);
+      setMessage(guidance);
+      return;
+    }
     if (totalOnTable <= 0) {
       setMessage("Place at least one bet before spinning.");
       return;
@@ -488,6 +703,7 @@ export function RouletteTable() {
     setIsWheelSpinning(true);
     setWinningPocket(null);
     setMessage("No more bets. The wheel is spinning.");
+    if (learnMode) setLearnFeedback("The wheel is spinning. Watch how one result settles all four bets.");
     setWheelRotation((current) => {
       const normalized = ((current % 360) + 360) % 360;
       const target = (360 - outcomeIndex * sector) % 360;
@@ -524,6 +740,16 @@ export function RouletteTable() {
         setLifetimeWager((current) => current + settlement.totalStake);
         setIsSpinning(false);
         spinTimerRef.current = null;
+
+        if (learnMode) {
+          const resultSummary = settlement.net > 0
+            ? `The wheel landed on ${outcome}, and the lesson bets won ${signedMoney(settlement.net)} overall.`
+            : settlement.net === 0
+              ? `The wheel landed on ${outcome}, and the lesson bets broke even.`
+              : `The wheel landed on ${outcome}, and the lesson bets finished ${signedMoney(settlement.net)} overall.`;
+          setLearnStep(rouletteLearnSteps.length - 1);
+          setLearnFeedback(resultSummary);
+        }
 
         if (settlement.net > 0) {
           setMessage(`${outcome} wins. You made $${money(settlement.net)}.`);
@@ -564,6 +790,18 @@ export function RouletteTable() {
         </div>
       </div>
 
+      <div className={`mb-3 xl:hidden ${learnMode ? "sticky top-2 z-[110]" : ""}`}>
+        <RouletteLearnCoach
+          enabled={learnMode}
+          stepIndex={learnStep}
+          feedback={learnFeedback}
+          disabled={isSpinning}
+          onStart={startLearnMode}
+          onExit={exitLearnMode}
+          onRestart={startLearnMode}
+        />
+      </div>
+
       <section className="overflow-hidden rounded-[30px] border-[10px] border-[#60320f] bg-[#075b3a] shadow-[0_24px_60px_rgba(0,0,0,.58),inset_0_0_0_3px_rgba(221,177,73,.28)]">
         <div
           className="relative p-3 sm:p-5"
@@ -587,6 +825,17 @@ export function RouletteTable() {
 
           <div className="grid gap-4 xl:grid-cols-[350px_minmax(0,1fr)] xl:items-center">
             <div className="order-2 rounded-2xl border border-emerald-200/20 bg-black/20 p-3 xl:order-1">
+              <div className="mb-3 hidden xl:block">
+                <RouletteLearnCoach
+                  enabled={learnMode}
+                  stepIndex={learnStep}
+                  feedback={learnFeedback}
+                  disabled={isSpinning}
+                  onStart={startLearnMode}
+                  onExit={exitLearnMode}
+                  onRestart={startLearnMode}
+                />
+              </div>
               <RouletteWheel rotation={wheelRotation} pocket={winningPocket} spinning={isWheelSpinning} />
               <div className="mt-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-center">
                 <div className="text-[8px] font-black uppercase tracking-[0.16em] text-emerald-400">Dealer</div>
@@ -605,7 +854,7 @@ export function RouletteTable() {
                 <span className="shrink-0 text-base" aria-hidden="true">↔</span>
               </div>
 
-              <div className="overflow-x-auto overscroll-x-contain rounded-xl border border-emerald-100/30 bg-black/10 p-2">
+              <div ref={boardScrollRef} className="overflow-x-auto overscroll-x-contain rounded-xl border border-emerald-100/30 bg-black/10 p-2">
                 <div className="flex min-w-[850px] gap-1">
                   <div className="relative z-20 grid h-[194px] w-[62px] shrink-0 grid-rows-2 gap-1 self-start">
                     {(["00", "0"] as RoulettePocket[]).map((pocket) => {
@@ -616,7 +865,7 @@ export function RouletteTable() {
                           selection={selection}
                           amount={amountFor(selection)}
                           disabled={isSpinning}
-                          highlighted={winningPocket === pocket}
+                          highlighted={winningPocket === pocket || learnTargetKey === selectionKey(selection)}
                           onBet={handleBet}
                           className="rounded-l-3xl border-2 border-emerald-100/65 bg-emerald-700 text-2xl text-white"
                         >
@@ -631,6 +880,7 @@ export function RouletteTable() {
                         spot={spot}
                         amount={amountFor(spot.selection)}
                         disabled={isSpinning}
+                        highlighted={learnTargetKey === selectionKey(spot.selection)}
                         onBet={handleBet}
                       />
                     ))}
@@ -648,7 +898,7 @@ export function RouletteTable() {
                                 selection={selection}
                                 amount={amountFor(selection)}
                                 disabled={isSpinning}
-                                highlighted={winningPocket === pocket}
+                                highlighted={winningPocket === pocket || learnTargetKey === selectionKey(selection)}
                                 onBet={handleBet}
                                 className={`h-[62px] border text-xl ${pocketClasses(pocket)}`}
                               >
@@ -665,6 +915,7 @@ export function RouletteTable() {
                           spot={spot}
                           amount={amountFor(spot.selection)}
                           disabled={isSpinning}
+                          highlighted={learnTargetKey === selectionKey(spot.selection)}
                           onBet={handleBet}
                         />
                       ))}
@@ -703,6 +954,7 @@ export function RouletteTable() {
                           selection={selection}
                           amount={amountFor(selection)}
                           disabled={isSpinning}
+                          highlighted={learnTargetKey === selectionKey(selection)}
                           onBet={handleBet}
                           className={`h-14 border border-emerald-100/55 text-xs text-white ${selection.kind === "color" && selection.color === "red" ? "bg-red-700" : selection.kind === "color" && selection.color === "black" ? "bg-zinc-950" : "bg-emerald-950/35"}`}
                         >
@@ -762,19 +1014,19 @@ export function RouletteTable() {
 
           <div className="h-12 w-px shrink-0 bg-white/10" />
 
-          <button type="button" onClick={() => setRemoveMode((current) => !current)} disabled={isSpinning} className={`shrink-0 rounded-xl border px-4 py-3 text-xs font-black ${removeMode ? "border-red-300 bg-red-600 text-white" : "border-amber-300 bg-amber-400 text-black"}`}>
+          <button type="button" onClick={() => setRemoveMode((current) => !current)} disabled={isSpinning || learnMode} className={`shrink-0 rounded-xl border px-4 py-3 text-xs font-black disabled:cursor-not-allowed disabled:opacity-35 ${removeMode ? "border-red-300 bg-red-600 text-white" : "border-amber-300 bg-amber-400 text-black"}`}>
             {removeMode ? "REMOVE MODE" : "ADD MODE"}
           </button>
-          <button type="button" onClick={clearBets} disabled={isSpinning || totalOnTable === 0} className="shrink-0 rounded-xl border border-emerald-700 bg-emerald-950/60 px-4 py-3 text-xs font-black text-emerald-100 disabled:opacity-35">CLEAR</button>
-          <button type="button" onClick={repeatLastBets} disabled={isSpinning || totalOnTable > 0 || lastBets.length === 0} className="shrink-0 rounded-xl border border-emerald-700 bg-emerald-950/60 px-4 py-3 text-xs font-black text-emerald-100 disabled:opacity-35">REPEAT</button>
-          <button type="button" onClick={resetSession} disabled={isSpinning} className="shrink-0 rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-xs font-black text-white/65 disabled:opacity-35">RESET</button>
+          <button type="button" onClick={clearBets} disabled={isSpinning || learnMode || totalOnTable === 0} className="shrink-0 rounded-xl border border-emerald-700 bg-emerald-950/60 px-4 py-3 text-xs font-black text-emerald-100 disabled:cursor-not-allowed disabled:opacity-35">CLEAR</button>
+          <button type="button" onClick={repeatLastBets} disabled={isSpinning || learnMode || totalOnTable > 0 || lastBets.length === 0} className="shrink-0 rounded-xl border border-emerald-700 bg-emerald-950/60 px-4 py-3 text-xs font-black text-emerald-100 disabled:cursor-not-allowed disabled:opacity-35">REPEAT</button>
+          <button type="button" onClick={resetSession} disabled={isSpinning || learnMode} className="shrink-0 rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-xs font-black text-white/65 disabled:cursor-not-allowed disabled:opacity-35">RESET</button>
 
           <div className="ml-auto shrink-0 rounded-xl border border-amber-300/35 bg-amber-950/25 px-4 py-2 text-center">
             <div className="text-[7px] font-black uppercase tracking-[0.14em] text-amber-300">Total bet</div>
             <div className="text-lg font-black text-white">${money(totalOnTable)}</div>
           </div>
 
-          <button type="button" onClick={spinWheel} disabled={isSpinning || totalOnTable === 0} className="shrink-0 rounded-xl bg-amber-400 px-7 py-4 text-base font-black text-black shadow-[0_8px_25px_rgba(251,191,36,.2)] transition hover:bg-amber-300 active:scale-[.98] disabled:cursor-not-allowed disabled:bg-amber-900 disabled:text-amber-100/35">
+          <button ref={spinButtonRef} type="button" onClick={spinWheel} disabled={isSpinning || totalOnTable === 0 || (learnMode && activeLearnStep.action !== "spin")} className={`shrink-0 rounded-xl bg-amber-400 px-7 py-4 text-base font-black text-black shadow-[0_8px_25px_rgba(251,191,36,.2)] transition hover:bg-amber-300 active:scale-[.98] disabled:cursor-not-allowed disabled:bg-amber-900 disabled:text-amber-100/35 ${learnMode && activeLearnStep.action === "spin" ? "ring-4 ring-amber-100 ring-offset-2 ring-offset-[#03130e] motion-safe:animate-pulse" : ""}`}>
             {isWheelSpinning ? "SPINNING…" : isSpinning ? "CHECKING…" : "SPIN WHEEL"}
           </button>
         </div>
