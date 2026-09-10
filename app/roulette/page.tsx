@@ -6,12 +6,12 @@ import { RouletteTable } from "./RouletteTable";
 export const metadata: Metadata = {
   title: "Free American Roulette Practice Table",
   description:
-    "Play free American roulette with a 0 and 00 wheel, straight-up bets, outside bets, realistic payouts, bankroll controls, and spin history.",
+    "Play free American roulette with a 0 and 00 wheel, straight-up, split, corner, and outside bets, realistic payouts, bankroll controls, and spin history.",
   alternates: { canonical: "/roulette" },
   openGraph: {
     title: "Free American Roulette Practice Table",
     description:
-      "Practice American roulette on a realistic 38-pocket wheel with straight-up and outside bets.",
+      "Practice American roulette on a realistic 38-pocket wheel with straight-up, split, corner, and outside bets.",
     url: "/roulette",
   },
 };

@@ -28,6 +28,37 @@ test("straight-up bets pay 35 to 1", () => {
   assert.equal(rules.selectionWins(bet, "7"), false);
 });
 
+test("adjacent-number split bets pay 17 to 1", () => {
+  const horizontalSplit = { kind: "split", pockets: ["26", "29"] };
+  const verticalSplit = { kind: "split", pockets: ["21", "24"] };
+
+  assert.equal(rules.payoutOdds(horizontalSplit), 17);
+  assert.equal(rules.selectionWins(horizontalSplit, "26"), true);
+  assert.equal(rules.selectionWins(horizontalSplit, "29"), true);
+  assert.equal(rules.selectionWins(horizontalSplit, "32"), false);
+  assert.equal(rules.selectionWins(verticalSplit, "24"), true);
+});
+
+test("four-number corner bets pay 8 to 1", () => {
+  const corner = { kind: "corner", pockets: ["16", "17", "19", "20"] };
+
+  assert.equal(rules.payoutOdds(corner), 8);
+  for (const pocket of corner.pockets) {
+    assert.equal(rules.selectionWins(corner, pocket), true);
+  }
+  assert.equal(rules.selectionWins(corner, "18"), false);
+});
+
+test("split examples across the first and second dozens resolve correctly", () => {
+  const fourSeven = { kind: "split", pockets: ["4", "7"] };
+  const thirteenSixteen = { kind: "split", pockets: ["13", "16"] };
+
+  assert.equal(rules.selectionWins(fourSeven, "4"), true);
+  assert.equal(rules.selectionWins(fourSeven, "7"), true);
+  assert.equal(rules.selectionWins(thirteenSixteen, "13"), true);
+  assert.equal(rules.selectionWins(thirteenSixteen, "16"), true);
+});
+
 test("outside bets exclude both zero pockets", () => {
   const selections = [
     { kind: "color", color: "red" },
@@ -65,6 +96,29 @@ test("settlement returns stakes plus profit for winning bets", () => {
   assert.equal(result.totalStake, 45);
   assert.equal(result.grossReturn, 265);
   assert.equal(result.net, 220);
+  assert.equal(result.winningBets.length, 4);
+});
+
+test("mixed straight, split, corner, and outside bets settle together", () => {
+  const result = rules.settleRouletteBets(
+    [
+      { selection: { kind: "straight", pocket: "20" }, amount: 1 },
+      { selection: { kind: "split", pockets: ["17", "20"] }, amount: 2 },
+      {
+        selection: {
+          kind: "corner",
+          pockets: ["16", "17", "19", "20"],
+        },
+        amount: 5,
+      },
+      { selection: { kind: "color", color: "black" }, amount: 10 },
+    ],
+    "20"
+  );
+
+  assert.equal(result.totalStake, 18);
+  assert.equal(result.grossReturn, 137);
+  assert.equal(result.net, 119);
   assert.equal(result.winningBets.length, 4);
 });
 

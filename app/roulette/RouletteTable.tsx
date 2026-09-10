@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AMERICAN_WHEEL,
   pocketColor,
+  payoutOdds,
   randomRoulettePocket,
   selectionKey,
   selectionLabel,
@@ -46,6 +47,62 @@ type RouletteBetButtonProps = {
   className: string;
   children: ReactNode;
 };
+
+type InsideBetSpot = {
+  selection: RouletteSelection;
+  left: string;
+  top: string;
+  shape: "horizontal" | "vertical" | "corner";
+};
+
+const insideBetSpots: InsideBetSpot[] = [];
+
+for (let row = 0; row < numberRows.length; row += 1) {
+  for (let column = 0; column < numberRows[row].length - 1; column += 1) {
+    insideBetSpots.push({
+      selection: {
+        kind: "split",
+        pockets: [numberRows[row][column], numberRows[row][column + 1]],
+      },
+      left: `${((column + 1) / 12) * 100}%`,
+      top: `${((row + 0.5) / 3) * 100}%`,
+      shape: "vertical",
+    });
+  }
+}
+
+for (let row = 0; row < numberRows.length - 1; row += 1) {
+  for (let column = 0; column < numberRows[row].length; column += 1) {
+    insideBetSpots.push({
+      selection: {
+        kind: "split",
+        pockets: [numberRows[row][column], numberRows[row + 1][column]],
+      },
+      left: `${((column + 0.5) / 12) * 100}%`,
+      top: `${((row + 1) / 3) * 100}%`,
+      shape: "horizontal",
+    });
+  }
+}
+
+for (let row = 0; row < numberRows.length - 1; row += 1) {
+  for (let column = 0; column < numberRows[row].length - 1; column += 1) {
+    insideBetSpots.push({
+      selection: {
+        kind: "corner",
+        pockets: [
+          numberRows[row][column],
+          numberRows[row][column + 1],
+          numberRows[row + 1][column],
+          numberRows[row + 1][column + 1],
+        ],
+      },
+      left: `${((column + 1) / 12) * 100}%`,
+      top: `${((row + 1) / 3) * 100}%`,
+      shape: "corner",
+    });
+  }
+}
 
 function money(amount: number) {
   return Math.floor(amount).toLocaleString();
@@ -97,6 +154,55 @@ function RouletteBetButton({
     >
       {children}
       <BetMarker amount={amount} />
+    </button>
+  );
+}
+
+function InsideBetButton({
+  spot,
+  amount,
+  disabled,
+  onBet,
+}: {
+  spot: InsideBetSpot;
+  amount: number;
+  disabled: boolean;
+  onBet: (selection: RouletteSelection) => void;
+}) {
+  const label = selectionLabel(spot.selection);
+  const odds = payoutOdds(spot.selection);
+  const hitArea =
+    spot.shape === "vertical"
+      ? "h-10 w-5"
+      : spot.shape === "horizontal"
+        ? "h-5 w-10"
+        : "h-7 w-7";
+  const marker =
+    spot.shape === "vertical"
+      ? "h-7 w-[3px]"
+      : spot.shape === "horizontal"
+        ? "h-[3px] w-7"
+        : "h-2.5 w-2.5 rounded-full";
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onBet(spot.selection)}
+      aria-label={`${label}. Pays ${odds} to 1. Current wager $${money(amount)}.`}
+      title={`${label} • Pays ${odds}:1`}
+      className={`group absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-200 disabled:cursor-not-allowed disabled:opacity-60 ${hitArea} ${amount > 0 ? "z-50" : spot.shape === "corner" ? "z-40" : "z-30"}`}
+      style={{ left: spot.left, top: spot.top }}
+    >
+      {amount > 0 ? (
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-dashed border-white bg-amber-400 px-1 text-[7px] font-black text-black shadow-[0_3px_9px_rgba(0,0,0,.7)]">
+          ${money(amount)}
+        </span>
+      ) : (
+        <span
+          className={`border border-amber-100/45 bg-amber-200/35 opacity-65 shadow-[0_1px_4px_rgba(0,0,0,.8)] transition group-hover:scale-125 group-hover:border-amber-200 group-hover:bg-amber-300 group-hover:opacity-100 group-focus-visible:opacity-100 ${marker}`}
+        />
+      )}
     </button>
   );
 }
@@ -358,7 +464,7 @@ export function RouletteTable() {
           </div>
           <h1 className="mt-1 text-3xl font-black sm:text-4xl">Roulette practice table</h1>
           <p className="mt-1 max-w-3xl text-sm font-medium text-emerald-50/65">
-            Practice straight-up and outside bets on a 38-pocket American wheel with 0 and 00.
+            Practice straight-up, split, corner, and outside bets on a 38-pocket American wheel with 0 and 00.
           </p>
         </div>
 
@@ -415,8 +521,8 @@ export function RouletteTable() {
 
               <div className="overflow-x-auto rounded-xl border border-emerald-100/30 bg-black/10 p-2">
                 <div className="flex min-w-[850px] gap-1">
-                  <div className="grid w-[62px] shrink-0 grid-rows-2 gap-1">
-                    {(["0", "00"] as RoulettePocket[]).map((pocket) => {
+                  <div className="grid h-[194px] w-[62px] shrink-0 grid-rows-2 gap-1 self-start">
+                    {(["00", "0"] as RoulettePocket[]).map((pocket) => {
                       const selection: RouletteSelection = { kind: "straight", pocket };
                       return (
                         <RouletteBetButton
@@ -434,7 +540,7 @@ export function RouletteTable() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="grid gap-1">
+                    <div className="relative grid h-[194px] grid-rows-3 gap-1">
                       {numberRows.map((row) => (
                         <div key={row[0]} className="grid grid-cols-12 gap-1">
                           {row.map((pocket) => {
@@ -453,6 +559,16 @@ export function RouletteTable() {
                             );
                           })}
                         </div>
+                      ))}
+
+                      {insideBetSpots.map((spot) => (
+                        <InsideBetButton
+                          key={selectionKey(spot.selection)}
+                          spot={spot}
+                          amount={amountFor(spot.selection)}
+                          disabled={isSpinning}
+                          onBet={handleBet}
+                        />
                       ))}
                     </div>
 
@@ -499,7 +615,7 @@ export function RouletteTable() {
                     </div>
                   </div>
 
-                  <div className="grid w-[76px] shrink-0 grid-rows-3 gap-1">
+                  <div className="grid h-[194px] w-[76px] shrink-0 grid-rows-3 gap-1 self-start">
                     {([3, 2, 1] as const).map((column) => {
                       const selection: RouletteSelection = { kind: "column", column };
                       return (
@@ -522,7 +638,7 @@ export function RouletteTable() {
 
               <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-bold text-emerald-100/65">
-                  Straight up pays 35:1 • Dozens and columns pay 2:1 • Even-money bets pay 1:1
+                  Number pays 35:1 • Split line pays 17:1 • Four-number corner pays 8:1 • Outside bets remain available
                 </div>
                 <div className="text-right text-[9px] font-black uppercase tracking-[0.12em] text-emerald-300/70">
                   Lifetime wager ${money(lifetimeWager)}
@@ -598,7 +714,8 @@ export function RouletteTable() {
           <ul className="mt-3 space-y-2 text-xs font-medium leading-5 text-emerald-50/65">
             <li>• American roulette has 38 pockets: 1 through 36, 0, and 00.</li>
             <li>• Both green zero pockets lose on red/black, odd/even, high/low, dozens, and columns.</li>
-            <li>• Click a position repeatedly to build a wager. Switch to Remove Mode to take chips back.</li>
+            <li>• Tap a number for straight up, a shared line for a split, or a shared corner for four numbers.</li>
+            <li>• Mix inside and outside bets freely. Switch to Remove Mode to take chips back.</li>
           </ul>
         </aside>
       </section>

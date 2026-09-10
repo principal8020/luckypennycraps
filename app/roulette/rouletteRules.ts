@@ -2,6 +2,11 @@ export type RoulettePocket = "0" | "00" | `${number}`;
 
 export type RouletteSelection =
   | { kind: "straight"; pocket: RoulettePocket }
+  | { kind: "split"; pockets: [RoulettePocket, RoulettePocket] }
+  | {
+      kind: "corner";
+      pockets: [RoulettePocket, RoulettePocket, RoulettePocket, RoulettePocket];
+    }
   | { kind: "color"; color: "red" | "black" }
   | { kind: "parity"; parity: "even" | "odd" }
   | { kind: "range"; range: "low" | "high" }
@@ -88,6 +93,10 @@ export function selectionKey(selection: RouletteSelection) {
   switch (selection.kind) {
     case "straight":
       return `straight:${selection.pocket}`;
+    case "split":
+      return `split:${selection.pockets.join(":")}`;
+    case "corner":
+      return `corner:${selection.pockets.join(":")}`;
     case "color":
       return `color:${selection.color}`;
     case "parity":
@@ -105,6 +114,10 @@ export function selectionLabel(selection: RouletteSelection) {
   switch (selection.kind) {
     case "straight":
       return `Straight ${selection.pocket}`;
+    case "split":
+      return `Split ${selection.pockets.join(" / ")}`;
+    case "corner":
+      return `Corner ${selection.pockets.join(" / ")}`;
     case "color":
       return selection.color === "red" ? "Red" : "Black";
     case "parity":
@@ -120,6 +133,8 @@ export function selectionLabel(selection: RouletteSelection) {
 
 export function payoutOdds(selection: RouletteSelection) {
   if (selection.kind === "straight") return 35;
+  if (selection.kind === "split") return 17;
+  if (selection.kind === "corner") return 8;
   if (selection.kind === "dozen" || selection.kind === "column") return 2;
   return 1;
 }
@@ -130,6 +145,10 @@ export function selectionWins(
 ) {
   if (selection.kind === "straight") {
     return selection.pocket === outcome;
+  }
+
+  if (selection.kind === "split" || selection.kind === "corner") {
+    return selection.pockets.includes(outcome);
   }
 
   const value = numericPocket(outcome);
