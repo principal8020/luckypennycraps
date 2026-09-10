@@ -25,6 +25,36 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Roulette table motion ------------------------------------------------- */
+.roulette-round-outcome {
+  animation: roulette-outcome-fade 2400ms ease-out both;
+}
+
+@keyframes roulette-outcome-fade {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roulette-round-outcome {
+    animation-duration: 700ms;
+  }
+}
+
 /* Blackjack table motion ------------------------------------------------ */
 .blackjack-card-slot {
   position: relative;
