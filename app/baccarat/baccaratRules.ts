@@ -45,6 +45,15 @@ export type BaccaratSettlement = {
   winningBets: BaccaratBetType[];
   pushedBets: BaccaratBetType[];
   dragonResults: BaccaratDragonResult[];
+  betResults: BaccaratBetResult[];
+};
+
+export type BaccaratBetResult = {
+  type: BaccaratBetType;
+  stake: number;
+  grossReturn: number;
+  net: number;
+  result: "win" | "loss" | "push";
 };
 
 export type BaccaratDragonResult = {
@@ -267,40 +276,70 @@ export function settleBaccaratBets(
   const playerDragon = bets.playerDragon ?? 0;
   const bankerDragon = bets.bankerDragon ?? 0;
   const totalStake = bets.player + bets.banker + bets.tie + playerDragon + bankerDragon;
-  let grossReturn = 0;
-  let commission = 0;
-  const winningBets: BaccaratBetType[] = [];
-  const pushedBets: BaccaratBetType[] = [];
-
-  if (outcome === "player") {
-    grossReturn += bets.player * 2;
-    if (bets.player > 0) winningBets.push("player");
-  } else if (outcome === "banker") {
-    commission = bets.banker * 0.05;
-    grossReturn += bets.banker * 1.95;
-    if (bets.banker > 0) winningBets.push("banker");
-  } else {
-    grossReturn += bets.tie * 9;
-    if (bets.tie > 0) winningBets.push("tie");
-    grossReturn += bets.player + bets.banker;
-    if (bets.player > 0) pushedBets.push("player");
-    if (bets.banker > 0) pushedBets.push("banker");
-  }
+  const commission = outcome === "banker" ? bets.banker * 0.05 : 0;
 
   const dragonResults: BaccaratDragonResult[] = [];
   if (round) {
     const playerResult = settleDragonBonus("player", playerDragon, round);
     const bankerResult = settleDragonBonus("banker", bankerDragon, round);
     dragonResults.push(playerResult, bankerResult);
-
-    for (const dragonResult of dragonResults) {
-      const betType: BaccaratBetType =
-        dragonResult.side === "player" ? "playerDragon" : "bankerDragon";
-      grossReturn += dragonResult.grossReturn;
-      if (dragonResult.result === "win") winningBets.push(betType);
-      if (dragonResult.result === "push") pushedBets.push(betType);
-    }
   }
+
+  const playerDragonResult = dragonResults.find((result) => result.side === "player");
+  const bankerDragonResult = dragonResults.find((result) => result.side === "banker");
+  const activeReturns: Array<{
+    type: BaccaratBetType;
+    stake: number;
+    grossReturn: number;
+  }> = [
+    {
+      type: "player",
+      stake: bets.player,
+      grossReturn:
+        outcome === "player" ? bets.player * 2 : outcome === "tie" ? bets.player : 0,
+    },
+    {
+      type: "banker",
+      stake: bets.banker,
+      grossReturn:
+        outcome === "banker" ? bets.banker * 1.95 : outcome === "tie" ? bets.banker : 0,
+    },
+    {
+      type: "tie",
+      stake: bets.tie,
+      grossReturn: outcome === "tie" ? bets.tie * 9 : 0,
+    },
+    {
+      type: "playerDragon",
+      stake: playerDragon,
+      grossReturn: playerDragonResult?.grossReturn ?? 0,
+    },
+    {
+      type: "bankerDragon",
+      stake: bankerDragon,
+      grossReturn: bankerDragonResult?.grossReturn ?? 0,
+    },
+  ];
+  const betResults: BaccaratBetResult[] = activeReturns
+    .filter((bet) => bet.stake > 0)
+    .map((bet) => {
+      const net = bet.grossReturn - bet.stake;
+      return {
+        ...bet,
+        net,
+        result: net > 0 ? "win" : net < 0 ? "loss" : "push",
+      };
+    });
+  const grossReturn = betResults.reduce(
+    (total, bet) => total + bet.grossReturn,
+    0
+  );
+  const winningBets = betResults
+    .filter((bet) => bet.result === "win")
+    .map((bet) => bet.type);
+  const pushedBets = betResults
+    .filter((bet) => bet.result === "push")
+    .map((bet) => bet.type);
 
   return {
     totalStake,
@@ -310,5 +349,6 @@ export function settleBaccaratBets(
     winningBets,
     pushedBets,
     dragonResults,
+    betResults,
   };
 }

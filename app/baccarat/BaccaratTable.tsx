@@ -11,6 +11,7 @@ import {
   shouldReshuffleBaccaratShoe,
   shuffleBaccaratShoe,
   type BaccaratBets,
+  type BaccaratBetResult,
   type BaccaratBetType,
   type BaccaratCard,
   type BaccaratOutcome,
@@ -31,6 +32,7 @@ type BaccaratHistoryEntry = {
   net: number;
   commission: number;
   natural: boolean;
+  betResults: BaccaratBetResult[];
 };
 
 type RoundOutcomeNotice = {
@@ -423,6 +425,7 @@ export function BaccaratTable() {
         net: settlement.net,
         commission: settlement.commission,
         natural: round.natural,
+        betResults: settlement.betResults,
       },
       ...current,
     ]);
@@ -656,7 +659,16 @@ export function BaccaratTable() {
                   <span className={`text-sm font-black ${entry.net > 0 ? "text-emerald-300" : entry.net < 0 ? "text-red-300" : "text-amber-200"}`}>{signedMoney(entry.net)}</span>
                 </summary>
                 <div className="border-t border-emerald-900/60 px-4 py-3 text-xs font-medium leading-5 text-emerald-50/65">
-                  <div>Player: {cardText(entry.playerCards)} = {entry.playerTotal}</div><div>Banker: {cardText(entry.bankerCards)} = {entry.bankerTotal}</div><div className="mt-2">Bets: Player ${money(entry.bets.player)} • Banker ${money(entry.bets.banker)} • Tie ${money(entry.bets.tie)} • Player Dragon ${money(entry.bets.playerDragon)} • Banker Dragon ${money(entry.bets.bankerDragon)}</div>{entry.commission > 0 ? <div>Banker commission: ${money(entry.commission)}</div> : null}
+                  <div>Player: {cardText(entry.playerCards)} = {entry.playerTotal}</div><div>Banker: {cardText(entry.bankerCards)} = {entry.bankerTotal}</div><div className="mt-2">Bets: Player ${money(entry.bets.player)} • Banker ${money(entry.bets.banker)} • Tie ${money(entry.bets.tie)} • Player Dragon ${money(entry.bets.playerDragon)} • Banker Dragon ${money(entry.bets.bankerDragon)}</div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2" aria-label="Wager result breakdown">
+                    {entry.betResults.map((bet) => (
+                      <span key={bet.type} className={`rounded-full border px-2.5 py-1 font-black ${bet.net > 0 ? "border-emerald-300/45 bg-emerald-950/45 text-emerald-200" : bet.net < 0 ? "border-red-300/45 bg-red-950/45 text-red-200" : "border-amber-200/45 bg-amber-950/35 text-amber-100"}`}>
+                        {betLabel(bet.type)} {signedMoney(bet.net)}
+                      </span>
+                    ))}
+                    <span className="rounded-full border border-white/30 bg-white/10 px-2.5 py-1 font-black text-white">Total {signedMoney(entry.net)}</span>
+                  </div>
+                  {entry.commission > 0 ? <div className="mt-2">Banker commission: ${money(entry.commission)}</div> : null}
                 </div>
               </details>
             ))}

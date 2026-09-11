@@ -240,3 +240,29 @@ test("main and Dragon Bonus bets settle together", () => {
   assert.equal(result.net, 155);
   assert.deepEqual(result.winningBets, ["player", "playerDragon"]);
 });
+
+test("settlement provides a clear result for every active wager", () => {
+  const baccaratRound = round({
+    outcome: "player",
+    playerTotal: 9,
+    bankerTotal: 2,
+    natural: true,
+  });
+  const result = rules.settleBaccaratBets(
+    { player: 5, banker: 0, tie: 0, playerDragon: 5, bankerDragon: 0 },
+    "player",
+    baccaratRound
+  );
+
+  assert.deepEqual(
+    result.betResults.map(({ type, net, result: wagerResult }) => ({
+      type,
+      net,
+      result: wagerResult,
+    })),
+    [
+      { type: "player", net: 5, result: "win" },
+      { type: "playerDragon", net: 5, result: "win" },
+    ]
+  );
+});
