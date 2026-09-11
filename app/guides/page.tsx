@@ -11,6 +11,14 @@ export const metadata: Metadata = {
 
 const guides = [
   {
+    game: "Baccarat",
+    title: "How to Play Baccarat",
+    description:
+      "Learn hand totals, automatic third-card rules, Player and Banker bets, Tie, Dragon Bonus, and what the scoreboard actually means.",
+    href: "/baccarat/how-to-play",
+    label: "New beginner guide",
+  },
+  {
     game: "Roulette",
     title: "American Roulette Bets and Payouts Explained",
     description:
@@ -78,7 +86,7 @@ const guides = [
 
 const comingNext = [
   "Soft Blackjack Hands Without the Soft Thinking",
-  "American vs. European Roulette: One Zero, Big Difference",
+  "Baccarat Scoreboards Without the Fortune Telling",
 ];
 
 export default function GuidesPage() {

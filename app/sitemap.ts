@@ -10,6 +10,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/roulette", changeFrequency: "weekly", priority: 0.9 },
     { path: "/baccarat", changeFrequency: "weekly", priority: 0.9 },
     {
+      path: "/baccarat/how-to-play",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       path: "/roulette/how-to-play",
       changeFrequency: "monthly",
       priority: 0.9,

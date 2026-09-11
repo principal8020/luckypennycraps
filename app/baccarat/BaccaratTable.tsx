@@ -502,8 +502,8 @@ export function BaccaratTable() {
 
       <div className="baccarat-table-shell overflow-hidden rounded-[24px] border-[7px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_26px_70px_rgba(0,0,0,.65),inset_0_0_0_3px_rgba(214,166,72,.28)] sm:rounded-[34px] sm:border-[12px]">
         <div className="baccarat-felt relative min-h-[520px] overflow-hidden border-[3px] border-[#cfbd8c]/75 px-2 py-4 sm:min-h-[610px] sm:border-[4px] sm:px-6 sm:py-5" style={{ backgroundImage: "radial-gradient(circle at 50% 16%,rgba(255,255,255,.07),transparent 30%),linear-gradient(145deg,#0a6847,#075538 58%,#06442f),repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0px,rgba(255,255,255,.015) 1px,transparent 1px,transparent 3px)" }}>
-          <div className="baccarat-felt-oval pointer-events-none absolute left-1/2 top-[76px] h-[390px] w-[94%] -translate-x-1/2 rounded-[50%] border-2 border-amber-100/65 sm:top-[82px] sm:h-[430px] sm:w-[88%] sm:border-[3px]" />
-          <div className="baccarat-felt-oval pointer-events-none absolute left-1/2 top-[108px] h-[320px] w-[82%] -translate-x-1/2 rounded-[50%] border border-amber-100/20 sm:top-[118px] sm:h-[355px] sm:w-[76%]" />
+          <div className="baccarat-felt-oval pointer-events-none absolute left-1/2 top-[82px] hidden h-[430px] w-[88%] -translate-x-1/2 rounded-[50%] border-[3px] border-amber-100/65 sm:block" />
+          <div className="baccarat-felt-oval pointer-events-none absolute left-1/2 top-[118px] hidden h-[355px] w-[76%] -translate-x-1/2 rounded-[50%] border border-amber-100/20 sm:block" />
 
           {roundOutcome ? (
             <div key={roundOutcome.id} className="pointer-events-none fixed inset-0 z-[200]" role="status" aria-live="polite">
@@ -680,6 +680,9 @@ export function BaccaratTable() {
           <ul className="mt-3 space-y-3 text-sm font-medium leading-5 text-emerald-50/70">
             <li>• Closest to 9 wins. Only the final digit counts.</li><li>• Player and Banker are hand names, not seats.</li><li>• Drawing is automatic. There are no hit or stand decisions.</li><li>• Player and Banker wagers push when the result is Tie.</li><li>• Winning Banker wagers pay 0.95 to 1 after commission.</li><li>• Dragon Bonus is a separate Player or Banker wager based on a natural win or winning margin.</li>
           </ul>
+          <Link href="/baccarat/how-to-play" className="mt-4 inline-flex text-sm font-black text-amber-200 hover:text-white">
+            Read the Baccarat beginner guide →
+          </Link>
         </aside>
       </div>
 
