@@ -18,26 +18,26 @@ export const metadata: Metadata = {
 
 export default function BlackjackPage() {
   return (
-    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
+    <main className="min-h-screen bg-[#020b08] text-white">
       <SiteHeader active="blackjack" wide compact />
 
       <section className="mx-auto max-w-[1500px] px-3 py-4 sm:px-5 sm:py-6">
         <BlackjackTable />
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#c6d4ca] bg-white px-4 py-3 shadow-[0_8px_22px_rgba(20,60,43,.05)]">
-          <div className="text-xs font-medium text-slate-600">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-900/70 bg-black/25 px-4 py-3">
+          <div className="text-xs font-medium text-emerald-100/55">
             Practice credits only. No real-money wagering or cash prizes.
           </div>
           <div className="flex gap-2">
             <Link
               href="/blackjack/basic-strategy"
-              className="rounded-lg border border-amber-400 bg-amber-50 px-4 py-2 text-xs font-black text-amber-800 hover:bg-amber-100"
+              className="rounded-lg border border-amber-700/70 px-4 py-2 text-xs font-black text-amber-200 hover:border-amber-400"
             >
               Basic Strategy Guide
             </Link>
             <Link
               href="/"
-              className="rounded-lg border border-emerald-700 px-4 py-2 text-xs font-black text-emerald-900 hover:bg-emerald-50"
+              className="rounded-lg border border-emerald-700/70 px-4 py-2 text-xs font-black text-emerald-100 hover:border-emerald-400"
             >
               Back to Games
             </Link>

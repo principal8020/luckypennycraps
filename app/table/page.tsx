@@ -3436,7 +3436,7 @@ export default function TablePage() {
 
 
   return (
-    <main className="min-h-screen bg-[#f6f2e8] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-28 sm:pt-3 lg:pb-36">
+    <main className="min-h-screen bg-[#020b08] px-2 pb-28 pt-2 text-white sm:px-4 sm:pb-28 sm:pt-3 lg:pb-36">
       <style>{`
         @keyframes comeChipTravel {
           0% {
