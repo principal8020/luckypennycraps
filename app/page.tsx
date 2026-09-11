@@ -128,18 +128,18 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl gap-6 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-700">
-              New guide • Craps
+              New guide • American Roulette
             </div>
             <h2 className="mt-2 text-3xl font-black text-[#123b2a]">
-              Maximum craps odds, calculated without casino-floor arithmetic.
+              Learn the wheel before asking number 17 for a favor.
             </h2>
             <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-              Choose the point and your Pass Line wager to see the 3-4-5x maximum, payout, and total money at risk.
+              Understand inside bets, outside bets, payouts, table minimums, and what those two green zeros are doing to the math.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/craps/max-odds" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
-              Try the Odds Calculator
+            <Link href="/roulette/how-to-play" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
+              Read the Roulette Guide
             </Link>
             <Link href="/guides" className="rounded-xl border border-emerald-700 bg-white px-5 py-3 font-black text-emerald-900 hover:bg-emerald-50">
               All Guides

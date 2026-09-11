@@ -29,6 +29,7 @@ export default function RoulettePage() {
             Practice credits only. No real-money wagering or cash prizes.
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link href="/roulette/how-to-play" className="rounded-lg border border-amber-700/70 px-4 py-2 text-xs font-black text-amber-200 hover:border-amber-400">How to Play Roulette</Link>
             <Link href="/" className="rounded-lg border border-emerald-700/70 px-4 py-2 text-xs font-black text-emerald-100 hover:border-emerald-400">Back to Games</Link>
             <Link href="/blackjack" className="rounded-lg border border-amber-700/70 px-4 py-2 text-xs font-black text-amber-200 hover:border-amber-400">Play Blackjack</Link>
             <Link href="/table" className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-black text-black hover:bg-amber-300">Play Craps</Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AMERICAN_WHEEL,
@@ -841,6 +842,12 @@ export function RouletteTable() {
           <p className="mt-1 max-w-3xl text-sm font-medium text-emerald-50/65">
             Practice straight-up, split, street, corner, and outside bets on a 38-pocket American wheel with 0 and 00.
           </p>
+          <Link
+            href="/roulette/how-to-play"
+            className="mt-2 inline-flex text-xs font-black text-amber-300 hover:text-amber-100"
+          >
+            New to Roulette? Read the beginner guide →
+          </Link>
         </div>
 
         <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">

@@ -30,6 +30,7 @@ export const metadata: Metadata = {
     "learn craps",
     "craps practice",
     "American roulette practice",
+    "how to play American roulette",
     "casino game simulator",
   ],
   openGraph: {

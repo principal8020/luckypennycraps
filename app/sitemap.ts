@@ -1,13 +1,18 @@
 import type { MetadataRoute } from "next";
 
 const siteUrl = "https://luckypennygaming.com";
-const lastModified = new Date("2026-09-10");
+const lastModified = new Date("2026-09-11");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { path: "", changeFrequency: "weekly", priority: 1 },
     { path: "/blackjack", changeFrequency: "weekly", priority: 0.9 },
     { path: "/roulette", changeFrequency: "weekly", priority: 0.9 },
+    {
+      path: "/roulette/how-to-play",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
     {
       path: "/blackjack/basic-strategy",
       changeFrequency: "monthly",

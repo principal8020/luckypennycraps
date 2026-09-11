@@ -5,11 +5,19 @@ import { SiteHeader } from "../components/SiteHeader";
 export const metadata: Metadata = {
   title: "Casino Game Guides",
   description:
-    "Plain-English blackjack and craps guides with practical examples, strategy explanations, and free tables where you can practice.",
+    "Plain-English roulette, blackjack, and craps guides with practical examples, strategy explanations, and free tables where you can practice.",
   alternates: { canonical: "/guides" },
 };
 
 const guides = [
+  {
+    game: "Roulette",
+    title: "How to Play American Roulette",
+    description:
+      "Learn the 38-pocket wheel, inside and outside bets, payouts, table minimums, and exactly where each chip belongs.",
+    href: "/roulette/how-to-play",
+    label: "New beginner guide",
+  },
   {
     game: "Craps",
     title: "Maximum Odds Calculator",
