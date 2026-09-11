@@ -37,18 +37,18 @@ const terms = [
 
 export default function HowToPlayPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader active="learn" />
 
-      <section className="border-b border-emerald-900/70 bg-[radial-gradient(circle_at_20%_10%,rgba(16,185,129,.11),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(245,158,11,.08),transparent_28%)]">
+      <section className="border-b border-[#d8d2c2] bg-[radial-gradient(circle_at_20%_10%,rgba(16,116,78,.12),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(217,148,20,.13),transparent_28%)]">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
           <div className="max-w-4xl">
-            <div className="inline-flex rounded-full border border-emerald-700/70 bg-emerald-950/40 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Lucky Penny Gaming • Craps basics</div>
-            <h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">Learn the table in the same order you play it.</h1>
-            <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-emerald-50/65 sm:text-lg">You do not need to memorize every bet before you start. Learn the puck, the point cycle, and a few core wagers first. Then use the Lucky Penny Gaming craps table to practice the exact situation until it feels natural.</p>
+            <div className="inline-flex rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">Lucky Penny Gaming • Craps basics</div>
+            <h1 className="mt-4 text-4xl font-black leading-tight text-[#0d3525] sm:text-5xl">Learn the table in the same order you play it.</h1>
+            <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-slate-700 sm:text-lg">You do not need to memorize every bet before you start. Learn the puck, the point cycle, and a few core wagers first. Then use the Lucky Penny Gaming craps table to practice the exact situation until it feels natural.</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/table?lesson=pass-line" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Start Guided Lesson</Link>
-              <Link href="#bets" className="rounded-xl border border-emerald-700/70 bg-emerald-950/30 px-5 py-3 font-black text-emerald-100">Learn the Bets</Link>
+              <Link href="#bets" className="rounded-xl border border-emerald-700 bg-white px-5 py-3 font-black text-emerald-900">Learn the Bets</Link>
             </div>
           </div>
         </div>
@@ -56,36 +56,36 @@ export default function HowToPlayPage() {
 
       <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
         <div className="mb-5">
-          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">The round</div>
-          <h2 className="mt-2 text-3xl font-black">Three steps explain most of the game.</h2>
+          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">The round</div>
+          <h2 className="mt-2 text-3xl font-black text-[#123b2a]">Three steps explain most of the game.</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           {flow.map((item) => (
-            <article key={item.step} className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5">
-              <div className="text-3xl font-black text-emerald-800">{item.step}</div>
-              <h3 className="mt-3 text-xl font-black text-emerald-100">{item.title}</h3>
-              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">{item.body}</p>
+            <article key={item.step} className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)]">
+              <div className="text-3xl font-black text-emerald-700">{item.step}</div>
+              <h3 className="mt-3 text-xl font-black text-[#123b2a]">{item.title}</h3>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{item.body}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section id="bets" className="border-y border-emerald-900/70 bg-black/20">
+      <section id="bets" className="border-y border-[#d8d2c2] bg-[#eee8db]">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
           <div className="mb-6 max-w-3xl">
-            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">Core bets</div>
-            <h2 className="mt-2 text-3xl font-black">Learn one wager at a time.</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">Guided lessons open directly on the live craps table where available. Other wagers still open the full table for free practice.</p>
+            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-700">Core bets</div>
+            <h2 className="mt-2 text-3xl font-black text-[#123b2a]">Learn one wager at a time.</h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">Guided lessons open directly on the live craps table where available. Other wagers still open the full table for free practice.</p>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {bets.map(([name, level, description, practice, href]) => (
-              <article key={name} className="rounded-2xl border border-emerald-900/80 bg-emerald-950/15 p-5">
+              <article key={name} className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)]">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-xl font-black">{name}</h3>
-                  <span className="shrink-0 rounded border border-amber-800/70 bg-amber-950/20 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-amber-300">{level}</span>
+                  <h3 className="text-xl font-black text-[#123b2a]">{name}</h3>
+                  <span className="shrink-0 rounded border border-amber-300 bg-amber-50 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-amber-700">{level}</span>
                 </div>
-                <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/60">{description}</p>
-                <Link href={href} className="mt-4 inline-flex items-center gap-1 text-sm font-black text-emerald-300 hover:text-white">{practice} →</Link>
+                <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{description}</p>
+                <Link href={href} className="mt-4 inline-flex items-center gap-1 text-sm font-black text-emerald-800 hover:text-emerald-950">{practice} →</Link>
               </article>
             ))}
           </div>
@@ -94,24 +94,24 @@ export default function HowToPlayPage() {
 
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_.9fr]">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-400">Table language</div>
-          <h2 className="mt-2 text-3xl font-black">Six terms worth knowing.</h2>
-          <div className="mt-5 overflow-hidden rounded-2xl border border-emerald-900/80">
+          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">Table language</div>
+          <h2 className="mt-2 text-3xl font-black text-[#123b2a]">Six terms worth knowing.</h2>
+          <div className="mt-5 overflow-hidden rounded-2xl border border-[#c6d4ca] bg-white shadow-[0_8px_24px_rgba(20,60,43,.05)]">
             {terms.map(([term, definition]) => (
-              <div key={term} className="grid gap-1 border-b border-emerald-900/50 bg-black/20 px-5 py-4 last:border-b-0 sm:grid-cols-[150px_1fr]">
-                <div className="font-black text-amber-300">{term}</div>
-                <div className="text-sm font-medium leading-6 text-emerald-50/60">{definition}</div>
+              <div key={term} className="grid gap-1 border-b border-[#d9e1dc] px-5 py-4 last:border-b-0 sm:grid-cols-[150px_1fr]">
+                <div className="font-black text-amber-700">{term}</div>
+                <div className="text-sm font-medium leading-6 text-slate-600">{definition}</div>
               </div>
             ))}
           </div>
-          <Link href="/craps/proper-bets" className="mt-4 inline-flex text-sm font-black text-amber-300 hover:text-white">
+          <Link href="/craps/proper-bets" className="mt-4 inline-flex text-sm font-black text-amber-700 hover:text-amber-900">
             Read the Proper Craps Bets guide →
           </Link>
         </div>
 
-        <div className="rounded-2xl border border-cyan-900/70 bg-cyan-950/15 p-5 sm:p-6">
-          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">First practice session</div>
-          <h2 className="mt-2 text-2xl font-black">Try this six-step progression.</h2>
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5 sm:p-6">
+          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-700">First practice session</div>
+          <h2 className="mt-2 text-2xl font-black text-[#123b2a]">Try this six-step progression.</h2>
           <ol className="mt-5 space-y-3">
             {[
               "Place a $5 Pass Line bet.",
@@ -121,9 +121,9 @@ export default function HowToPlayPage() {
               "Try a Come bet and watch it travel.",
               "Open Practice Mode and force the outcome you want to study.",
             ].map((item, index) => (
-              <li key={item} className="flex gap-3 rounded-xl border border-cyan-900/50 bg-black/20 px-4 py-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-700 text-[10px] font-black">{index + 1}</span>
-                <span className="pt-1 text-sm font-semibold leading-5 text-cyan-50/75">{item}</span>
+              <li key={item} className="flex gap-3 rounded-xl border border-sky-200 bg-white px-4 py-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-700 text-[10px] font-black text-white">{index + 1}</span>
+                <span className="pt-1 text-sm font-semibold leading-5 text-slate-700">{item}</span>
               </li>
             ))}
           </ol>
@@ -131,14 +131,14 @@ export default function HowToPlayPage() {
         </div>
       </section>
 
-      <section className="border-t border-emerald-900/70 bg-black/25">
+      <section className="border-t border-[#d8d2c2] bg-[#eee8db]">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-black">Ready for a full betting system?</h2>
-            <p className="mt-1 text-sm font-medium text-emerald-50/55">Craps Strategy Mode coaches each next move and highlights the matching table location.</p>
+            <h2 className="text-xl font-black text-[#123b2a]">Ready for a full betting system?</h2>
+            <p className="mt-1 text-sm font-medium text-slate-600">Craps Strategy Mode coaches each next move and highlights the matching table location.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/strategies" className="rounded-lg border border-cyan-700/70 bg-cyan-950/25 px-4 py-2.5 text-sm font-black text-cyan-200">Explore Craps Strategies</Link>
+            <Link href="/strategies" className="rounded-lg border border-sky-600 bg-white px-4 py-2.5 text-sm font-black text-sky-800">Explore Craps Strategies</Link>
             <Link href="/table" className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-black text-black">Open Strategy Mode</Link>
           </div>
         </div>

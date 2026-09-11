@@ -55,17 +55,17 @@ const strategies = [
 
 export default function StrategiesPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader active="learn" />
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">
+          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-700">
             Lucky Penny Gaming • Craps Strategy Mode
           </div>
-          <h1 className="mt-2 text-4xl font-black sm:text-5xl">
+          <h1 className="mt-2 text-4xl font-black text-[#0d3525] sm:text-5xl">
             Learn the sequence while you play.
           </h1>
-          <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-emerald-50/65">
+          <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-slate-700">
             Craps Strategy Mode does not promise a profitable system. It is a
             coach: choose an approach, place each wager yourself, and Lucky Penny
             Gaming will identify the next move and highlight the corresponding
@@ -77,26 +77,26 @@ export default function StrategiesPage() {
           {strategies.map((strategy) => (
             <article
               key={strategy.name}
-              className="rounded-2xl border border-cyan-900/70 bg-cyan-950/10 p-5"
+              className="rounded-2xl border border-sky-200 bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)]"
             >
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-lg font-black">{strategy.name}</h2>
-                <span className="shrink-0 rounded border border-cyan-800/70 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-cyan-300">
+                <h2 className="text-lg font-black text-[#123b2a]">{strategy.name}</h2>
+                <span className="shrink-0 rounded border border-sky-300 bg-sky-50 px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-sky-800">
                   {strategy.type}
                 </span>
               </div>
-              <p className="mt-3 text-sm font-medium leading-6 text-cyan-50/60">
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
                 {strategy.detail}
               </p>
             </article>
           ))}
         </div>
 
-        <div className="mt-8 rounded-2xl border border-amber-900/50 bg-amber-950/15 p-5">
-          <h2 className="text-xl font-black text-amber-200">
+        <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-5">
+          <h2 className="text-xl font-black text-amber-900">
             A strategy does not remove the house advantage.
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-amber-50/60">
+          <p className="mt-2 text-sm font-medium leading-6 text-amber-950/75">
             Betting systems organize decisions and can change volatility, but
             they do not make independent dice rolls predictable. Lucky Penny
             Gaming presents Strategy Mode as a learning tool, not as a guarantee

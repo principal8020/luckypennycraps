@@ -72,7 +72,7 @@ export default function ProperCrapsBetsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader active="learn" />
       <script
         type="application/ld+json"
@@ -82,21 +82,21 @@ export default function ProperCrapsBetsPage() {
       />
 
       <article>
-        <header className="border-b border-emerald-900/70 bg-[radial-gradient(circle_at_18%_10%,rgba(245,158,11,.12),transparent_34%),radial-gradient(circle_at_84%_20%,rgba(16,185,129,.1),transparent_28%)]">
+        <header className="border-b border-[#d8d2c2] bg-[radial-gradient(circle_at_18%_10%,rgba(245,158,11,.16),transparent_34%),radial-gradient(circle_at_84%_20%,rgba(16,185,129,.14),transparent_28%)]">
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
-            <Link href="/guides" className="text-xs font-black text-emerald-300 hover:text-white">
+            <Link href="/guides" className="text-xs font-black text-emerald-800 hover:text-emerald-950">
               ← All guides
             </Link>
-            <div className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-amber-300">
+            <div className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-amber-700">
               Craps • Proper bets • 7 minute read
             </div>
-            <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[1.08] sm:text-6xl">
+            <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[1.08] text-[#0d3525] sm:text-6xl">
               Why you should make your craps bets proper
             </h1>
-            <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-emerald-50/70">
+            <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-slate-700">
               A proper bet is not a compliment from the dealer. It is a wager sized so the posted odds produce a clean payout. Get the amount right and the math behaves. Get it wrong and the rounding starts nibbling at your chips.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3 text-sm font-bold text-emerald-200/55">
+            <div className="mt-6 flex flex-wrap gap-3 text-sm font-bold text-emerald-900/60">
               <span>Published September 10, 2026</span>
               <span>•</span>
               <span>Place bets • Payouts • Table minimums</span>
@@ -106,31 +106,31 @@ export default function ProperCrapsBetsPage() {
 
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0">
-            <section className="rounded-2xl border border-amber-800/60 bg-amber-950/15 p-5 sm:p-6">
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-amber-300">
+            <section className="rounded-2xl border border-amber-300 bg-[#fff8df] p-5 shadow-[0_12px_30px_rgba(21,62,43,.06)] sm:p-6">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">
                 The 20-second version
               </div>
-              <p className="mt-3 text-base font-bold leading-7 text-amber-50/80">
+              <p className="mt-3 text-base font-bold leading-7 text-amber-950/80">
                 Make Place 6 and Place 8 in multiples of $6. Make Place 4, 5, 9, and 10 in multiples of $5. At a $25 table, that means $30 each on 6 and 8, not $25.
               </p>
             </section>
 
             <section className="mt-9">
-              <h2 className="text-3xl font-black">What does “proper” mean in craps?</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-emerald-50/70">
+              <h2 className="text-3xl font-black text-[#123b2a]">What does “proper” mean in craps?</h2>
+              <p className="mt-4 text-base font-medium leading-7 text-slate-700">
                 Craps payouts are ratios. Place 6 pays 7:6, so every $6 wagered wins $7 in profit. Place 5 pays 7:5, so every $5 wins $7. A proper bet is simply an amount that fits the ratio without producing a fraction of a dollar.
               </p>
-              <p className="mt-3 text-base font-medium leading-7 text-emerald-50/70">
+              <p className="mt-3 text-base font-medium leading-7 text-slate-700">
                 The table minimum does not mean every betting box should receive that exact amount. On a $5 table, the proper starting wager on 6 or 8 is $6. That extra dollar is not the casino upselling you. For once, it is just division.
               </p>
             </section>
 
             <section className="mt-9">
-              <h2 className="text-3xl font-black">Proper Place bet amounts</h2>
-              <p className="mt-3 text-base font-medium leading-7 text-emerald-50/65">
+              <h2 className="text-3xl font-black text-[#123b2a]">Proper Place bet amounts</h2>
+              <p className="mt-3 text-base font-medium leading-7 text-slate-600">
                 These are standard Place bet payouts. “Wins” means profit; your original Place bet normally remains working on the table after a win unless you take it down.
               </p>
-              <div className="mt-5 overflow-x-auto rounded-2xl border border-emerald-900/80">
+              <div className="mt-5 overflow-x-auto rounded-2xl border border-[#b9cbbf] bg-white shadow-[0_12px_30px_rgba(21,62,43,.07)]">
                 <table className="w-full min-w-[680px] border-collapse bg-[#04140f] text-left text-sm">
                   <thead>
                     <tr className="border-b border-emerald-900/80 bg-emerald-950/45">
@@ -154,43 +154,43 @@ export default function ProperCrapsBetsPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/45">
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-500">
                 This table covers Place bets. Buy bets, lay bets, and odds use different payout and commission rules.
               </p>
             </section>
 
-            <section className="mt-9 rounded-2xl border border-red-900/60 bg-red-950/10 p-5 sm:p-6">
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-red-300">
+            <section className="mt-9 rounded-2xl border border-red-200 bg-red-50 p-5 sm:p-6">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-red-700">
                 The classic mistake
               </div>
-              <h2 className="mt-2 text-3xl font-black">Why $5 on the 6 is not the same as $6</h2>
+              <h2 className="mt-2 text-3xl font-black text-red-950">Why $5 on the 6 is not the same as $6</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-red-900/60 bg-black/20 p-5">
-                  <div className="text-sm font-black uppercase tracking-[0.1em] text-red-300">Improper: $5</div>
-                  <div className="mt-2 text-3xl font-black">$5.83 exact</div>
-                  <p className="mt-3 text-base font-medium leading-7 text-red-50/65">
+                <div className="rounded-xl border border-red-200 bg-white p-5">
+                  <div className="text-sm font-black uppercase tracking-[0.1em] text-red-700">Improper: $5</div>
+                  <div className="mt-2 text-3xl font-black text-red-950">$5.83 exact</div>
+                  <p className="mt-3 text-base font-medium leading-7 text-red-950/70">
                     The 7:6 calculation produces $5.83 in profit. Craps tables do not keep a jar of nickels and pennies beside the stickman, so house procedures determine how an improper amount is handled.
                   </p>
                 </div>
-                <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/25 p-5">
-                  <div className="text-sm font-black uppercase tracking-[0.1em] text-emerald-300">Proper: $6</div>
-                  <div className="mt-2 text-3xl font-black">$7 profit</div>
-                  <p className="mt-3 text-base font-medium leading-7 text-emerald-50/65">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                  <div className="text-sm font-black uppercase tracking-[0.1em] text-emerald-700">Proper: $6</div>
+                  <div className="mt-2 text-3xl font-black text-emerald-950">$7 profit</div>
+                  <p className="mt-3 text-base font-medium leading-7 text-emerald-950/70">
                     Six divides cleanly into the posted odds. If 6 rolls before 7, the wager wins $7 and the original $6 remains on the number.
                   </p>
                 </div>
               </div>
-              <p className="mt-4 text-base font-bold leading-7 text-red-100/65">
+              <p className="mt-4 text-base font-bold leading-7 text-red-950/70">
                 Lucky Penny rounds fractional payouts down, matching the lesson built into the simulator. A $5 Place 6 therefore wins $5, while the proper $6 wager wins $7.
               </p>
             </section>
 
             <section className="mt-9">
-              <h2 className="text-3xl font-black">Proper bets at common table minimums</h2>
-              <p className="mt-3 text-base font-medium leading-7 text-emerald-50/65">
+              <h2 className="text-3xl font-black text-[#123b2a]">Proper bets at common table minimums</h2>
+              <p className="mt-3 text-base font-medium leading-7 text-slate-600">
                 Start with the table minimum on 4, 5, 9, and 10. For 6 and 8, move up to the next standard multiple of $6.
               </p>
-              <div className="mt-5 overflow-x-auto rounded-2xl border border-emerald-900/80">
+              <div className="mt-5 overflow-x-auto rounded-2xl border border-[#b9cbbf] bg-white shadow-[0_12px_30px_rgba(21,62,43,.07)]">
                 <table className="w-full min-w-[650px] border-collapse bg-[#04140f] text-center text-sm">
                   <thead>
                     <tr className="border-b border-emerald-900/80 bg-emerald-950/45">
@@ -218,26 +218,26 @@ export default function ProperCrapsBetsPage() {
             </section>
 
             <section className="mt-9">
-              <h2 className="text-3xl font-black">What happens if your bet is improper?</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-emerald-50/70">
+              <h2 className="text-3xl font-black text-[#123b2a]">What happens if your bet is improper?</h2>
+              <p className="mt-4 text-base font-medium leading-7 text-slate-700">
                 At a live table, the dealer may suggest the correct amount, pay only the portion that divides cleanly, or follow another house procedure. Policies can vary, so ask before the roll if you are unsure. Dealers would rather fix the amount now than conduct a fractions seminar while the dice are in the air.
               </p>
-              <p className="mt-3 text-base font-medium leading-7 text-emerald-50/70">
+              <p className="mt-3 text-base font-medium leading-7 text-slate-700">
                 On Lucky Penny, payouts round down to whole practice credits. The easiest solution is the same online and at the casino: build the proper amount before rolling.
               </p>
             </section>
 
-            <section className="mt-9 rounded-2xl border border-cyan-900/70 bg-cyan-950/10 p-5 sm:p-6">
-              <h2 className="text-2xl font-black">Proper does not automatically mean smart</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-cyan-50/70">
+            <section className="mt-9 rounded-2xl border border-sky-200 bg-sky-50 p-5 sm:p-6">
+              <h2 className="text-2xl font-black text-[#123b2a]">Proper does not automatically mean smart</h2>
+              <p className="mt-4 text-base font-medium leading-7 text-slate-700">
                 Proper sizing prevents avoidable payout rounding. It does not change how often the number rolls, erase the house edge, or transform every wager into a bargain. A perfectly sized bet can still be expensive. It is simply expensive with cleaner bookkeeping.
               </p>
-              <p className="mt-3 text-base font-medium leading-7 text-cyan-50/70">
+              <p className="mt-3 text-base font-medium leading-7 text-slate-700">
                 Among Place bets, 6 and 8 carry the lowest house edge at about 1.52%. That is why they are common starting points for players learning the table.
               </p>
             </section>
 
-            <section className="mt-10 rounded-2xl border border-amber-300/50 bg-gradient-to-br from-amber-300/15 to-emerald-900/20 p-6 text-center sm:p-8">
+            <section className="mt-10 rounded-2xl border border-emerald-900 bg-gradient-to-br from-[#0d3b29] to-[#06271b] p-6 text-center text-white shadow-[0_16px_34px_rgba(7,45,31,.18)] sm:p-8">
               <h2 className="text-3xl font-black">Build a proper Place 6 and Place 8 yourself</h2>
               <p className="mx-auto mt-3 max-w-2xl text-base font-medium leading-7 text-emerald-50/70">
                 The guided lesson starts at a $5 table, helps you build $6 on both numbers, and shows the $7 payouts before demonstrating what a seven-out does to the bets.
@@ -258,19 +258,19 @@ export default function ProperCrapsBetsPage() {
             </section>
           </div>
 
-          <aside className="h-fit rounded-2xl border border-emerald-900/80 bg-black/25 p-5 lg:sticky lg:top-5">
-            <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">
+          <aside className="h-fit rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_12px_30px_rgba(21,62,43,.07)] lg:sticky lg:top-5">
+            <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
               Remember this
             </div>
-            <ul className="mt-4 space-y-3 text-base font-bold leading-6 text-emerald-50/65">
+            <ul className="mt-4 space-y-3 text-base font-bold leading-6 text-slate-700">
               <li>4 and 10: multiples of $5</li>
               <li>5 and 9: multiples of $5</li>
               <li>6 and 8: multiples of $6</li>
               <li>$5 table: bet $6 on 6 or 8</li>
               <li>$25 table: bet $30 on 6 or 8</li>
             </ul>
-            <div className="mt-6 border-t border-emerald-900/70 pt-5">
-              <p className="text-sm font-medium leading-6 text-emerald-50/45">
+            <div className="mt-6 border-t border-[#d8e0da] pt-5">
+              <p className="text-sm font-medium leading-6 text-slate-500">
                 Casino procedures and table rules can vary. Practice credits only. No real-money wagering or cash prizes.
               </p>
             </div>

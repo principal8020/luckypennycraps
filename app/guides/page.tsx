@@ -67,19 +67,19 @@ const comingNext = [
 
 export default function GuidesPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader active="learn" />
 
-      <section className="border-b border-emerald-900/70 bg-[radial-gradient(circle_at_18%_8%,rgba(16,185,129,.12),transparent_34%),radial-gradient(circle_at_84%_22%,rgba(245,158,11,.09),transparent_28%)]">
+      <section className="border-b border-[#d8d2c2] bg-[radial-gradient(circle_at_18%_8%,rgba(16,116,78,.12),transparent_34%),radial-gradient(circle_at_84%_22%,rgba(217,148,20,.13),transparent_28%)]">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
           <div className="max-w-4xl">
-            <div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-400">
+            <div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
               Lucky Penny Guides
             </div>
-            <h1 className="mt-3 text-4xl font-black leading-tight sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-black leading-tight text-[#0d3525] sm:text-5xl">
               Casino games, explained like a human is in the room.
             </h1>
-            <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-emerald-50/70 sm:text-lg">
+            <p className="mt-5 max-w-3xl text-base font-medium leading-7 text-slate-700 sm:text-lg">
               Practical rules, strategy charts, and occasional reminders that the casino did not build the chandelier with optimism alone.
             </p>
           </div>
@@ -91,23 +91,23 @@ export default function GuidesPage() {
           {guides.map((guide) => (
             <article
               key={guide.href}
-              className="flex flex-col rounded-2xl border border-emerald-900/80 bg-black/25 p-5"
+              className="flex flex-col rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.06)]"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-emerald-400">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-emerald-700">
                   {guide.game}
                 </span>
-                <span className="rounded-full border border-amber-700/60 bg-amber-950/20 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-amber-300">
+                <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-amber-700">
                   {guide.label}
                 </span>
               </div>
-              <h2 className="mt-4 text-2xl font-black">{guide.title}</h2>
-              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+              <h2 className="mt-4 text-2xl font-black text-[#123b2a]">{guide.title}</h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
                 {guide.description}
               </p>
               <Link
                 href={guide.href}
-                className="mt-auto pt-6 text-sm font-black text-amber-300 hover:text-white"
+                className="mt-auto pt-6 text-sm font-black text-amber-700 hover:text-amber-900"
               >
                 Read the guide →
               </Link>
@@ -115,15 +115,15 @@ export default function GuidesPage() {
           ))}
         </div>
 
-        <div className="mt-10 rounded-2xl border border-cyan-900/70 bg-cyan-950/10 p-5 sm:p-6">
-          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">
+        <div className="mt-10 rounded-2xl border border-sky-200 bg-sky-50 p-5 sm:p-6">
+          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-800">
             Coming next
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {comingNext.map((title) => (
               <div
                 key={title}
-                className="rounded-xl border border-cyan-900/60 bg-black/20 px-4 py-3 text-sm font-bold text-cyan-50/70"
+                className="rounded-xl border border-sky-200 bg-white px-4 py-3 text-sm font-bold text-slate-700"
               >
                 {title}
               </div>

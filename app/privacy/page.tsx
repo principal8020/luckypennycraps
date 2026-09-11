@@ -10,36 +10,36 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader />
 
       <section className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
-        <div className="inline-flex rounded-full border border-emerald-700/70 bg-emerald-950/40 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
+        <div className="inline-flex rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
           Privacy
         </div>
 
-        <h1 className="mt-4 text-4xl font-black sm:text-5xl">
+        <h1 className="mt-4 text-4xl font-black text-[#0d3525] sm:text-5xl">
           Privacy Policy
         </h1>
-        <p className="mt-3 text-sm font-medium text-emerald-100/45">
+        <p className="mt-3 text-sm font-medium text-slate-500">
           Last updated September 10, 2026
         </p>
 
         <div className="mt-8 space-y-5">
-          <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
-            <h2 className="text-xl font-black text-amber-300">
+          <section className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)] sm:p-6">
+            <h2 className="text-xl font-black text-amber-700">
               What Lucky Penny Gaming is
             </h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               Lucky Penny Gaming is an educational practice experience for casino
               games. It uses practice credits only and does not accept real-money
               wagers, deposits, or cash-out requests.
             </p>
           </section>
 
-          <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
-            <h2 className="text-xl font-black">Information you choose to provide</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+          <section className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)] sm:p-6">
+            <h2 className="text-xl font-black text-[#123b2a]">Information you choose to provide</h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               The Feedback & Suggestions page lets you provide a message and,
               optionally, an email address if you want a reply. At this stage,
               submitting feedback opens your device&apos;s email application with
@@ -48,9 +48,9 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
-            <h2 className="text-xl font-black">Technical information</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+          <section className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)] sm:p-6">
+            <h2 className="text-xl font-black text-[#123b2a]">Technical information</h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               Like most websites, the hosting and infrastructure services used to
               operate Lucky Penny Gaming may process limited technical information
               such as IP address, browser type, device information, request logs,
@@ -58,9 +58,9 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
-            <h2 className="text-xl font-black">Cookies, analytics, and advertising</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+          <section className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)] sm:p-6">
+            <h2 className="text-xl font-black text-[#123b2a]">Cookies, analytics, and advertising</h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               Lucky Penny Gaming uses Vercel Web Analytics to understand site
               traffic, including pages viewed, referring sites, general device
               and browser information, and approximate geographic information.
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
               Core Web Vitals. We use this information to improve the site and
               do not use it to identify individual visitors.
             </p>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               Lucky Penny Gaming does not currently use advertising cookies or
               sell personal information. If advertising, accounts, payments, or
               other features materially change how information is collected or
@@ -76,18 +76,18 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
-            <h2 className="text-xl font-black">Children</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+          <section className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)] sm:p-6">
+            <h2 className="text-xl font-black text-[#123b2a]">Children</h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               Lucky Penny Gaming is intended as a casino-game education and
               practice product, not a real-money gambling service. The site is not
               designed to knowingly collect personal information from children.
             </p>
           </section>
 
-          <section className="rounded-2xl border border-emerald-900/80 bg-black/25 p-5 sm:p-6">
-            <h2 className="text-xl font-black">Questions or privacy requests</h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
+          <section className="rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_8px_24px_rgba(20,60,43,.05)] sm:p-6">
+            <h2 className="text-xl font-black text-[#123b2a]">Questions or privacy requests</h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
               If you have a privacy question, use the Feedback & Suggestions page
               and choose Question. If you include an email address, we can reply.
             </p>

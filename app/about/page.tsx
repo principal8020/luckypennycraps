@@ -11,16 +11,16 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader active="about" />
       <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8">
-        <div className="rounded-3xl border border-emerald-900/80 bg-black/25 p-6 sm:p-9">
-          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+        <div className="rounded-3xl border border-[#c6d4ca] bg-white p-6 shadow-[0_12px_32px_rgba(20,60,43,.07)] sm:p-9">
+          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-700">
             About
           </div>
-          <h1 className="mt-2 text-4xl font-black">Why Lucky Penny Gaming exists</h1>
+          <h1 className="mt-2 text-4xl font-black text-[#0d3525]">Why Lucky Penny Gaming exists</h1>
 
-          <div className="mt-6 space-y-5 text-base font-medium leading-7 text-emerald-50/70">
+          <div className="mt-6 space-y-5 text-base font-medium leading-7 text-slate-700">
             <p>
               Casino games can be intimidating to learn in a live setting. The
               rules, terminology, table layouts, and betting decisions can move
@@ -50,17 +50,17 @@ export default function AboutPage() {
             ].map(([title, body]) => (
               <div
                 key={title}
-                className="rounded-xl border border-emerald-900/70 bg-emerald-950/20 p-4"
+                className="rounded-xl border border-[#c6d4ca] bg-[#f8faf8] p-4"
               >
-                <div className="font-black text-amber-300">{title}</div>
-                <p className="mt-2 text-sm leading-6 text-emerald-50/60">
+                <div className="font-black text-amber-700">{title}</div>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
                   {body}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-xl border border-amber-900/50 bg-amber-950/15 p-4 text-sm leading-6 text-amber-100/70">
+          <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-950/75">
             Lucky Penny Gaming uses practice credits only. It does not accept
             real-money wagers or award cash prizes.
           </div>
