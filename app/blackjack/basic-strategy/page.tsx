@@ -51,10 +51,10 @@ const pairs = [
 ];
 
 const actionStyles: Record<string, string> = {
-  H: "bg-sky-400/15 text-sky-200",
-  S: "bg-emerald-400/15 text-emerald-200",
-  D: "bg-amber-300/15 text-amber-200",
-  P: "bg-violet-400/15 text-violet-200",
+  H: "bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-300",
+  S: "bg-emerald-100 text-emerald-900 ring-1 ring-inset ring-emerald-300",
+  D: "bg-amber-100 text-amber-950 ring-1 ring-inset ring-amber-300",
+  P: "bg-violet-100 text-violet-900 ring-1 ring-inset ring-violet-300",
 };
 
 function StrategyTable({
@@ -68,11 +68,11 @@ function StrategyTable({
 }) {
   return (
     <section className="mt-9 scroll-mt-24">
-      <h2 className="text-2xl font-black">{title}</h2>
-      <p className="mt-2 text-sm font-medium leading-6 text-emerald-50/60">
+      <h2 className="text-2xl font-black text-[#123b2a]">{title}</h2>
+      <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
         {subtitle}
       </p>
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-emerald-900/80">
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-[#b9cbbf] bg-white shadow-[0_12px_30px_rgba(20,60,43,.08)]">
         <table className="w-full min-w-[680px] border-collapse bg-[#04140f] text-center text-sm">
           <thead>
             <tr className="border-b border-emerald-900/80 bg-emerald-950/45">
@@ -142,7 +142,7 @@ export default function BlackjackBasicStrategyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#03130e] text-white">
+    <main className="min-h-screen bg-[#f6f2e8] text-[#17392b]">
       <SiteHeader active="learn" />
       <script
         type="application/ld+json"
@@ -152,21 +152,21 @@ export default function BlackjackBasicStrategyPage() {
       />
 
       <article>
-        <header className="border-b border-emerald-900/70 bg-[radial-gradient(circle_at_16%_8%,rgba(16,185,129,.13),transparent_34%),radial-gradient(circle_at_86%_18%,rgba(245,158,11,.09),transparent_27%)]">
+        <header className="border-b border-[#d8d2c2] bg-[radial-gradient(circle_at_16%_8%,rgba(16,116,78,.12),transparent_34%),radial-gradient(circle_at_86%_18%,rgba(217,148,20,.13),transparent_27%)]">
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
-            <Link href="/guides" className="text-xs font-black text-emerald-300 hover:text-white">
+            <Link href="/guides" className="text-xs font-black text-emerald-800 hover:text-emerald-950">
               ← All guides
             </Link>
-            <div className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+            <div className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-amber-700">
               Blackjack • Basic Strategy • 8 minute read
             </div>
-            <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[1.08] sm:text-6xl">
+            <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[1.08] text-[#0d3525] sm:text-6xl">
               Blackjack basic strategy: the boring cheat code that isn&apos;t cheating
             </h1>
-            <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-emerald-50/70">
+            <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-slate-700">
               Your gut is charming. It is also terrible at blackjack. Here is the chart that tells you when to hit, stand, double, or split without requiring a math degree or a tiny green visor.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3 text-xs font-bold text-emerald-200/55">
+            <div className="mt-6 flex flex-wrap gap-3 text-xs font-bold text-emerald-900/60">
               <span>Updated September 9, 2026</span>
               <span>•</span>
               <span>6 decks • Dealer stands on soft 17 • Double after split</span>
@@ -176,26 +176,26 @@ export default function BlackjackBasicStrategyPage() {
 
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0">
-            <section className="rounded-2xl border border-amber-800/60 bg-amber-950/15 p-5 sm:p-6">
-              <div className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">
+            <section className="rounded-2xl border border-amber-300 bg-[#fff8df] p-5 shadow-[0_10px_28px_rgba(122,79,7,.07)] sm:p-6">
+              <div className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">
                 The 30-second version
               </div>
-              <p className="mt-3 text-base font-bold leading-7 text-amber-50/80">
+              <p className="mt-3 text-base font-bold leading-7 text-amber-950/80">
                 Basic strategy is the mathematically preferred decision for your hand against the dealer&apos;s visible card. It does not predict the next card, summon good luck, or make the gentleman yelling “monkey!” at the table any less confusing.
               </p>
             </section>
 
             <section className="mt-9">
-              <h2 className="text-2xl font-black">First, identify the hand you actually have</h2>
+              <h2 className="text-2xl font-black text-[#123b2a]">First, identify the hand you actually have</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {[
                   ["Hard hand", "No ace counted as 11. A hard 16 is simply 16, wearing no protective equipment."],
                   ["Soft hand", "An ace is currently counted as 11. You can often draw once without busting."],
                   ["Pair", "Your first two cards have the same value and may be eligible to split."],
                 ].map(([title, body]) => (
-                  <div key={title} className="rounded-xl border border-emerald-900/80 bg-black/25 p-4">
-                    <h3 className="font-black text-emerald-200">{title}</h3>
-                    <p className="mt-2 text-sm font-medium leading-6 text-emerald-50/60">{body}</p>
+                  <div key={title} className="rounded-xl border border-[#c6d4ca] bg-white p-4 shadow-[0_8px_22px_rgba(20,60,43,.06)]">
+                    <h3 className="font-black text-emerald-800">{title}</h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{body}</p>
                   </div>
                 ))}
               </div>
@@ -232,17 +232,17 @@ export default function BlackjackBasicStrategyPage() {
               rows={pairs}
             />
 
-            <section className="mt-9 rounded-2xl border border-cyan-900/70 bg-cyan-950/10 p-5 sm:p-6">
-              <h2 className="text-2xl font-black">Three footnotes that prevent table-side panic</h2>
-              <ol className="mt-4 space-y-3 text-sm font-medium leading-6 text-cyan-50/70">
-                <li><strong className="text-white">1. Double:</strong> On hard 9–11 and soft 13–17, hit if doubling is unavailable. On soft 18, stand instead.</li>
-                <li><strong className="text-white">2. Split:</strong> If splitting is unavailable, play the cards using their combined hard or soft total.</li>
-                <li><strong className="text-white">3. Table rules matter:</strong> This chart matches Lucky Penny Blackjack: six decks, dealer stands on soft 17, double after split, and no surrender.</li>
+            <section className="mt-9 rounded-2xl border border-sky-200 bg-sky-50 p-5 shadow-[0_10px_28px_rgba(14,116,144,.06)] sm:p-6">
+              <h2 className="text-2xl font-black text-[#123b2a]">Three footnotes that prevent table-side panic</h2>
+              <ol className="mt-4 space-y-3 text-sm font-medium leading-6 text-slate-700">
+                <li><strong className="text-sky-950">1. Double:</strong> On hard 9–11 and soft 13–17, hit if doubling is unavailable. On soft 18, stand instead.</li>
+                <li><strong className="text-sky-950">2. Split:</strong> If splitting is unavailable, play the cards using their combined hard or soft total.</li>
+                <li><strong className="text-sky-950">3. Table rules matter:</strong> This chart matches Lucky Penny Blackjack: six decks, dealer stands on soft 17, double after split, and no surrender.</li>
               </ol>
             </section>
 
             <section className="mt-9">
-              <h2 className="text-2xl font-black">The four decisions worth memorizing first</h2>
+              <h2 className="text-2xl font-black text-[#123b2a]">The four decisions worth memorizing first</h2>
               <div className="mt-4 space-y-3">
                 {[
                   ["Split aces and eights", "Aces create two chances at a strong starting hand. Two eights turn an unpleasant 16 into two fresh starts."],
@@ -250,20 +250,20 @@ export default function BlackjackBasicStrategyPage() {
                   ["Stand on 12–16 against a dealer 4–6", "Let the dealer take the bust risk. Sometimes the bold move is sitting very still."],
                   ["Hit 12–16 against a dealer 7–A", "The dealer is showing strength, so waiting politely usually does not improve the situation."],
                 ].map(([title, body], index) => (
-                  <div key={title} className="flex gap-4 rounded-xl border border-emerald-900/75 bg-black/20 p-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-black">{index + 1}</span>
+                  <div key={title} className="flex gap-4 rounded-xl border border-[#c6d4ca] bg-white p-4 shadow-[0_8px_22px_rgba(20,60,43,.05)]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-black text-white">{index + 1}</span>
                     <div>
-                      <h3 className="font-black">{title}</h3>
-                      <p className="mt-1 text-sm font-medium leading-6 text-emerald-50/60">{body}</p>
+                      <h3 className="font-black text-[#123b2a]">{title}</h3>
+                      <p className="mt-1 text-sm font-medium leading-6 text-slate-600">{body}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section className="mt-10 rounded-2xl border border-amber-300/50 bg-gradient-to-br from-amber-300/15 to-emerald-900/20 p-6 text-center sm:p-8">
+            <section className="mt-10 rounded-2xl border border-emerald-800 bg-gradient-to-br from-[#0d3b29] to-[#06271b] p-6 text-center text-white shadow-[0_16px_38px_rgba(9,50,34,.22)] sm:p-8">
               <h2 className="text-3xl font-black">Now make the decisions yourself</h2>
-              <p className="mx-auto mt-3 max-w-2xl text-sm font-medium leading-6 text-emerald-50/70">
+              <p className="mx-auto mt-3 max-w-2xl text-sm font-medium leading-6 text-emerald-50/75">
                 Open the free table, turn on Strategy Coach, and play complete hands. The chart is useful. Using it until the decisions feel obvious is better.
               </p>
               <Link
@@ -280,19 +280,19 @@ export default function BlackjackBasicStrategyPage() {
             </section>
           </div>
 
-          <aside className="h-fit rounded-2xl border border-emerald-900/80 bg-black/25 p-5 lg:sticky lg:top-5">
-            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-400">
+          <aside className="h-fit rounded-2xl border border-[#c6d4ca] bg-white p-5 shadow-[0_12px_30px_rgba(20,60,43,.07)] lg:sticky lg:top-5">
+            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
               In this guide
             </div>
-            <ul className="mt-4 space-y-3 text-sm font-bold text-emerald-50/65">
+            <ul className="mt-4 space-y-3 text-sm font-bold text-slate-700">
               <li>Hard totals</li>
               <li>Soft totals</li>
               <li>Pair splitting</li>
               <li>Doubling fallbacks</li>
               <li>Four rules to memorize</li>
             </ul>
-            <div className="mt-6 border-t border-emerald-900/70 pt-5">
-              <p className="text-xs font-medium leading-5 text-emerald-50/45">
+            <div className="mt-6 border-t border-[#d9e1dc] pt-5">
+              <p className="text-xs font-medium leading-5 text-slate-500">
                 Basic strategy improves decisions; it does not guarantee a win. Practice credits only. No real-money wagering or cash prizes.
               </p>
             </div>
