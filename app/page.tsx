@@ -33,12 +33,12 @@ const games = [
     live: true,
   },
   {
-    eyebrow: "PLANNED",
+    eyebrow: "PLAY NOW",
     title: "Baccarat",
-    body: "Practice Player, Banker, and Tie betting while learning drawing rules and table flow.",
-    href: "#",
-    cta: "Coming Soon",
-    live: false,
+    body: "Practice Player, Banker, and Tie bets with standard automatic drawing rules, realistic commission, Learn Mode, and detailed hand history.",
+    href: "/baccarat",
+    cta: "Play Baccarat",
+    live: true,
   },
 ];
 
@@ -57,6 +57,11 @@ const featuredGames = [
     title: "Roulette",
     body: "American wheel, inside and outside bets, Learn Mode, and detailed spin history.",
     href: "/roulette",
+  },
+  {
+    title: "Baccarat",
+    body: "Standard Punto Banco, automatic draw rules, three core bets, and a guided Learn Mode.",
+    href: "/baccarat",
   },
 ];
 
@@ -78,8 +83,9 @@ export default function Home() {
         <div>
           <div className="mb-4 inline-flex rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">Casino games built for practice and learning</div>
           <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-tight text-[#0d3525] sm:text-6xl">Learn casino games by <span className="text-amber-600">actually playing them.</span></h1>
-          <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-slate-700 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps, blackjack, and American roulette are ready to play now, with baccarat and more planned next.</p>
+          <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-slate-700 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps, blackjack, American roulette, and baccarat are ready to play now, with more planned next.</p>
           <div className="mt-7 flex flex-wrap gap-3">
+            <Link href="/baccarat" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Baccarat</Link>
             <Link href="/roulette" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Roulette</Link>
             <Link href="/blackjack" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Blackjack</Link>
             <Link href="/table" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Craps</Link>
@@ -104,12 +110,12 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {featuredGames.map((game) => (
               <Link
                 key={game.title}
                 href={game.href}
-                className="group flex min-h-[205px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-4 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
+                className="group flex min-h-[180px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-4 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
               >
                 <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-400">
                   Play now
@@ -157,7 +163,7 @@ export default function Home() {
 
       <section className="border-t border-[#d8d2c2] bg-[#eee8db]"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-10 sm:px-8 md:flex-row md:items-center md:justify-between"><div><div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Help us build it</div><h2 className="mt-2 text-2xl font-black text-[#123b2a]">Have an idea for Lucky Penny Gaming?</h2><p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">Report a bug, request a game, or tell us what would make the practice experience better.</p></div><Link href="/feedback" className="shrink-0 rounded-xl bg-amber-400 px-5 py-3 font-black text-black">Send Feedback</Link></div></section>
 
-      <footer className="border-t border-emerald-900/70 bg-black/30"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-emerald-100/45 sm:px-8 md:flex-row md:items-center md:justify-between"><div><div className="font-black text-emerald-100/75">Lucky Penny Gaming</div><div className="mt-1">Educational practice experience. Practice credits have no cash value.</div></div><div className="flex flex-wrap gap-4 font-bold"><Link href="/roulette" className="hover:text-white">Play Roulette</Link><Link href="/blackjack" className="hover:text-white">Play Blackjack</Link><Link href="/guides" className="hover:text-white">Guides</Link><Link href="/how-to-play" className="hover:text-white">Learn Craps</Link><Link href="/strategies" className="hover:text-white">Craps Strategies</Link><Link href="/feedback" className="hover:text-white">Feedback</Link><Link href="/privacy" className="hover:text-white">Privacy</Link><Link href="/about" className="hover:text-white">About</Link></div></div></footer>
+      <footer className="border-t border-emerald-900/70 bg-black/30"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-emerald-100/45 sm:px-8 md:flex-row md:items-center md:justify-between"><div><div className="font-black text-emerald-100/75">Lucky Penny Gaming</div><div className="mt-1">Educational practice experience. Practice credits have no cash value.</div></div><div className="flex flex-wrap gap-4 font-bold"><Link href="/baccarat" className="hover:text-white">Play Baccarat</Link><Link href="/roulette" className="hover:text-white">Play Roulette</Link><Link href="/blackjack" className="hover:text-white">Play Blackjack</Link><Link href="/guides" className="hover:text-white">Guides</Link><Link href="/how-to-play" className="hover:text-white">Learn Craps</Link><Link href="/strategies" className="hover:text-white">Craps Strategies</Link><Link href="/feedback" className="hover:text-white">Feedback</Link><Link href="/privacy" className="hover:text-white">Privacy</Link><Link href="/about" className="hover:text-white">About</Link></div></div></footer>
     </main>
   );
 }

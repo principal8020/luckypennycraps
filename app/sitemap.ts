@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "", changeFrequency: "weekly", priority: 1 },
     { path: "/blackjack", changeFrequency: "weekly", priority: 0.9 },
     { path: "/roulette", changeFrequency: "weekly", priority: 0.9 },
+    { path: "/baccarat", changeFrequency: "weekly", priority: 0.9 },
     {
       path: "/roulette/how-to-play",
       changeFrequency: "monthly",

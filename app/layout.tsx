@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | Lucky Penny Gaming",
   },
   description:
-    "Practice casino games by actually playing them. Play and learn craps, blackjack, and American roulette at Lucky Penny Gaming.",
+    "Practice casino games by actually playing them. Play and learn craps, blackjack, American roulette, and baccarat at Lucky Penny Gaming.",
   applicationName: "Lucky Penny Gaming",
   category: "education",
   keywords: [
@@ -31,6 +31,8 @@ export const metadata: Metadata = {
     "craps practice",
     "American roulette practice",
     "how to play American roulette",
+    "free baccarat practice",
+    "learn baccarat",
     "casino game simulator",
   ],
   openGraph: {
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Lucky Penny Gaming",
     title: "Lucky Penny Gaming | Learn Casino Games by Playing",
     description:
-      "Free casino-game practice tables, plain-English guides, and strategy coaching for craps, blackjack, and American roulette.",
+      "Free casino-game practice tables, plain-English guides, and strategy coaching for craps, blackjack, American roulette, and baccarat.",
     url: "/",
     images: [
       {
@@ -54,7 +56,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Lucky Penny Gaming | Learn Casino Games by Playing",
     description:
-      "Free craps, blackjack, and American roulette practice tables with practical guides and strategy coaching.",
+      "Free craps, blackjack, American roulette, and baccarat practice tables with practical guides and strategy coaching.",
     images: ["/lucky-penny-dogs-logo.png"],
   },
 };
@@ -66,7 +68,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     name: "Lucky Penny Gaming",
     url: "https://luckypennygaming.com",
     description:
-      "Free casino-game practice tables, guides, and strategy coaching for craps, blackjack, and American roulette.",
+      "Free casino-game practice tables, guides, and strategy coaching for craps, blackjack, American roulette, and baccarat.",
   };
 
   return (

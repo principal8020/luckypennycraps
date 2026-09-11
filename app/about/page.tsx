@@ -30,7 +30,7 @@ export default function AboutPage() {
             <p>
               Lucky Penny Gaming is being built as a practice-first way to learn
               by actually playing. Craps is the first full simulator, with
-              blackjack, roulette, baccarat, and other casino games planned over
+              blackjack, roulette, and baccarat, with other casino games planned over
               time.
             </p>
 
