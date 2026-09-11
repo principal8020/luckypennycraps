@@ -70,6 +70,46 @@ test("Hop payouts", () => {
   assert.equal(rules.calculateHopProfit(3, 4, 5), 75);
 });
 
+test("roll highlights show a box number and its exact Hop combination", () => {
+  assert.deepEqual(rules.getRollHighlightTargets(2, 3, 5, 6), [
+    { area: "box", key: "5" },
+    { area: "prop", key: "hop-2-3" },
+  ]);
+});
+
+test("hardway roll highlights the box, exact Hop and Hardway", () => {
+  assert.deepEqual(rules.getRollHighlightTargets(4, 4, 8, 6), [
+    { area: "box", key: "8" },
+    { area: "prop", key: "hop-4-4" },
+    { area: "hardway", key: "8" },
+  ]);
+});
+
+test("seven highlights the correct contract line for the puck state", () => {
+  assert.deepEqual(rules.getRollHighlightTargets(3, 4, 7, null), [
+    { area: "pass", key: "pass" },
+    { area: "prop", key: "any-seven" },
+    { area: "prop", key: "world" },
+  ]);
+
+  assert.deepEqual(rules.getRollHighlightTargets(3, 4, 7, 6), [
+    { area: "dontPass", key: "dont-pass" },
+    { area: "prop", key: "any-seven" },
+    { area: "prop", key: "world" },
+  ]);
+});
+
+test("craps and eleven highlight their winning one-roll areas", () => {
+  const twoTargets = rules.getRollHighlightTargets(1, 1, 2, null);
+  const elevenTargets = rules.getRollHighlightTargets(5, 6, 11, 8);
+
+  assert.equal(twoTargets.some((target) => target.key === "2"), true);
+  assert.equal(twoTargets.some((target) => target.key === "any-craps"), true);
+  assert.equal(twoTargets.some((target) => target.key === "horn"), true);
+  assert.equal(elevenTargets.some((target) => target.key === "yo"), true);
+  assert.equal(elevenTargets.some((target) => target.key === "ce"), true);
+});
+
 test("Quick Bet proper 6/8 sizing", () => {
   assert.equal(rules.properSixEightAmount(5), 6);
   assert.equal(rules.properSixEightAmount(10), 12);
@@ -234,4 +274,3 @@ test("roll net measures equity change rather than gross bankroll movement", () =
 test("roll net is zero when a wager only moves between bankroll and table", () => {
   assert.equal(rules.calculateRollNet(5000, 5000), 0);
 });
-

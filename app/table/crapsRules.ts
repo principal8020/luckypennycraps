@@ -1,9 +1,76 @@
 export type NumberBets = Record<number, number>;
 
+export type RollHighlightArea =
+  | "box"
+  | "hardway"
+  | "prop"
+  | "pass"
+  | "dontPass";
+
+export type RollHighlightTarget = {
+  area: RollHighlightArea;
+  key: string;
+};
+
 export type ComeOutResult = "win" | "lose" | "push" | "point" | "none";
 
 export function casinoPayout(amount: number) {
   return Math.floor(amount);
+}
+
+export function getRollHighlightTargets(
+  first: number,
+  second: number,
+  total: number,
+  pointBeforeRoll: number | null
+) {
+  const targets: RollHighlightTarget[] = [];
+  const seen = new Set<string>();
+
+  function add(area: RollHighlightArea, key: string) {
+    const id = `${area}:${key}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    targets.push({ area, key });
+  }
+
+  if ([4, 5, 6, 8, 9, 10].includes(total)) {
+    const lowDie = Math.min(first, second);
+    const highDie = Math.max(first, second);
+
+    add("box", String(total));
+    add("prop", `hop-${lowDie}-${highDie}`);
+
+    if (first === second && [4, 6, 8, 10].includes(total)) {
+      add("hardway", String(total));
+    }
+  }
+
+  if ([2, 3, 11, 12].includes(total)) {
+    add("prop", total === 11 ? "yo" : String(total));
+    add("prop", "horn");
+    add("prop", "world");
+    add("prop", "ce");
+
+    if (total !== 11) {
+      add("prop", "any-craps");
+    }
+
+    for (const hornHigh of [2, 3, 11, 12]) {
+      add("prop", `horn-high-${hornHigh}`);
+    }
+  }
+
+  if (total === 7) {
+    add(
+      pointBeforeRoll === null ? "pass" : "dontPass",
+      pointBeforeRoll === null ? "pass" : "dont-pass"
+    );
+    add("prop", "any-seven");
+    add("prop", "world");
+  }
+
+  return targets;
 }
 
 export function getPassOddsMultiplier(number: number) {
@@ -367,4 +434,3 @@ export function calculateRollNet(
 ) {
   return casinoPayout(equityAfterRoll - equityBeforeRoll);
 }
-

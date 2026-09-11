@@ -21,6 +21,7 @@ import {
   casinoPayout,
   getPassOddsMultiplier,
   getPlaceBetMax,
+  getRollHighlightTargets,
   isBetWorking,
   layOddsLabel,
   passOddsLabel,
@@ -30,6 +31,8 @@ import {
   resolveTraveledComeBet,
   resolveTraveledDontComeBet,
   resolveWorldNetProfit,
+  type RollHighlightArea,
+  type RollHighlightTarget,
 } from "./crapsRules";
 import { BetChip, MiniDie } from "./components/TablePieces";
 import type {
@@ -62,6 +65,8 @@ import {
 } from "./components/LearnMode";
 
 const STARTING_BANKROLL = 5000;
+const ROLL_HIGHLIGHT_DURATION_MS = 2000;
+const ROLL_OUTCOME_DURATION_MS = 2550;
 const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 const pointNumbers = [4, 5, 6, 8, 9, 10];
 const hardwayNumbers = [4, 6, 8, 10];
@@ -141,6 +146,8 @@ type ResolutionFlash = {
   key: string;
   result: "win" | "loss";
 };
+
+type TableHighlightArea = ResolutionFlash["area"] | RollHighlightArea;
 
 type RollOutcome = {
   id: number;
@@ -346,6 +353,8 @@ export default function TablePage() {
     useState<TravelAnimation | null>(null);
   const [resolutionFlashes, setResolutionFlashes] =
     useState<ResolutionFlash[]>([]);
+  const [rollHighlights, setRollHighlights] =
+    useState<RollHighlightTarget[]>([]);
   const [rollOutcome, setRollOutcome] = useState<RollOutcome | null>(null);
   const [quickBetPreview, setQuickBetPreview] =
     useState<QuickBetPreview | null>(null);
@@ -451,7 +460,17 @@ export default function TablePage() {
     }, 850);
   }
 
-  function flashClass(area: ResolutionFlash["area"], key: string) {
+  function flashClass(area: TableHighlightArea, key: string) {
+    if (
+      rollHighlights.some(
+        (target) => target.area === area && target.key === key
+      )
+    ) {
+      return "lucky-roll-highlight";
+    }
+
+    if (area === "box") return "";
+
     const flash = resolutionFlashes.find(
       (item) => item.area === area && item.key === key
     );
@@ -469,11 +488,12 @@ export default function TablePage() {
   }
 
   function classifyRollEvent(
-    total: number
+    total: number,
+    pointAtRoll: number | null = point
   ): RollHistoryItem["event"] {
-    if (point !== null && total === point) return "pointMade";
-    if (point !== null && total === 7) return "sevenOut";
-    if (point === null && pointNumbers.includes(total)) return "pointSet";
+    if (pointAtRoll !== null && total === pointAtRoll) return "pointMade";
+    if (pointAtRoll !== null && total === 7) return "sevenOut";
+    if (pointAtRoll === null && pointNumbers.includes(total)) return "pointSet";
     return "normal";
   }
 
@@ -647,7 +667,7 @@ export default function TablePage() {
         setRollOutcome((current) =>
           current?.id === outcomeId ? null : current
         );
-      }, 1550);
+      }, ROLL_OUTCOME_DURATION_MS);
     }
 
     const rollDetails = pendingRollDetailsRef.current;
@@ -2181,7 +2201,6 @@ export default function TablePage() {
     if (!bet) return null;
 
     const profit = calculatePlaceProfit(total, bet);
-    flashOutcome("place", String(total), "win");
     setBankroll((current) => current + profit);
     return `Place ${total} wins $${money(profit)}. Bet stays up.`;
   }
@@ -3039,11 +3058,16 @@ export default function TablePage() {
       return;
     }
 
+    const pointBeforeRoll = point;
+    const hopBetsWereOpen = hopBetsOpen;
     rollStartEquityRef.current = bankroll + totalOnTable;
     pendingRollNumberRef.current = rollCount + 1;
     pendingRollDetailsRef.current = [];
 
     setIsRolling(true);
+    setRollOutcome(null);
+    setResolutionFlashes([]);
+    setRollHighlights([]);
     setTravelAnimation(null);
     setLastRollBets(captureBetSnapshot());
     setLastBetSnapshot(null);
@@ -3118,8 +3142,31 @@ export default function TablePage() {
 
     await new Promise((resolve) => setTimeout(resolve, 120));
 
-    const rollEvent = classifyRollEvent(total);
-    const pointBeforeRoll = point;
+    if (pointNumbers.includes(total)) {
+      setHopBetsOpen(true);
+    }
+
+    setRollHighlights(
+      getRollHighlightTargets(
+        finalFirst,
+        finalSecond,
+        total,
+        pointBeforeRoll
+      )
+    );
+    setMessage(`${total} rolled. Reading the table...`);
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, ROLL_HIGHLIGHT_DURATION_MS)
+    );
+
+    setRollHighlights([]);
+
+    if (pointNumbers.includes(total) && !hopBetsWereOpen) {
+      setHopBetsOpen(false);
+    }
+
+    const rollEvent = classifyRollEvent(total, pointBeforeRoll);
 
     setRollCount((current) => current + 1);
     setRollHistory((current) => [
@@ -3502,6 +3549,27 @@ export default function TablePage() {
           z-index: 35;
         }
 
+        @keyframes luckyRollHighlight {
+          0%, 100% {
+            box-shadow: inset 0 0 0 3px rgba(253, 224, 71, .78), inset 0 0 18px rgba(250, 204, 21, .2);
+            filter: brightness(1.08);
+          }
+          22%, 78% {
+            box-shadow: inset 0 0 0 4px rgba(254, 240, 138, 1), inset 0 0 34px rgba(250, 204, 21, .48), 0 0 24px rgba(250, 204, 21, .72);
+            filter: brightness(1.3);
+          }
+          50% {
+            box-shadow: inset 0 0 0 5px rgba(255, 251, 235, 1), inset 0 0 40px rgba(250, 204, 21, .58), 0 0 32px rgba(250, 204, 21, .88);
+            filter: brightness(1.4);
+          }
+        }
+
+        .lucky-roll-highlight {
+          animation: luckyRollHighlight 2000ms ease-in-out both;
+          position: relative;
+          z-index: 60 !important;
+        }
+
         .lucky-win-flash::after,
         .lucky-loss-flash::after {
           content: "";
@@ -3575,11 +3643,11 @@ export default function TablePage() {
         }
 
         .lucky-roll-outcome {
-          animation: luckyOutcomePop 1550ms cubic-bezier(.18,.9,.22,1) both;
+          animation: luckyOutcomePop 2550ms cubic-bezier(.18,.9,.22,1) both;
         }
 
         .lucky-outcome-wash {
-          animation: luckyOutcomeWash 1550ms ease-out both;
+          animation: luckyOutcomeWash 2550ms ease-out both;
         }
 
         .lucky-outcome-ring {
@@ -3604,6 +3672,12 @@ export default function TablePage() {
           .lucky-outcome-wash,
           .lucky-outcome-ring {
             animation-duration: 1ms !important;
+          }
+
+          .lucky-roll-highlight {
+            animation: none !important;
+            box-shadow: inset 0 0 0 4px rgba(254, 240, 138, 1), inset 0 0 28px rgba(250, 204, 21, .42);
+            filter: brightness(1.22);
           }
         }
       `}</style>
@@ -3647,7 +3721,9 @@ export default function TablePage() {
             {/* FELT */}
             <div
               onPointerDownCapture={rememberUndo}
-              className="overflow-hidden rounded-[32px] border-[12px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_24px_60px_rgba(0,0,0,.62),inset_0_0_0_3px_rgba(214,166,72,.28),inset_0_0_0_7px_rgba(45,18,4,.34),inset_0_0_28px_rgba(0,0,0,.28)]"
+              className={`overflow-hidden rounded-[32px] border-[12px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_24px_60px_rgba(0,0,0,.62),inset_0_0_0_3px_rgba(214,166,72,.28),inset_0_0_0_7px_rgba(45,18,4,.34),inset_0_0_28px_rgba(0,0,0,.28)] ${
+                isRolling ? "pointer-events-none" : ""
+              }`}
             >
           <div
             className="relative border-[4px] border-[#cfbd8c]/72 bg-[#075f3d] p-2 sm:p-3"
@@ -3730,7 +3806,10 @@ export default function TablePage() {
                             (number === 6 || number === 8)))
                           ? "outline outline-[5px] outline-cyan-300 outline-offset-[-5px] shadow-[0_0_34px_rgba(34,211,238,.82)]"
                           : ""
-                      } ${quickPreviewNumberClass(number)}`}
+                      } ${quickPreviewNumberClass(number)} ${flashClass(
+                        "box",
+                        String(number)
+                      )}`}
                     >
                       {point === number && (
                         <div
@@ -3975,7 +4054,7 @@ export default function TablePage() {
                       >
                         COME
                       </span>
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2">
                         <BetChip amount={activeComeBet} />
                       </span>
                     </button>
@@ -4018,7 +4097,7 @@ export default function TablePage() {
                       </span>
                     </div>
 
-                    <span className="absolute bottom-2 right-5">
+                    <span className="absolute bottom-2 left-5">
                       <BetChip amount={fieldBet} />
                     </span>
                   </button>
