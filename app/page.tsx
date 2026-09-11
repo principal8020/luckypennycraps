@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const games = [
   {
-    eyebrow: "LIVE NOW",
+    eyebrow: "PLAY NOW",
     title: "Craps",
     body: "Play on a full casino-style table, practice bets, take odds, control scenarios, and learn strategies step by step.",
     href: "/table",
@@ -17,7 +17,7 @@ const games = [
     live: true,
   },
   {
-    eyebrow: "LIVE NOW",
+    eyebrow: "PLAY NOW",
     title: "Blackjack",
     body: "Play complete hands, practice hit, stand, double, and split decisions, and turn on the Strategy Coach whenever you want guidance.",
     href: "/blackjack",
@@ -25,7 +25,7 @@ const games = [
     live: true,
   },
   {
-    eyebrow: "LIVE NOW",
+    eyebrow: "PLAY NOW",
     title: "Roulette",
     body: "Practice straight-up, split, street, corner, and outside bets on a 38-pocket American wheel with realistic payouts and detailed spin history.",
     href: "/roulette",
@@ -39,6 +39,24 @@ const games = [
     href: "#",
     cta: "Coming Soon",
     live: false,
+  },
+];
+
+const featuredGames = [
+  {
+    title: "Craps",
+    body: "Full betting layout, guided lessons, practice controls, and strategy modes.",
+    href: "/table",
+  },
+  {
+    title: "Blackjack",
+    body: "Complete hand play, splitting and doubling, plus an optional Strategy Coach.",
+    href: "/blackjack",
+  },
+  {
+    title: "Roulette",
+    body: "American wheel, inside and outside bets, Learn Mode, and detailed spin history.",
+    href: "/roulette",
   },
 ];
 
@@ -60,7 +78,7 @@ export default function Home() {
         <div>
           <div className="mb-4 inline-flex rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">Casino games built for practice and learning</div>
           <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-tight text-[#0d3525] sm:text-6xl">Learn casino games by <span className="text-amber-600">actually playing them.</span></h1>
-          <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-slate-700 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps, blackjack, and American roulette are live now, with baccarat and more planned next.</p>
+          <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-slate-700 sm:text-lg">Lucky Penny Gaming combines playable casino-style simulators with guided lessons, practice controls, strategy coaching, and analytics. Craps, blackjack, and American roulette are ready to play now, with baccarat and more planned next.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/roulette" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Roulette</Link>
             <Link href="/blackjack" className="rounded-xl bg-amber-400 px-6 py-3.5 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Play Blackjack</Link>
@@ -86,38 +104,25 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Link
-              href="/table"
-              className="group flex min-h-[190px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
-            >
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">
-                Live table
-              </div>
-              <div className="mt-2 text-3xl font-black text-white">Craps</div>
-              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
-                Full betting layout, guided lessons, practice controls, and strategy modes.
-              </p>
-              <div className="mt-auto pt-4 text-sm font-black text-amber-300 group-hover:text-white">
-                Play Craps →
-              </div>
-            </Link>
-
-            <Link
-              href="/blackjack"
-              className="group flex min-h-[190px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
-            >
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">
-                Live table
-              </div>
-              <div className="mt-2 text-3xl font-black text-white">Blackjack</div>
-              <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/65">
-                Complete hand play, splitting and doubling, plus an optional Strategy Coach.
-              </p>
-              <div className="mt-auto pt-4 text-sm font-black text-amber-300 group-hover:text-white">
-                Play Blackjack →
-              </div>
-            </Link>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {featuredGames.map((game) => (
+              <Link
+                key={game.title}
+                href={game.href}
+                className="group flex min-h-[205px] flex-col rounded-2xl border border-amber-300/55 bg-[#061b14]/90 p-4 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-emerald-950/90"
+              >
+                <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-400">
+                  Play now
+                </div>
+                <div className="mt-2 text-2xl font-black text-white">{game.title}</div>
+                <p className="mt-3 text-xs font-medium leading-5 text-emerald-50/65">
+                  {game.body}
+                </p>
+                <div className="mt-auto pt-4 text-xs font-black text-amber-300 group-hover:text-white">
+                  Play {game.title} →
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
