@@ -149,3 +149,94 @@ test("losing positions return nothing", () => {
   assert.equal(result.grossReturn, 10);
   assert.equal(result.net, -10);
 });
+
+function round({
+  outcome,
+  playerTotal,
+  bankerTotal,
+  natural = false,
+}) {
+  return {
+    outcome,
+    playerTotal,
+    bankerTotal,
+    natural,
+    playerCards: [],
+    bankerCards: [],
+    playerInitialTotal: playerTotal,
+    bankerInitialTotal: bankerTotal,
+    remainingShoe: [],
+  };
+}
+
+test("Dragon Bonus uses the standard margin paytable", () => {
+  const paytable = [
+    [4, 1],
+    [5, 2],
+    [6, 4],
+    [7, 6],
+    [8, 10],
+    [9, 30],
+  ];
+
+  for (const [margin, odds] of paytable) {
+    const result = rules.settleDragonBonus(
+      "player",
+      5,
+      round({ outcome: "player", playerTotal: margin, bankerTotal: 0 })
+    );
+    assert.equal(result.result, "win");
+    assert.equal(result.odds, odds);
+    assert.equal(result.grossReturn, 5 * (odds + 1));
+  }
+});
+
+test("Dragon Bonus loses on a non-natural win by three or fewer points", () => {
+  const result = rules.settleDragonBonus(
+    "banker",
+    10,
+    round({ outcome: "banker", playerTotal: 4, bankerTotal: 7 })
+  );
+  assert.equal(result.result, "loss");
+  assert.equal(result.grossReturn, 0);
+});
+
+test("a winning natural pays Dragon Bonus 1 to 1", () => {
+  const result = rules.settleDragonBonus(
+    "banker",
+    10,
+    round({ outcome: "banker", playerTotal: 7, bankerTotal: 9, natural: true })
+  );
+  assert.equal(result.result, "win");
+  assert.equal(result.odds, 1);
+  assert.equal(result.grossReturn, 20);
+});
+
+test("equal naturals push both Dragon Bonus wagers", () => {
+  const baccaratRound = round({
+    outcome: "tie",
+    playerTotal: 8,
+    bankerTotal: 8,
+    natural: true,
+  });
+  assert.equal(rules.settleDragonBonus("player", 5, baccaratRound).result, "push");
+  assert.equal(rules.settleDragonBonus("banker", 5, baccaratRound).result, "push");
+});
+
+test("main and Dragon Bonus bets settle together", () => {
+  const baccaratRound = round({
+    outcome: "player",
+    playerTotal: 9,
+    bankerTotal: 0,
+  });
+  const result = rules.settleBaccaratBets(
+    { player: 5, banker: 0, tie: 0, playerDragon: 5, bankerDragon: 0 },
+    "player",
+    baccaratRound
+  );
+
+  assert.equal(result.totalStake, 10);
+  assert.equal(result.grossReturn, 165);
+  assert.equal(result.net, 155);
+  assert.deepEqual(result.winningBets, ["player", "playerDragon"]);
+});

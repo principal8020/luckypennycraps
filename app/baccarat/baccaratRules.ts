@@ -20,8 +20,9 @@ export type BaccaratCard = {
   suit: BaccaratSuit;
 };
 
-export type BaccaratBetType = "player" | "banker" | "tie";
-export type BaccaratOutcome = BaccaratBetType;
+export type BaccaratOutcome = "player" | "banker" | "tie";
+export type BaccaratDragonSide = "player" | "banker";
+export type BaccaratBetType = BaccaratOutcome | "playerDragon" | "bankerDragon";
 export type BaccaratBets = Record<BaccaratBetType, number>;
 
 export type BaccaratRound = {
@@ -41,8 +42,16 @@ export type BaccaratSettlement = {
   grossReturn: number;
   net: number;
   commission: number;
-  winningBet: BaccaratBetType | null;
+  winningBets: BaccaratBetType[];
   pushedBets: BaccaratBetType[];
+  dragonResults: BaccaratDragonResult[];
+};
+
+export type BaccaratDragonResult = {
+  side: BaccaratDragonSide;
+  result: "win" | "loss" | "push";
+  odds: number | null;
+  grossReturn: number;
 };
 
 const suits: BaccaratSuit[] = ["♠", "♥", "♦", "♣"];
@@ -206,25 +215,91 @@ export function dealBaccaratRound(shoe: BaccaratCard[]): BaccaratRound {
   };
 }
 
+const dragonBonusOddsByMargin: Record<number, number> = {
+  4: 1,
+  5: 2,
+  6: 4,
+  7: 6,
+  8: 10,
+  9: 30,
+};
+
+export function settleDragonBonus(
+  side: BaccaratDragonSide,
+  amount: number,
+  round: BaccaratRound
+): BaccaratDragonResult {
+  if (amount <= 0) {
+    return { side, result: "loss", odds: null, grossReturn: 0 };
+  }
+
+  if (round.natural && round.outcome === "tie") {
+    return { side, result: "push", odds: null, grossReturn: amount };
+  }
+
+  if (round.outcome !== side) {
+    return { side, result: "loss", odds: null, grossReturn: 0 };
+  }
+
+  if (round.natural) {
+    return { side, result: "win", odds: 1, grossReturn: amount * 2 };
+  }
+
+  const margin = Math.abs(round.playerTotal - round.bankerTotal);
+  const odds = dragonBonusOddsByMargin[margin];
+  if (!odds) {
+    return { side, result: "loss", odds: null, grossReturn: 0 };
+  }
+
+  return {
+    side,
+    result: "win",
+    odds,
+    grossReturn: amount * (odds + 1),
+  };
+}
+
 export function settleBaccaratBets(
   bets: BaccaratBets,
-  outcome: BaccaratOutcome
+  outcome: BaccaratOutcome,
+  round?: BaccaratRound
 ): BaccaratSettlement {
-  const totalStake = bets.player + bets.banker + bets.tie;
+  const playerDragon = bets.playerDragon ?? 0;
+  const bankerDragon = bets.bankerDragon ?? 0;
+  const totalStake = bets.player + bets.banker + bets.tie + playerDragon + bankerDragon;
   let grossReturn = 0;
   let commission = 0;
+  const winningBets: BaccaratBetType[] = [];
   const pushedBets: BaccaratBetType[] = [];
 
   if (outcome === "player") {
     grossReturn += bets.player * 2;
+    if (bets.player > 0) winningBets.push("player");
   } else if (outcome === "banker") {
     commission = bets.banker * 0.05;
     grossReturn += bets.banker * 1.95;
+    if (bets.banker > 0) winningBets.push("banker");
   } else {
     grossReturn += bets.tie * 9;
+    if (bets.tie > 0) winningBets.push("tie");
     grossReturn += bets.player + bets.banker;
     if (bets.player > 0) pushedBets.push("player");
     if (bets.banker > 0) pushedBets.push("banker");
+  }
+
+  const dragonResults: BaccaratDragonResult[] = [];
+  if (round) {
+    const playerResult = settleDragonBonus("player", playerDragon, round);
+    const bankerResult = settleDragonBonus("banker", bankerDragon, round);
+    dragonResults.push(playerResult, bankerResult);
+
+    for (const dragonResult of dragonResults) {
+      const betType: BaccaratBetType =
+        dragonResult.side === "player" ? "playerDragon" : "bankerDragon";
+      grossReturn += dragonResult.grossReturn;
+      if (dragonResult.result === "win") winningBets.push(betType);
+      if (dragonResult.result === "push") pushedBets.push(betType);
+    }
   }
 
   return {
@@ -232,8 +307,8 @@ export function settleBaccaratBets(
     grossReturn,
     net: grossReturn - totalStake,
     commission,
-    winningBet: bets[outcome] > 0 ? outcome : null,
+    winningBets,
     pushedBets,
+    dragonResults,
   };
 }
-

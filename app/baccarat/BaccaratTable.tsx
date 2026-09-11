@@ -46,9 +46,16 @@ const TABLE_MIN = 5;
 const TABLE_MAX = 1000;
 const CHIP_VALUES = [1, 5, 25, 100, 500];
 const CARD_DELAY_MS = 380;
+const THIRD_CARD_CUE_MS = 2000;
 const RESULT_DELAY_MS = 350;
 const OUTCOME_DISPLAY_MS = 1700;
-const emptyBets: BaccaratBets = { player: 0, banker: 0, tie: 0 };
+const emptyBets: BaccaratBets = {
+  player: 0,
+  banker: 0,
+  tie: 0,
+  playerDragon: 0,
+  bankerDragon: 0,
+};
 
 function pause(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
@@ -70,7 +77,7 @@ function PlayingCard({ card, index }: { card: BaccaratCard; index: number }) {
   const red = card.suit === "♥" || card.suit === "♦";
   return (
     <div
-      className={`blackjack-card-slot h-20 w-14 sm:h-28 sm:w-20 ${index % 2 === 0 ? "-rotate-2" : "rotate-2"}`}
+      className={`baccarat-card blackjack-card-slot h-20 w-14 sm:h-28 sm:w-20 ${index % 2 === 0 ? "-rotate-2" : "rotate-2"}`}
       aria-label={`${card.rank} of ${card.suit}`}
     >
       <div className="blackjack-card-enter relative h-full w-full rounded-lg border border-zinc-300 bg-[#fffdf6] text-zinc-950 shadow-[0_10px_24px_rgba(0,0,0,.42)]">
@@ -108,7 +115,7 @@ function Chip({ value, selected, disabled, onClick }: { value: number; selected:
       disabled={disabled}
       onClick={onClick}
       aria-pressed={selected}
-      className={`relative flex h-11 w-11 items-center justify-center rounded-full border-[4px] border-dashed text-[10px] font-black shadow-lg transition sm:h-14 sm:w-14 sm:text-xs disabled:cursor-not-allowed disabled:opacity-35 ${color} ${selected ? "scale-110 ring-4 ring-amber-300 ring-offset-2 ring-offset-[#061710]" : "enabled:hover:-translate-y-0.5"}`}
+      className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[4px] border-dashed text-[9px] font-black shadow-lg transition sm:h-14 sm:w-14 sm:text-xs disabled:cursor-not-allowed disabled:opacity-35 ${color} ${selected ? "scale-110 ring-4 ring-amber-300 ring-offset-2 ring-offset-[#061710]" : "enabled:hover:-translate-y-0.5"}`}
     >
       <span className="absolute inset-[5px] rounded-full border border-current opacity-35" />
       <span className="relative">${value}</span>
@@ -121,7 +128,10 @@ function cardText(cards: BaccaratCard[]) {
 }
 
 function betLabel(type: BaccaratBetType) {
-  return type === "player" ? "Player" : type === "banker" ? "Banker" : "Tie";
+  if (type === "player") return "Player";
+  if (type === "banker") return "Banker";
+  if (type === "tie") return "Tie";
+  return type === "playerDragon" ? "Player Dragon Bonus" : "Banker Dragon Bonus";
 }
 
 function drawExplanation(round: BaccaratRound) {
@@ -160,14 +170,19 @@ export function BaccaratTable() {
   const [history, setHistory] = useState<BaccaratHistoryEntry[]>([]);
   const [sessionPL, setSessionPL] = useState(0);
   const [handsPlayed, setHandsPlayed] = useState(0);
-  const [message, setMessage] = useState("Choose Player, Banker, or Tie, then deal.");
+  const [message, setMessage] = useState("Choose Player, Banker, Tie, or Dragon Bonus, then deal.");
   const [isAnimating, setIsAnimating] = useState(false);
   const [roundOutcome, setRoundOutcome] = useState<RoundOutcomeNotice | null>(null);
   const [learnMode, setLearnMode] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
+  const [nextRecipient, setNextRecipient] = useState<"player" | "banker" | null>(null);
 
-  const totalBet = bets.player + bets.banker + bets.tie;
+  const totalBet = Object.values(bets).reduce((total, amount) => total + amount, 0);
   const displayedBets = roundState === "dealing" ? lockedBets : bets;
-  const displayedTotalBet = displayedBets.player + displayedBets.banker + displayedBets.tie;
+  const displayedTotalBet = Object.values(displayedBets).reduce(
+    (total, amount) => total + amount,
+    0
+  );
   const playerTotal = playerCards.length ? baccaratHandTotal(playerCards) : null;
   const bankerTotal = bankerCards.length ? baccaratHandTotal(bankerCards) : null;
   const invalidPosition = (Object.values(bets) as number[]).some(
@@ -176,7 +191,11 @@ export function BaccaratTable() {
   const canDeal = !isAnimating && totalBet >= TABLE_MIN && !invalidPosition;
   const canBet = !isAnimating && roundState !== "dealing";
   const learnStep = !lastRound
-    ? bets.player === TABLE_MIN && bets.banker === 0 && bets.tie === 0
+    ? bets.player === TABLE_MIN &&
+      bets.banker === 0 &&
+      bets.tie === 0 &&
+      bets.playerDragon === 0 &&
+      bets.bankerDragon === 0
       ? "deal"
       : "bet"
     : "review";
@@ -190,6 +209,26 @@ export function BaccaratTable() {
     };
   }, [history]);
 
+  const scoreboard = useMemo(() => {
+    const player = history.filter((entry) => entry.outcome === "player").length;
+    const banker = history.filter((entry) => entry.outcome === "banker").length;
+    const tie = history.filter((entry) => entry.outcome === "tie").length;
+    const leadingOutcome = history[0]?.outcome;
+    const streak = leadingOutcome
+      ? history.findIndex((entry) => entry.outcome !== leadingOutcome)
+      : 0;
+
+    return {
+      player,
+      banker,
+      tie,
+      streak: leadingOutcome ? (streak === -1 ? history.length : streak) : 0,
+      leadingOutcome,
+    };
+  }, [history]);
+
+  const beadRoad = useMemo(() => history.slice(0, 72).reverse(), [history]);
+
   function prepareFreshRound() {
     setRoundState("betting");
     setPlayerCards([]);
@@ -197,6 +236,7 @@ export function BaccaratTable() {
     setLastRound(null);
     setLockedBets({ ...emptyBets });
     setRoundOutcome(null);
+    setNextRecipient(null);
   }
 
   function placeBet(type: BaccaratBetType, reduce = false) {
@@ -236,7 +276,10 @@ export function BaccaratTable() {
 
   function repeatLastBet() {
     if (!canBet) return;
-    const amount = previousBets.player + previousBets.banker + previousBets.tie;
+    const amount = Object.values(previousBets).reduce(
+      (total, wager) => total + wager,
+      0
+    );
     if (!amount) {
       setMessage("Complete a hand before using Repeat.");
       return;
@@ -266,6 +309,8 @@ export function BaccaratTable() {
     setSessionPL(0);
     setHandsPlayed(0);
     setRoundOutcome(null);
+    setNextRecipient(null);
+    setRemoveMode(false);
     setMessage("Session reset. Choose a position to begin.");
   }
 
@@ -305,6 +350,7 @@ export function BaccaratTable() {
     setBankerCards([]);
     setLastRound(null);
     setRoundOutcome(null);
+    setNextRecipient(null);
     const wagers = { ...bets };
     setLockedBets(wagers);
     setPreviousBets(wagers);
@@ -329,8 +375,11 @@ export function BaccaratTable() {
     await pause(CARD_DELAY_MS);
 
     if (round.playerCards[2]) {
-      setMessage(`Player draws on ${round.playerInitialTotal}.`);
+      setNextRecipient("player");
+      setMessage(`Player draws on ${round.playerInitialTotal}. Player receives the next card.`);
+      await pause(THIRD_CARD_CUE_MS);
       setPlayerCards(round.playerCards);
+      setNextRecipient(null);
       await pause(CARD_DELAY_MS);
     } else if (round.natural) {
       setMessage("Natural 8 or 9. Both hands stand.");
@@ -339,13 +388,16 @@ export function BaccaratTable() {
     }
 
     if (round.bankerCards[2]) {
-      setMessage(`Banker draws on ${round.bankerInitialTotal}.`);
+      setNextRecipient("banker");
+      setMessage(`Banker draws on ${round.bankerInitialTotal}. Banker receives the next card.`);
+      await pause(THIRD_CARD_CUE_MS);
       setBankerCards(round.bankerCards);
+      setNextRecipient(null);
       await pause(CARD_DELAY_MS);
     }
 
     await pause(RESULT_DELAY_MS);
-    const settlement = settleBaccaratBets(wagers, round.outcome);
+    const settlement = settleBaccaratBets(wagers, round.outcome, round);
     const id = Date.now();
     const winner = betLabel(round.outcome);
     const detail = `${winner} ${round.outcome === "tie" ? round.playerTotal : round.outcome === "player" ? round.playerTotal : round.bankerTotal}`;
@@ -422,12 +474,12 @@ export function BaccaratTable() {
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <div className="baccarat-page-summary mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Lucky Penny Baccarat</div>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">Baccarat practice table</h1>
           <p className="mt-1 max-w-2xl text-sm font-medium leading-5 text-emerald-50/65">
-            Bet Player, Banker, or Tie while the standard Punto Banco drawing rules run automatically.
+            Bet Player, Banker, Tie, or Dragon Bonus while the standard Punto Banco drawing rules run automatically.
           </p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2 text-center sm:w-auto sm:grid-cols-4">
@@ -445,10 +497,10 @@ export function BaccaratTable() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[24px] border-[7px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_26px_70px_rgba(0,0,0,.65),inset_0_0_0_3px_rgba(214,166,72,.28)] sm:rounded-[34px] sm:border-[12px]">
-        <div className="relative min-h-[680px] overflow-hidden border-[3px] border-[#cfbd8c]/75 px-2 py-4 sm:min-h-[720px] sm:border-[4px] sm:px-6 sm:py-5" style={{ backgroundImage: "radial-gradient(circle at 50% 16%,rgba(255,255,255,.07),transparent 30%),linear-gradient(145deg,#0a6847,#075538 58%,#06442f),repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0px,rgba(255,255,255,.015) 1px,transparent 1px,transparent 3px)" }}>
-          <div className="pointer-events-none absolute left-1/2 top-[76px] h-[390px] w-[94%] -translate-x-1/2 rounded-[50%] border-2 border-amber-100/65 sm:top-[82px] sm:h-[430px] sm:w-[88%] sm:border-[3px]" />
-          <div className="pointer-events-none absolute left-1/2 top-[108px] h-[320px] w-[82%] -translate-x-1/2 rounded-[50%] border border-amber-100/20 sm:top-[118px] sm:h-[355px] sm:w-[76%]" />
+      <div className="baccarat-table-shell overflow-hidden rounded-[24px] border-[7px] border-[#5a2d0b] bg-[#075f3d] shadow-[0_26px_70px_rgba(0,0,0,.65),inset_0_0_0_3px_rgba(214,166,72,.28)] sm:rounded-[34px] sm:border-[12px]">
+        <div className="baccarat-felt relative min-h-[520px] overflow-hidden border-[3px] border-[#cfbd8c]/75 px-2 py-4 sm:min-h-[610px] sm:border-[4px] sm:px-6 sm:py-5" style={{ backgroundImage: "radial-gradient(circle at 50% 16%,rgba(255,255,255,.07),transparent 30%),linear-gradient(145deg,#0a6847,#075538 58%,#06442f),repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0px,rgba(255,255,255,.015) 1px,transparent 1px,transparent 3px)" }}>
+          <div className="baccarat-felt-oval pointer-events-none absolute left-1/2 top-[76px] h-[390px] w-[94%] -translate-x-1/2 rounded-[50%] border-2 border-amber-100/65 sm:top-[82px] sm:h-[430px] sm:w-[88%] sm:border-[3px]" />
+          <div className="baccarat-felt-oval pointer-events-none absolute left-1/2 top-[108px] h-[320px] w-[82%] -translate-x-1/2 rounded-[50%] border border-amber-100/20 sm:top-[118px] sm:h-[355px] sm:w-[76%]" />
 
           {roundOutcome ? (
             <div key={roundOutcome.id} className="pointer-events-none fixed inset-0 z-[200]" role="status" aria-live="polite">
@@ -462,71 +514,64 @@ export function BaccaratTable() {
             </div>
           ) : null}
 
-          <div className="relative z-10 text-center">
+          <div className="baccarat-payout relative z-10 text-center">
             <div className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-100/85 sm:text-xs">Player 1 to 1 • Banker 0.95 to 1 • Tie 8 to 1</div>
-            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-100/65">Standard Punto Banco • 8-deck shoe</div>
+            <div className="baccarat-payout-sub mt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-100/65">Standard Punto Banco • 8-deck shoe</div>
           </div>
 
-          <div className="relative z-10 mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-3 sm:mt-12 sm:gap-10">
+          <div className="baccarat-hands relative z-10 mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-3 sm:mt-12 sm:gap-10">
             {([
               ["PLAYER", playerCards, playerTotal, "border-sky-300/35 bg-sky-950/15 text-sky-100"],
               ["BANKER", bankerCards, bankerTotal, "border-red-300/35 bg-red-950/15 text-red-100"],
             ] as const).map(([label, cards, total, color]) => (
-              <div key={label} className={`min-h-[174px] rounded-2xl border p-3 text-center sm:min-h-[218px] sm:p-4 ${color}`}>
-                <div className="text-[10px] font-black tracking-[0.2em]">{label} • {total ?? "?"}</div>
-                <div className="mt-4 flex min-h-[90px] items-center justify-center -space-x-2 sm:min-h-[120px] sm:space-x-1">
+              <div key={label} className={`baccarat-hand relative min-h-[174px] rounded-2xl border p-3 text-center transition duration-300 sm:min-h-[218px] sm:p-4 ${color} ${nextRecipient === label.toLowerCase() ? "scale-[1.025] ring-4 ring-amber-200 shadow-[0_0_34px_rgba(253,230,138,.72)]" : ""}`}>
+                {nextRecipient === label.toLowerCase() ? <span className="absolute -top-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-amber-300 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-950">Next card</span> : null}
+                <div className="text-xs font-black tracking-[0.2em] sm:text-sm">{label}</div>
+                <div className="mt-0.5 text-3xl font-black leading-none sm:text-4xl">{total ?? "?"}</div>
+                <div className="mt-3 flex min-h-[90px] items-center justify-center -space-x-2 sm:min-h-[120px] sm:space-x-1">
                   {cards.length ? cards.map((card, index) => <PlayingCard key={card.id} card={card} index={index} />) : <span className="text-sm font-bold opacity-35">Waiting for cards</span>}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="relative z-10 mx-auto mt-4 w-fit max-w-[95%] rounded-full border border-white/15 bg-black/30 px-4 py-2 text-center text-xs font-black text-amber-100 shadow-lg">{message}</div>
+          <div className="baccarat-message relative z-10 mx-auto mt-4 w-fit max-w-[95%] rounded-full border border-white/15 bg-black/30 px-4 py-2 text-center text-xs font-black text-amber-100 shadow-lg">{message}</div>
 
-          {learnMode ? <div className="relative z-20 mx-auto mt-4 max-w-4xl">{learnPanel}</div> : null}
+          {learnMode ? <div className="baccarat-learn-panel relative z-20 mx-auto mt-4 max-w-4xl">{learnPanel}</div> : null}
 
-          <div className="relative z-10 mx-auto mt-5 grid max-w-4xl grid-cols-3 gap-2 sm:gap-4">
-            {([
-              ["player", "PLAYER", "Pays 1 to 1", "border-sky-300 bg-sky-950/55 text-sky-50"],
-              ["tie", "TIE", "Pays 8 to 1", "border-amber-300 bg-amber-950/55 text-amber-50"],
-              ["banker", "BANKER", "Pays 0.95 to 1", "border-red-300 bg-red-950/55 text-red-50"],
-            ] as const).map(([type, label, payout, color]) => {
-              const highlighted = learnMode && learnStep === "bet" && type === "player";
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  disabled={!canBet}
-                  onClick={(event) => placeBet(type, event.shiftKey)}
-                  className={`relative min-h-[104px] rounded-2xl border-2 px-2 py-4 text-center shadow-[inset_0_0_24px_rgba(0,0,0,.2)] transition enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[126px] sm:px-4 ${color} ${highlighted ? "scale-[1.025] ring-4 ring-sky-200 shadow-[0_0_30px_rgba(125,211,252,.65)]" : ""}`}
-                >
-                  <div className="text-base font-black sm:text-2xl">{label}</div>
-                  <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.1em] opacity-70 sm:text-[10px]">{payout}</div>
-                  <div className="mt-2 text-xl font-black text-white sm:text-2xl">${money(displayedBets[type])}</div>
-                  {highlighted ? <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-300 px-3 py-1 text-[9px] font-black uppercase text-sky-950">Place here</span> : null}
-                </button>
-              );
-            })}
-          </div>
+          <div className="baccarat-bets relative z-10 mx-auto mt-5 grid max-w-4xl grid-cols-3 gap-2 sm:gap-4">
+            <button
+              type="button"
+              disabled={!canBet}
+              onClick={(event) => placeBet("player", event.shiftKey || removeMode)}
+              className={`baccarat-main-bet relative min-h-[112px] rounded-2xl border-2 border-sky-300 bg-sky-950/55 px-2 py-4 text-center text-sky-50 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] transition enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[136px] sm:px-4 ${learnMode && learnStep === "bet" ? "scale-[1.025] ring-4 ring-sky-200 shadow-[0_0_30px_rgba(125,211,252,.65)]" : ""}`}
+            >
+              <div className="text-base font-black sm:text-2xl">PLAYER</div>
+              <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.1em] opacity-70 sm:text-[10px]">Pays 1 to 1</div>
+              <div className="mt-2 text-xl font-black text-white sm:text-2xl">${money(displayedBets.player)}</div>
+              {learnMode && learnStep === "bet" ? <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-300 px-3 py-1 text-[9px] font-black uppercase text-sky-950">Place here</span> : null}
+            </button>
 
-          <div className="relative z-30 mx-auto mt-4 max-w-5xl rounded-2xl border border-emerald-200/25 bg-[#073d2b]/95 p-3 shadow-[0_15px_30px_rgba(0,0,0,.25)] backdrop-blur sm:p-4 lg:sticky lg:bottom-2">
-            <div className="grid gap-3 lg:grid-cols-[auto_1fr_auto] lg:items-end">
-              <div>
-                <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.14em] text-emerald-300/75"><span>Bet chips</span><span>Shift-click removes</span></div>
-                <div className="grid grid-cols-5 place-items-center gap-1.5 sm:flex sm:gap-2">
-                  {CHIP_VALUES.map((value) => <Chip key={value} value={value} selected={selectedChip === value} disabled={!canBet} onClick={() => setSelectedChip(value)} />)}
+            <div className="baccarat-center-bets grid min-h-[112px] grid-rows-2 overflow-hidden rounded-2xl border-2 border-amber-300 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] sm:min-h-[136px]">
+              <button type="button" disabled={!canBet} onClick={(event) => placeBet("tie", event.shiftKey || removeMode)} className="bg-amber-950/55 px-2 text-center text-amber-50 transition enabled:hover:bg-amber-900/65 disabled:opacity-50">
+                <span className="block text-sm font-black sm:text-xl">TIE</span>
+                <span className="block text-[8px] font-bold uppercase opacity-70 sm:text-[9px]">8 to 1</span>
+                <span className="block text-base font-black text-white sm:text-xl">${money(displayedBets.tie)}</span>
+              </button>
+              <div className="border-t-2 border-amber-300/70 bg-violet-950/60 px-1 py-1 text-center text-violet-50" title="Natural win pays 1 to 1. A non-natural win by 4 to 9 pays from 1 to 1 up to 30 to 1.">
+                <div className="text-[9px] font-black uppercase tracking-[0.1em] sm:text-[10px]">Dragon Bonus</div>
+                <div className="grid grid-cols-2 gap-1">
+                  <button type="button" aria-label={`Player Dragon Bonus, $${money(displayedBets.playerDragon)} bet`} disabled={!canBet} onClick={(event) => placeBet("playerDragon", event.shiftKey || removeMode)} className="rounded-md border border-sky-300/45 bg-sky-950/55 py-1 text-[9px] font-black transition enabled:hover:bg-sky-900/75 disabled:opacity-50"><span className="block">PLAYER</span><span className="block text-xs">${money(displayedBets.playerDragon)}</span></button>
+                  <button type="button" aria-label={`Banker Dragon Bonus, $${money(displayedBets.bankerDragon)} bet`} disabled={!canBet} onClick={(event) => placeBet("bankerDragon", event.shiftKey || removeMode)} className="rounded-md border border-red-300/45 bg-red-950/55 py-1 text-[9px] font-black transition enabled:hover:bg-red-900/75 disabled:opacity-50"><span className="block">BANKER</span><span className="block text-xs">${money(displayedBets.bankerDragon)}</span></button>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 lg:px-4">
-                <button type="button" onClick={clearBets} disabled={!canBet || totalBet === 0} className="rounded-xl border border-emerald-300/35 bg-black/25 px-3 py-3 text-xs font-black text-emerald-50 disabled:opacity-35">CLEAR</button>
-                <button type="button" onClick={repeatLastBet} disabled={!canBet} className="rounded-xl border border-emerald-300/35 bg-black/25 px-3 py-3 text-xs font-black text-emerald-50 disabled:opacity-35">REPEAT</button>
-                <button type="button" onClick={resetSession} disabled={isAnimating} className="rounded-xl border border-emerald-300/35 bg-black/25 px-3 py-3 text-xs font-black text-emerald-50 disabled:opacity-35">RESET</button>
-              </div>
-              <div className="grid grid-cols-[auto_1fr] items-center gap-3 lg:grid-cols-1">
-                <div className="rounded-xl border border-amber-300/40 bg-black/25 px-4 py-2 text-center"><div className="text-[8px] font-black uppercase tracking-[0.13em] text-amber-200/70">Total bet</div><div className="text-xl font-black text-white">${money(totalBet)}</div></div>
-                <button type="button" onClick={deal} disabled={!canDeal} className={`relative min-h-14 rounded-xl bg-amber-400 px-6 text-sm font-black text-black shadow-lg transition enabled:hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-amber-800 disabled:text-amber-100/35 ${learnMode && learnStep === "deal" ? "ring-4 ring-sky-200 shadow-[0_0_28px_rgba(125,211,252,.65)]" : ""}`}>DEAL</button>
-              </div>
             </div>
+
+            <button type="button" disabled={!canBet} onClick={(event) => placeBet("banker", event.shiftKey || removeMode)} className="baccarat-main-bet min-h-[112px] rounded-2xl border-2 border-red-300 bg-red-950/55 px-2 py-4 text-center text-red-50 shadow-[inset_0_0_24px_rgba(0,0,0,.2)] transition enabled:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[136px] sm:px-4">
+              <div className="text-base font-black sm:text-2xl">BANKER</div>
+              <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.1em] opacity-70 sm:text-[10px]">Pays 0.95 to 1</div>
+              <div className="mt-2 text-xl font-black text-white sm:text-2xl">${money(displayedBets.banker)}</div>
+            </button>
           </div>
 
           <div className="relative z-10 mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-100/55">
@@ -534,6 +579,70 @@ export function BaccaratTable() {
           </div>
         </div>
       </div>
+
+      <div className="baccarat-control-bar sticky bottom-2 z-[100] mx-auto mt-3 max-w-6xl rounded-2xl border border-emerald-200/25 bg-[#073d2b]/95 p-2 shadow-[0_15px_36px_rgba(0,0,0,.55)] backdrop-blur sm:p-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:gap-3">
+          <div className="shrink-0">
+            <div className="mb-1 hidden items-center justify-between text-[9px] font-black uppercase tracking-[0.12em] text-emerald-300/75 sm:flex"><span>Bet chips</span><span>Shift-click removes</span></div>
+            <div className="flex gap-1.5 sm:gap-2">
+              {CHIP_VALUES.map((value) => <Chip key={value} value={value} selected={selectedChip === value} disabled={!canBet} onClick={() => setSelectedChip(value)} />)}
+            </div>
+          </div>
+          <button type="button" onClick={deal} disabled={!canDeal} className={`relative min-h-12 shrink-0 rounded-xl bg-amber-400 px-5 text-xs font-black text-black shadow-lg transition enabled:hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-amber-800 disabled:text-amber-100/35 sm:min-h-14 sm:px-7 sm:text-sm ${learnMode && learnStep === "deal" ? "ring-4 ring-sky-200 shadow-[0_0_28px_rgba(125,211,252,.65)]" : ""}`}>DEAL</button>
+          <div className="h-10 w-px shrink-0 bg-emerald-200/20" />
+          <button type="button" disabled={!canBet} onClick={() => setRemoveMode((current) => !current)} className={`min-h-11 shrink-0 rounded-xl border px-3 text-[10px] font-black sm:hidden ${removeMode ? "border-amber-300 bg-amber-300 text-amber-950" : "border-emerald-300/35 bg-black/25 text-emerald-50"}`}>{removeMode ? "REMOVE" : "ADD"}</button>
+          <button type="button" onClick={clearBets} disabled={!canBet || totalBet === 0} className="min-h-11 shrink-0 rounded-xl border border-emerald-300/35 bg-black/25 px-3 text-[10px] font-black text-emerald-50 disabled:opacity-35 sm:text-xs">CLEAR</button>
+          <button type="button" onClick={repeatLastBet} disabled={!canBet} className="min-h-11 shrink-0 rounded-xl border border-emerald-300/35 bg-black/25 px-3 text-[10px] font-black text-emerald-50 disabled:opacity-35 sm:text-xs">REPEAT</button>
+          <button type="button" onClick={resetSession} disabled={isAnimating} className="min-h-11 shrink-0 rounded-xl border border-emerald-300/35 bg-black/25 px-3 text-[10px] font-black text-emerald-50 disabled:opacity-35 sm:text-xs">RESET</button>
+          <div className="shrink-0 rounded-xl border border-amber-300/40 bg-black/25 px-4 py-1.5 text-center"><div className="text-[8px] font-black uppercase tracking-[0.13em] text-amber-200/70">Total bet</div><div className="text-lg font-black text-white">${money(totalBet)}</div></div>
+        </div>
+      </div>
+
+      <section className="mt-4 grid gap-4 lg:grid-cols-[320px_1fr]" aria-label="Baccarat scoreboards">
+        <div className="rounded-2xl border border-emerald-800/80 bg-black/20 p-4">
+          <div className="text-[9px] font-black uppercase tracking-[0.17em] text-emerald-400">Scoreboard</div>
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <h2 className="text-lg font-black">Session results</h2>
+            <span className="text-xs font-black text-emerald-100/55">{handsPlayed} hands</span>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            {([
+              ["Player", scoreboard.player, "border-sky-300/35 bg-sky-950/45 text-sky-100"],
+              ["Banker", scoreboard.banker, "border-red-300/35 bg-red-950/45 text-red-100"],
+              ["Tie", scoreboard.tie, "border-emerald-300/35 bg-emerald-950/45 text-emerald-100"],
+            ] as const).map(([label, count, color]) => (
+              <div key={label} className={`rounded-xl border px-2 py-3 ${color}`}>
+                <div className="text-[9px] font-black uppercase tracking-[0.1em] opacity-70">{label}</div>
+                <div className="mt-1 text-2xl font-black">{count}</div>
+                <div className="text-[9px] font-bold opacity-60">{handsPlayed ? `${Math.round((count / handsPlayed) * 100)}%` : "0%"}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-xl border border-emerald-900/75 bg-black/20 px-3 py-2 text-xs font-bold text-emerald-50/65">
+            Current streak: <span className="font-black text-white">{scoreboard.leadingOutcome ? `${betLabel(scoreboard.leadingOutcome)} × ${scoreboard.streak}` : "Waiting for the first hand"}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-800/80 bg-black/20 p-4">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div><div className="text-[9px] font-black uppercase tracking-[0.17em] text-emerald-400">Bead Road</div><h2 className="mt-1 text-lg font-black">Results at a glance</h2></div>
+            <div className="flex gap-3 text-[9px] font-black uppercase text-emerald-100/55"><span className="text-sky-200">● Player</span><span className="text-red-200">● Banker</span><span className="text-emerald-200">● Tie</span></div>
+          </div>
+          <p className="mt-1 text-xs font-medium text-emerald-50/50">Read each column from top to bottom, then continue to the right.</p>
+          <div className="mt-3 overflow-x-auto rounded-xl border border-emerald-900/75 bg-[#e8dfca] p-2">
+            <div className="grid w-max grid-flow-col grid-rows-6 gap-1" role="img" aria-label="Bead Road showing Baccarat hand results">
+              {Array.from({ length: 72 }, (_, index) => {
+                const entry = beadRoad[index];
+                return (
+                  <div key={entry?.id ?? `empty-${index}`} className="flex h-8 w-8 items-center justify-center rounded-sm border border-[#b8aa8c]/55 bg-[#f7f0df]">
+                    {entry ? <span className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[9px] font-black ${entry.outcome === "player" ? "border-blue-600 text-blue-700" : entry.outcome === "banker" ? "border-red-600 text-red-700" : "border-emerald-600 text-emerald-700"}`}>{entry.outcome === "player" ? "P" : entry.outcome === "banker" ? "B" : "T"}</span> : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_320px]">
         <section className="rounded-2xl border border-emerald-800/80 bg-black/20 p-4">
@@ -547,7 +656,7 @@ export function BaccaratTable() {
                   <span className={`text-sm font-black ${entry.net > 0 ? "text-emerald-300" : entry.net < 0 ? "text-red-300" : "text-amber-200"}`}>{signedMoney(entry.net)}</span>
                 </summary>
                 <div className="border-t border-emerald-900/60 px-4 py-3 text-xs font-medium leading-5 text-emerald-50/65">
-                  <div>Player: {cardText(entry.playerCards)} = {entry.playerTotal}</div><div>Banker: {cardText(entry.bankerCards)} = {entry.bankerTotal}</div><div className="mt-2">Bets: Player ${money(entry.bets.player)} • Banker ${money(entry.bets.banker)} • Tie ${money(entry.bets.tie)}</div>{entry.commission > 0 ? <div>Banker commission: ${money(entry.commission)}</div> : null}
+                  <div>Player: {cardText(entry.playerCards)} = {entry.playerTotal}</div><div>Banker: {cardText(entry.bankerCards)} = {entry.bankerTotal}</div><div className="mt-2">Bets: Player ${money(entry.bets.player)} • Banker ${money(entry.bets.banker)} • Tie ${money(entry.bets.tie)} • Player Dragon ${money(entry.bets.playerDragon)} • Banker Dragon ${money(entry.bets.bankerDragon)}</div>{entry.commission > 0 ? <div>Banker commission: ${money(entry.commission)}</div> : null}
                 </div>
               </details>
             ))}
@@ -557,7 +666,7 @@ export function BaccaratTable() {
         <aside className="rounded-2xl border border-amber-500/45 bg-amber-950/10 p-4">
           <div className="text-[9px] font-black uppercase tracking-[0.17em] text-amber-300">First-table rules</div>
           <ul className="mt-3 space-y-3 text-sm font-medium leading-5 text-emerald-50/70">
-            <li>• Closest to 9 wins. Only the final digit counts.</li><li>• Player and Banker are hand names, not seats.</li><li>• Drawing is automatic. There are no hit or stand decisions.</li><li>• Player and Banker wagers push when the result is Tie.</li><li>• Winning Banker wagers pay 0.95 to 1 after commission.</li>
+            <li>• Closest to 9 wins. Only the final digit counts.</li><li>• Player and Banker are hand names, not seats.</li><li>• Drawing is automatic. There are no hit or stand decisions.</li><li>• Player and Banker wagers push when the result is Tie.</li><li>• Winning Banker wagers pay 0.95 to 1 after commission.</li><li>• Dragon Bonus is a separate Player or Banker wager based on a natural win or winning margin.</li>
           </ul>
         </aside>
       </div>
