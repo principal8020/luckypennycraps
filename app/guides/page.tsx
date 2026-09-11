@@ -12,6 +12,14 @@ export const metadata: Metadata = {
 const guides = [
   {
     game: "Roulette",
+    title: "American Roulette Bets and Payouts Explained",
+    description:
+      "Compare every core payout, winning chance, house edge, and real dollar return before putting a chip on the layout.",
+    href: "/roulette/bets-and-payouts",
+    label: "New payout guide",
+  },
+  {
+    game: "Roulette",
     title: "How to Play American Roulette",
     description:
       "Learn the 38-pocket wheel, inside and outside bets, payouts, table minimums, and exactly where each chip belongs.",
@@ -70,7 +78,7 @@ const guides = [
 
 const comingNext = [
   "Soft Blackjack Hands Without the Soft Thinking",
-  "The House Edge, Minus the Casino Brochure",
+  "American vs. European Roulette: One Zero, Big Difference",
 ];
 
 export default function GuidesPage() {

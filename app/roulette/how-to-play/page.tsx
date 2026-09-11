@@ -175,6 +175,12 @@ export default function HowToPlayAmericanRoulettePage() {
                   </tbody>
                 </table>
               </div>
+              <Link
+                href="/roulette/bets-and-payouts"
+                className="mt-4 inline-flex text-sm font-black text-amber-700 hover:text-amber-900"
+              >
+                See the complete payout chart and dollar examples →
+              </Link>
             </section>
 
             <section className="mt-9">
@@ -247,6 +253,11 @@ export default function HowToPlayAmericanRoulettePage() {
               <Link href="/roulette" className="mt-6 inline-flex rounded-xl bg-amber-400 px-6 py-3.5 font-black text-black shadow-lg hover:bg-amber-300">
                 Practice This on the Roulette Table
               </Link>
+              <div className="mt-5">
+                <Link href="/roulette/bets-and-payouts" className="text-sm font-black text-emerald-200 hover:text-white">
+                  Next: compare Roulette bets and payouts →
+                </Link>
+              </div>
             </section>
           </div>
 

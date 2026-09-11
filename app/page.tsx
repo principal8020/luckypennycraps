@@ -136,15 +136,15 @@ export default function Home() {
               New guide • American Roulette
             </div>
             <h2 className="mt-2 text-3xl font-black text-[#123b2a]">
-              Learn the wheel before asking number 17 for a favor.
+              What does every Roulette bet actually pay?
             </h2>
             <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-              Understand inside bets, outside bets, payouts, table minimums, and what those two green zeros are doing to the math.
+              Compare inside and outside bets, winning chances, real dollar returns, and what those two green zeros are doing to the house edge.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/roulette/how-to-play" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
-              Read the Roulette Guide
+            <Link href="/roulette/bets-and-payouts" className="rounded-xl bg-amber-400 px-5 py-3 font-black text-black hover:bg-amber-300">
+              Read Bets and Payouts
             </Link>
             <Link href="/guides" className="rounded-xl border border-emerald-700 bg-white px-5 py-3 font-black text-emerald-900 hover:bg-emerald-50">
               All Guides

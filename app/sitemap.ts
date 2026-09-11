@@ -14,6 +14,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      path: "/roulette/bets-and-payouts",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       path: "/blackjack/basic-strategy",
       changeFrequency: "monthly",
       priority: 0.9,
