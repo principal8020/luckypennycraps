@@ -111,6 +111,13 @@ const guideGroups = [
         href: "/baccarat/how-to-play",
         label: "Beginner guide",
       },
+      {
+        title: "Baccarat Scoreboards Without the Fortune Telling",
+        description:
+          "Read the session scoreboard and Bead Road, understand streaks, and learn why recorded patterns cannot predict the next hand.",
+        href: "/baccarat/scoreboards",
+        label: "Scoreboard guide",
+      },
     ],
   },
 ];
@@ -122,7 +129,7 @@ const comingNext = [
   },
   {
     game: "Baccarat",
-    title: "Baccarat Scoreboards Without the Fortune Telling",
+    title: "Dragon Bonus Bets Without Breathing Fire",
   },
 ];
 

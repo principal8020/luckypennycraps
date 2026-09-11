@@ -290,6 +290,9 @@ export default function HowToPlayBaccaratPage() {
               <p className="mt-3 text-base font-medium leading-7 text-slate-700">
                 These displays describe the past. They do not predict the next hand or make a result “due.” Use them to review the session, not to ask the shoe for a weather forecast.
               </p>
+              <Link href="/baccarat/scoreboards" className="mt-4 inline-flex text-sm font-black text-amber-700 hover:text-amber-900">
+                Learn how to read the Baccarat scoreboard →
+              </Link>
             </section>
 
             <section className="mt-9">

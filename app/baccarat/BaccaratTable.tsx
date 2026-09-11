@@ -631,7 +631,12 @@ export function BaccaratTable() {
             <div><div className="text-[9px] font-black uppercase tracking-[0.17em] text-emerald-400">Bead Road</div><h2 className="mt-1 text-lg font-black">Results at a glance</h2></div>
             <div className="flex gap-3 text-[9px] font-black uppercase text-emerald-100/55"><span className="text-sky-200">● Player</span><span className="text-red-200">● Banker</span><span className="text-emerald-200">● Tie</span></div>
           </div>
-          <p className="mt-1 text-xs font-medium text-emerald-50/50">Read each column from top to bottom, then continue to the right.</p>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-medium text-emerald-50/50">Read each column from top to bottom, then continue to the right.</p>
+            <Link href="/baccarat/scoreboards" className="text-xs font-black text-amber-200 hover:text-white">
+              How to read the scoreboard →
+            </Link>
+          </div>
           <div className="mt-3 overflow-x-auto rounded-xl border border-emerald-900/75 bg-[#e8dfca] p-2">
             <div className="grid w-max grid-flow-col grid-rows-6 gap-1" role="img" aria-label="Bead Road showing Baccarat hand results">
               {Array.from({ length: 72 }, (_, index) => {
@@ -682,6 +687,9 @@ export function BaccaratTable() {
           </ul>
           <Link href="/baccarat/how-to-play" className="mt-4 inline-flex text-sm font-black text-amber-200 hover:text-white">
             Read the Baccarat beginner guide →
+          </Link>
+          <Link href="/baccarat/scoreboards" className="mt-2 flex text-sm font-black text-amber-200 hover:text-white">
+            Understand the scoreboard →
           </Link>
         </aside>
       </div>

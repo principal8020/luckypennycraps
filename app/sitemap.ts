@@ -15,6 +15,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      path: "/baccarat/scoreboards",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       path: "/roulette/how-to-play",
       changeFrequency: "monthly",
       priority: 0.9,
